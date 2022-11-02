@@ -13,6 +13,9 @@ rs_levels <- 1:4
 rs_labels <- c("No relationship", "Relationship", 
                "Open relationship", "Changing relationships")
 
+liv_levels <- 0:2
+liv_labels <- c("No partner", "Yes", "No")
+
 file <- "../Data_original/Tracker_Uni-Zurich_Modified.xlsx"
 
 raw_data <- read_excel(file)
@@ -40,25 +43,28 @@ colnames(raw_data)[58] <- "Age"
 colnames(raw_data)[59:82] <- new_names
 colnames(raw_data)[83:94] <- paste0("Civil-", 1:12)
 colnames(raw_data)[95:106] <- paste0("Relationship-", 1:12)
+colnames(raw_data)[119:130] <- paste0("Children-", 1:12)
+colnames(raw_data)[131:142] <- paste0("Living-", 1:12)
 
 raw_data <- raw_data %>% 
-  select(c(1, 58:106)) 
+  select(c(1, 58:106, 119:142)) 
 
-# check going from no relationship to married
+# check children
 
-check <- raw_data %>% 
-  filter(`Relationship-1` == "1" & `Civil-2` == "2" |
-         `Relationship-2` == "1" & `Civil-3` == "2" |
-         `Relationship-3` == "1" & `Civil-4` == "2" |
-         `Relationship-4` == "1" & `Civil-5` == "2" |
-         `Relationship-5` == "1" & `Civil-6` == "2" |
-         `Relationship-6` == "1" & `Civil-7` == "2" | #no cases
-         `Relationship-7` == "1" & `Civil-8` == "2" |
-         `Relationship-8` == "1" & `Civil-9` == "2" | #no cases
-         `Relationship-9` == "1" & `Civil-10` == "2" | #no cases
-         `Relationship-10` == "1" & `Civil-11` == "2" | #no cases
-         `Relationship-11` == "1" & `Civil-12` == "2")#no cases
+tst_ch <- raw_data %>% 
+  filter(`Children-12` < `Children-11` |
+           `Children-11` < `Children-10` |
+           `Children-10` < `Children-9` |
+           `Children-9` < `Children-8` |
+           `Children-8` < `Children-7` |
+           `Children-7` < `Children-6` |
+           `Children-6` < `Children-5` |
+           `Children-5` < `Children-4` |
+           `Children-4` < `Children-3` |
+           `Children-3` < `Children-2` |
+           `Children-2` < `Children-1`)
 
+tst_ch
 
 # check that the start and end ages make sense
 
@@ -120,16 +126,35 @@ raw_data <- raw_data %>%
                names_prefix = "Relationship-",
                values_to = "Relationship_status",
                values_drop_na = TRUE) %>% 
+  pivot_longer(cols = starts_with("Children"),
+               names_to = "Match5",
+               names_prefix = "Children-",
+               values_to = "Children",
+               values_drop_na = TRUE) %>% 
+  pivot_longer(cols = starts_with("Living"),
+               names_to = "Match6",
+               names_prefix = "Living-",
+               values_to = "Living_situation",
+               values_drop_na = TRUE) %>% 
   filter(Phase == Match2,
          Phase == Match3,
          Phase == Match4,
+         Phase == Match5,
+         Phase == Match6,
          Start_age >= 15,
          !Id %in% c("zr34u", "EN61O"),
          !(Id == "GB28U" & Phase == "4")) %>% 
   select(-contains("Match")) %>% 
   mutate(Civil_status = factor(Civil_status, levels = cs_levels, labels = cs_labels),
          Relationship_status = factor(Relationship_status, levels = rs_levels, labels = rs_labels),
-         Phase = as.numeric(Phase))
+         Phase = as.numeric(Phase),
+         Living_situation = factor(Living_situation, levels = liv_levels, labels = liv_labels),
+         Children = case_when(
+           Children == 0 ~ "No",
+           is.na(Children) ~ "No",
+           Children > 0 ~ "Yes"
+         )
+         )
   
 plot1 <- ggplot(data = raw_data, aes(Civil_status))
 plot1 + geom_bar() + geom_text(stat="count", aes(label=..count..), vjust=-1)
@@ -153,6 +178,9 @@ ggplot(raw_data, aes(x = Civil_status))+
     position = position_dodge(0.9)
   )
 
+plot3 <- ggplot(data = raw_data, aes(Children))
+plot3 + geom_bar() + geom_text(stat="count", aes(label=..count..), vjust=-1)
+
 # register EN61O does not make sense (phase 1: registered partnership + no relationship) REMOVE
 # Only two cases of Widowed+Relationship
 # Average number of phases 4.168
@@ -160,16 +188,32 @@ ggplot(raw_data, aes(x = Civil_status))+
 tst <- raw_data %>% 
   mutate(
     Status= case_when(
-      Relationship_status == "No relationship" & Civil_status == "Single" ~ 1,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" ~ 2,
-      Relationship_status == "Changing relationships" & Civil_status == "Single" ~ 3,
-      Civil_status %in% c("Married", "Registered partnership") ~ 4,
-      Relationship_status == "No relationship" & Civil_status == "Divorced" ~ 1,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" ~ 2,
-      Relationship_status == "Changing relationships" & Civil_status == "Divorced" ~ 3,
-      Relationship_status == "No relationship" & Civil_status == "Widowed" ~ 1,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" ~ 2,
-      Relationship_status == "Changing relationships" & Civil_status == "Widowed" ~ 3,
+      Relationship_status == "No relationship" & Civil_status == "Single" & Children == "No" ~ 1,
+      Relationship_status == "No relationship" & Civil_status == "Single" & Children == "Yes" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "No" ~ 2,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "Yes"  ~ 9,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes" & Living_situation == "No" ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes"  & Living_situation == "Yes" ~ 10,
+      Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "No" ~ 3,
+      Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "Yes" ~ 7,
+      Civil_status %in% c("Married", "Registered partnership") & Children == "No" ~ 4,
+      Civil_status %in% c("Married", "Registered partnership") & Children == "Yes" ~ 8,
+      Relationship_status == "No relationship" & Civil_status == "Divorced" & Children == "No" ~ 1,
+      Relationship_status == "No relationship" & Civil_status == "Divorced" & Children == "Yes" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "No" ~ 2,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "Yes" ~ 9,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "No" ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "Yes" ~ 10,
+      Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "No" ~ 3,
+      Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "Yes" ~ 7,
+      Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "No" ~ 1,
+      Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "Yes" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "No" ~ 2,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "Yes" ~ 9,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "No" ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "Yes" ~ 10,
+      Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "No" ~ 3,
+      Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "Yes" ~ 3,
       TRUE ~ 0
       )
     )                
@@ -198,11 +242,17 @@ unique(tst$Status)
 
 # cont
 
-status_levels <- 1:4
-status_labels <- c("Single",
-                   "Relationship",
-                   "Changing relationships",
-                   "Married")
+status_levels <- 1:10
+status_labels <- c("Single + no ch.",
+                   "Relationship + no ch. + not living tog.",
+                   "Changing relationships + no ch.",
+                   "Married + no ch.",
+                   "Single + ch.",
+                   "Relationship + ch. + not living tog.",
+                   "Changing rel. + ch.",
+                   "Married + ch.",
+                   "Relationship + no ch. + living tog.",
+                   "Relationship + ch. + living tog.")
 
 # status_levels <- 1:10
 # status_labels <- c("Single",
@@ -217,11 +267,11 @@ status_labels <- c("Single",
 #                    "Widowed & changing relationships")
 
 rh_data <- tst %>% 
-  select(-Civil_status, -Relationship_status) %>% 
+  select(-Civil_status, -Relationship_status, -Children) %>% 
   mutate(Status_char = factor(Status, levels = status_levels, labels = status_labels))
 
-plot3 <- ggplot(data = rh_data, aes(Status_char))
-plot3 + geom_bar() + geom_text(stat="count", aes(label=..count..), vjust=-1) + scale_x_discrete(guide = guide_axis(n.dodge=2))
+plot4 <- ggplot(data = rh_data, aes(Status_char))
+plot4 + geom_bar() + geom_text(stat="count", aes(label=..count..), vjust=-1) + scale_x_discrete(guide = guide_axis(n.dodge=2))
 
 
 
@@ -230,7 +280,7 @@ test <- seqformat(rh_data, from = "SPELL", to = "STS",
                   id = "Id", begin = "Start_age", end = "End_age", status = "Status",
                   covar = "Age", process = FALSE)
 
-alphabet <- as.character(1:4)
+alphabet <- as.character(1:10)
 
 # alphabet <- as.character(1:10)
 
@@ -244,7 +294,7 @@ cm <- cbind(status_labels, data.frame(cost_matrix_1))
 colnames(cm) <- c("Status", status_labels)
 print(cm, digits = 4)
 
-readr::write_csv(cm, "../Output/cost_matrix2.csv")
+readr::write_csv(cm, "../Output/cost_matrix_cl.csv")
 
 ### Examples with TraMineR
 
