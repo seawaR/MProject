@@ -74,7 +74,7 @@ ggplot(data, aes(Children_Nonbiological)) +
 ggplot(data, aes(Smoking)) + 
   geom_bar() + geom_text(stat="count", aes(label=..count..), vjust=-1) + scale_x_discrete(guide = guide_axis(n.dodge=2))
 
-ggplot(data, aes(Coffee)) + 
+ggplot(data, aes(as.character(Coffee))) + 
   geom_bar() + geom_text(stat="count", aes(label=..count..), vjust=-1) + scale_x_discrete(guide = guide_axis(n.dodge=2))
 
 ggplot(data, aes(Closeness_Contentment)) + 
@@ -120,4 +120,5 @@ ggplot(data, aes(Housework_Hours)) +
 
 ggplot(data, aes(Income_Household)) + 
   geom_histogram()
+
 
