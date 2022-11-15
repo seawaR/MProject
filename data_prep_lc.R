@@ -312,8 +312,19 @@ clusters <- cutree(clusterward, k = 6)
 
 clusters_labels <- factor(clusters, labels = paste("Cluster", 1:6))
 
+clusters_titles <- c("Married young with children", "Unstable relationships",
+                    "Married then separated with children", "Not married w/o children",
+                    "Long relationships, not married", "Married w/o children")
+
+clusters_labs <- ifelse(clusters_labels == "Cluster 1", clusters_titles[1],
+                        ifelse(clusters_labels == "Cluster 2", clusters_titles[2], 
+                               ifelse(clusters_labels == "Cluster 3", clusters_titles[3],
+                                      ifelse(clusters_labels == "Cluster 4", clusters_titles[4],
+                                             ifelse(clusters_labels == "Cluster 5", clusters_titles[5], clusters_titles[6])))))
+
 par(mar = c(0.5, 0.5, 0.5, 0.5))
-seqdplot(my_seq, group = clusters_labels, border = NA)
+seqdplot(my_seq, group = clusters_labs, border = NA, 
+         ltext = status_labels)
 
 
 ### Examples with TraMineR

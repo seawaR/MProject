@@ -141,35 +141,69 @@ tst <- raw_data %>%
     )                
 
 status_levels <- 1:10
-status_labels <- c("Single + no ch.",
-                   "Relationship + no ch. + not living tog.",
-                   "Changing relationships + no ch.",
-                   "Married + no ch.",
-                   "Single + ch.",
-                   "Relationship + ch. + not living tog.",
-                   "Changing rel. + ch.",
-                   "Married + ch.",
-                   "Relationship + no ch. + living tog.",
-                   "Relationship + ch. + living tog.")
+status_labels <- c("Single+no ch.",
+                   "Rel.+no ch.+apart",
+                   "Changing rel.+no ch.",
+                   "Married+no ch.",
+                   "Single+ch.",
+                   "Rel.+ch.+apart",
+                   "Changing rel.+ch.",
+                   "Married+ch.",
+                   "Rel.+no ch.+together",
+                   "Rel.+ch.+together")
 
 rh_data <- tst %>% 
   select(-Civil_status, -Relationship_status, -Children) %>% 
   mutate(Status_char = factor(Status, levels = status_levels, labels = status_labels))
 ```
 
-## About the data
+## About the data (i)
 
+- Women 40+ Healthy Aging Study (University of Zurich).
 - Psychometric instrument to obtain information about the history of romantic relationships of women aged between 40 and 75 years.
-- Part of the Women 40+ Healthy Aging Study (University of Zurich).
 - Data collected between June 2017 and February 2018.
 - Information about relationship phases starting from the age of 15 years until the current age at the time of the data collection.
 - The phases were defined by the start and end age and for each phase and information about civil status, relationship status, living situation, children and quality of the relationship was collected.
 - Data from 250 individuals available.
 
 
+## About the data (ii)
+
+Consider, for example, relationship status:
+
+- No relationship (NR)
+- In a relationship (R)
+- Open relationship (OR)
+- Changing relationships (CR)
+
+A sequence may look as follows:
+
+```{r, out.width = "800px"}
+knitr::include_graphics("../Output/sequence_example.png")
+```
+
+*Current age
+
+## Research question(s)
+
+Find the methods that produce the best clusters of sequences.
+
+- Distances between sequences
+- Clustering method
+- Clustering performance evaluation metric
+
+
+## Progress
+
+- Data cleaning/pre-processing
+- Data exploration to find the variables to use
+- Calculation and evaluation of cost matrix
+- First clustering attempt
+
+
 ## Data pre-processing
 
-- Manual corrections (unify sequences with example data or exclusion).
+- Manual corrections (unify sequences with example data or exclude individuals).
 - Several checks to exclude sequences with inconsistent data.
 - Corrections based on secondary data source.
 - Selection of variables to use (five scenarios considered).
@@ -178,23 +212,23 @@ rh_data <- tst %>%
 
 ## Exproratory - Civil status
 
-```{r civil-status}
+```{r civil-status, out.width = "600px", fig.align = "center"}
 plot1 <- ggplot(data = raw_data, aes(Civil_status))
-plot1 + geom_bar() + geom_text(stat="count", aes(label=..count..), vjust=-1)
+plot1 + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust=-0.25)
 ```
 
 
 ## Exproratory - Relationship status
 
-```{r relationship-status}
+```{r relationship-status, out.width = "600px", fig.align = "center"}
 plot2 <- ggplot(data = raw_data, aes(Relationship_status))
-plot2 + geom_bar() + geom_text(stat="count", aes(label=..count..), vjust=-1)
+plot2 + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust=-0.25)
 ```
 
 
 ## Exproratory - Civil & relationship status
 
-```{r both}
+```{r both, out.width = "600px", fig.align = "center"}
 ggplot(raw_data, aes(x = Civil_status))+
   geom_bar(
     aes(fill = Relationship_status), stat = "count", color = "white",
@@ -205,41 +239,41 @@ ggplot(raw_data, aes(x = Civil_status))+
 
 ## Exproratory - Living situation
 
-```{r living-situation}
+```{r living-situation, out.width = "600px", fig.align = "center"}
 plot4 <- ggplot(data = raw_data, aes(Living_situation))
-plot4 + geom_bar() + geom_text(stat="count", aes(label=..count..), vjust=-1)
+plot4 + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust=-0.25)
 ```
 
 
 ## Exproratory - Children
 
-```{r children}
+```{r children, out.width = "600px", fig.align = "center"}
 plot3 <- ggplot(data = raw_data, aes(Children))
-plot3 + geom_bar() + geom_text(stat="count", aes(label=..count..), vjust=-1)
+plot3 + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust=-0.25)
 ```
 
 The instrument asked about the number of children in different phases but it will only be considered the presence/absence of children.
 
 
-## Considered status
+## Considered states
 
 - Single + no children
-- Relationship + no children + not living together
+- Relationship + no children + living apart
 - Changing relationships + no children
 - Married + no children
 - Single + children
-- Relationship + children + not living together
+- Relationship + children + living apart
 - Changing rel. + children
 - Married + children
 - Relationship + no children + living together
 - Relationship + children + living together
 
 
-## Distribution of status
+## Distribution of states
 
-```{r final-status}
+```{r final-status, fig.align = "center"}
 plot5 <- ggplot(data = rh_data, aes(Status_char))
-plot5 + geom_bar() + geom_text(stat="count", aes(label=..count..), vjust=-1) + scale_x_discrete(guide = guide_axis(n.dodge=2))
+plot5 + geom_bar() + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust=-0.25) + scale_x_discrete(guide = guide_axis(n.dodge=2))
 ```
 
 
@@ -247,12 +281,61 @@ plot5 + geom_bar() + geom_text(stat="count", aes(label=..count..), vjust=-1) + s
 
 - Technique used in social sciences for the comparison of sequences.
 - Applications on life course and career path analysis. 
-- Given two sequences, it is possible to transform one sequence into another using a set of operations on the states: insert, delete and replace.
+- Given two sequences, it is possible to transform one sequence into another using a set of operations on the states: insert, delete and replace (*edit distance*).
 - Numerical values are assigned to each of this operations  and are defined in a **cost matrix**. 
 - As a result, pairwise distances between the sequences can be obtained to apply a clustering method.
 
 
-## Cost matrix
+## Example (i)
+
+Analyzing Sequence Data: Optimal Matching in Management Research (T. Biemann and D. K. Datta)
+
+- Goal: study career paths of deans at US business schools.
+- Data source: 149 CVs of deans including public and private business schools.
+- Coded into yearly data with the states: administration (A), corporation (C), faculty (F), government (G).
+
+```{r, out.width = "600px", fig.align = "center"}
+knitr::include_graphics("../Output/OMA_example0.png")
+```
+
+## Example (ii)
+
+Cost matrix:
+
+```{r, out.width = "800px", fig.align = "center"}
+knitr::include_graphics("../Output/OMA_example1.png")
+```
+
+
+## Example (iii)
+
+Distance/dissimilarities matrix for five deans:
+
+```{r, out.width = "800px", fig.align = "center"}
+knitr::include_graphics("../Output/OMA_example2.png")
+```
+
+
+## Example (iv)
+
+Two of the five resulting clusters:
+
+```{r, out.width = "800px", fig.align = "center"}
+knitr::include_graphics("../Output/OMA_example3.png")
+```
+
+
+## Cost matrix (i)
+
+Using the `R` package `TraMineR` the cost matrix is calculated with transition rates between states.
+
+Given a set of $k$ states, say, $S = \{s_1, \dots, s_k\}$, the substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq k$, is calculated as:
+
+$$ C(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i)  $$
+
+where $P(s_i|s_j)$ is the probability of transition from state $s_i$ in time $t$ to $s_j$ in time $t+1$ and $c$ is a constant (set by default to $c = 2$ so that $0 \leq C(i, j) \leq 2$)¸.
+
+## Cost matrix (ii)
 
 ```{r cost-matrix, echo=FALSE, message=FALSE}
 test <- seqformat(rh_data, from = "SPELL", to = "STS",
@@ -264,12 +347,43 @@ alphabet <- as.character(1:10)
 my_seq <- seqdef(test, alphabet = alphabet)
 
 cost_matrix_1 <- seqsubm(my_seq, method = "TRATE")
-print(cost_matrix_1, digits = 4)
+```
+
+```{r, out.width = "800px", fig.align = "center"}
+knitr::include_graphics("../Output/cost_matrix.png")
 ```
 
 
-## Clustering
+## Distance matrix
 
-- Agglomerative hierarchical method: Agnes.
+- Given $x, y \in X$ two sequences of interest. There different mappings from $T: X \to X$ such that $T(x) = y$. 
+- $T$ is composed of elements (operations) that can be insertion, deletion or substitution.
+- There is a cost associated with each operation: The substitution cost are given by the cost matrix and insertion/deletion costs are set in a way that reduces/increases the importance of time shifts (low/high).
+- The distance between $x$ and $y$ is given by the lower cost mapping.
+
+
+## Clustering (i)
+
+- Hierarchical method: Agglomerative Nesting (AGNES).
+- At the beginning each individual is a cluster and, at every step, the closest clusters are merged together.
 - Distance between two clusters is the average of the distances between the points in one cluster and the points in the other cluster.
-- 6 clusters chosen.
+- For the first attempt: 6 clusters.
+
+
+## Clustering (ii)
+
+Dendrogram:
+
+```{r, out.width = "800px", fig.align = "center"}
+knitr::include_graphics("../Output/cluster1.png")
+```
+
+
+## Clustering (iii)
+
+```{r, out.width = "800px", fig.align = "center"}
+knitr::include_graphics("../Output/cluster2.png")
+```
+
+
+## References
