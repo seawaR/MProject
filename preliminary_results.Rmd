@@ -1,8 +1,8 @@
 ---
 title: "Preliminary results"
-author: "Adriana Clavijo Daza"
-date: "2022-11-14"
-output: ioslides_presentation
+author: "Adriana Clavijo Daza, Serena Lozza (Fiacco), PhD"
+date: "2022-11-30"
+output: beamer_presentation
 ---
 
 ```{r setup, include=FALSE}
@@ -17,6 +17,7 @@ library(dplyr)
 library(stringr)
 library(ggplot2)
 library(TraMineR)
+library(cluster)
 ```
 
 ```{r data, echo = FALSE, cache=TRUE}
@@ -111,78 +112,89 @@ tst <- raw_data %>%
   mutate(
     Status= case_when(
       Relationship_status == "No relationship" & Civil_status == "Single" & Children == "No" ~ 1,
-      Relationship_status == "No relationship" & Civil_status == "Single" & Children == "Yes" ~ 5,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "No" ~ 2,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "Yes"  ~ 9,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes" & Living_situation == "No" ~ 6,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes"  & Living_situation == "Yes" ~ 10,
+      Relationship_status == "No relationship" & Civil_status == "Single" & Children == "Yes" ~ 2,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "No" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "Yes"  ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes" & Living_situation == "No" ~ 7,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes"  & Living_situation == "Yes" ~ 8,
       Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "No" ~ 3,
-      Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "Yes" ~ 7,
-      Civil_status %in% c("Married", "Registered partnership") & Children == "No" ~ 4,
-      Civil_status %in% c("Married", "Registered partnership") & Children == "Yes" ~ 8,
+      Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "Yes" ~ 4,
+      Civil_status %in% c("Married", "Registered partnership") & Children == "No" ~ 9,
+      Civil_status %in% c("Married", "Registered partnership") & Children == "Yes" ~ 10,
       Relationship_status == "No relationship" & Civil_status == "Divorced" & Children == "No" ~ 1,
       Relationship_status == "No relationship" & Civil_status == "Divorced" & Children == "Yes" ~ 5,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "No" ~ 2,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "Yes" ~ 9,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "No" ~ 6,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "Yes" ~ 10,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "No" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "Yes" ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "No" ~ 7,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "Yes" ~ 8,
       Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "No" ~ 3,
-      Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "Yes" ~ 7,
+      Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "Yes" ~ 4,
       Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "No" ~ 1,
-      Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "Yes" ~ 5,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "No" ~ 2,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "Yes" ~ 9,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "No" ~ 6,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "Yes" ~ 10,
+      Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "Yes" ~ 2,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "No" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "Yes" ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "No" ~ 7,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "Yes" ~ 8,
       Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "No" ~ 3,
-      Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "Yes" ~ 3,
+      Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "Yes" ~ 4,
       TRUE ~ 0
       )
     )                
 
 status_levels <- 1:10
 status_labels <- c("Single+no ch.",
-                   "Rel.+no ch.+apart",
-                   "Changing rel.+no ch.",
-                   "Married+no ch.",
                    "Single+ch.",
-                   "Rel.+ch.+apart",
+                   "Changing rel.+no ch.",
                    "Changing rel.+ch.",
-                   "Married+ch.",
-                   "Rel.+no ch.+together",
-                   "Rel.+ch.+together")
+                   "Rel.+apart+no ch.",
+                   "Rel.+together+no ch.",
+                   "Rel.+apart+ch.",
+                   "Rel.+together+ch.",
+                   "Married+no ch.",
+                   "Married+ch.")
 
 rh_data <- tst %>% 
   select(-Civil_status, -Relationship_status, -Children) %>% 
   mutate(Status_char = factor(Status, levels = status_levels, labels = status_labels))
 ```
 
-## About the data (i)
 
-- Women 40+ Healthy Aging Study (University of Zurich).
+## Motivation
+
+TBC
+
+
+## Women 40+ Healthy Aging Study (i)
+
+```{r, echo = FALSE, out.width= "49%", out.height = "20%", fig.show = "hold", fig.align = "center"}
+knitr::include_graphics(c("../Output/logo2.png", "../Output/logo1.png"))
+``` 
+
+- Data from 250 individuals collected between June 2017 and February 2018.
 - Psychometric instrument to obtain information about the history of romantic relationships of women aged between 40 and 75 years.
-- Data collected between June 2017 and February 2018.
+
+
+## Women 40+ Healthy Aging Study (ii)
+
 - Information about relationship phases starting from the age of 15 years until the current age at the time of the data collection.
 - The phases were defined by the start and end age and for each phase and information about civil status, relationship status, living situation, children and quality of the relationship was collected.
-- Data from 250 individuals available.
+- The data of the phases is then used to build a yearly sequence.
 
 
-## About the data (ii)
+## Data example
 
-Consider, for example, relationship status:
+Consider the relationship status:
+
+```{r, out.width = "300px"}
+knitr::include_graphics("../Output/sequence_example1.png")
+```
+*Current age
 
 - No relationship (NR)
 - In a relationship (R)
 - Open relationship (OR)
 - Changing relationships (CR)
 
-A sequence may look as follows:
-
-```{r, out.width = "800px"}
-knitr::include_graphics("../Output/sequence_example.png")
-```
-
-*Current age
 
 ## Research question(s)
 
@@ -205,30 +217,30 @@ Find the methods that produce the best clusters of sequences.
 
 - Manual corrections (unify sequences with example data or exclude individuals).
 - Several checks to exclude sequences with inconsistent data.
-- Corrections based on secondary data source.
-- Selection of variables to use (five scenarios considered).
+- Corrections based on secondary data source (double check number of children with another database that includes demographics and additional variables of the individuals).
+- Selection of variables to use (several scenarios considered).
 - In total, 239 individuals are considered for the analysis.
 
 
-## Exproratory - Civil status
+## Frequency of phases - Civil status
 
-```{r civil-status, out.width = "600px", fig.align = "center"}
+```{r civil-status, out.width = "300px", fig.align = "center"}
 plot1 <- ggplot(data = raw_data, aes(Civil_status))
 plot1 + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust=-0.25)
 ```
 
 
-## Exproratory - Relationship status
+## Frequency of phases - Relationship status
 
-```{r relationship-status, out.width = "600px", fig.align = "center"}
+```{r relationship-status, out.width = "300px", fig.align = "center"}
 plot2 <- ggplot(data = raw_data, aes(Relationship_status))
 plot2 + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust=-0.25)
 ```
 
 
-## Exproratory - Civil & relationship status
+## Frequency of phases - Civil & relationship status
 
-```{r both, out.width = "600px", fig.align = "center"}
+```{r both, out.width = "300px", fig.align = "center"}
 ggplot(raw_data, aes(x = Civil_status))+
   geom_bar(
     aes(fill = Relationship_status), stat = "count", color = "white",
@@ -237,17 +249,17 @@ ggplot(raw_data, aes(x = Civil_status))+
 ```
 
 
-## Exproratory - Living situation
+## Frequency of phases - Living situation
 
-```{r living-situation, out.width = "600px", fig.align = "center"}
+```{r living-situation, out.width = "300px", fig.align = "center"}
 plot4 <- ggplot(data = raw_data, aes(Living_situation))
 plot4 + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust=-0.25)
 ```
 
 
-## Exproratory - Children
+## Frequency of phases - Children
 
-```{r children, out.width = "600px", fig.align = "center"}
+```{r children, out.width = "300px", fig.align = "center"}
 plot3 <- ggplot(data = raw_data, aes(Children))
 plot3 + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust=-0.25)
 ```
@@ -257,21 +269,24 @@ The instrument asked about the number of children in different phases but it wil
 
 ## Considered states
 
-- Single + no children
-- Relationship + no children + living apart
-- Changing relationships + no children
-- Married + no children
-- Single + children
-- Relationship + children + living apart
-- Changing rel. + children
-- Married + children
-- Relationship + no children + living together
-- Relationship + children + living together
+- 1 = Single + no children
+- 2 = Single + children
+- 3 = Changing relationships + no children
+- 4 = Changing rel. + children
+- 5 = Relationship + living apart + no children
+- 6 = Relationship + living together + no children 
+- 7 = Relationship + living apart + children
+- 8 = Relationship + living together + children
+- 9 = Married + no children
+- 10 = Married + children
 
+```{r, out.width = "280px"}
+knitr::include_graphics("../Output/sequence_example2.png")
+```
 
 ## Distribution of states
 
-```{r final-status, fig.align = "center"}
+```{r final-status, fig.align = "center", out.width = "300px"}
 plot5 <- ggplot(data = rh_data, aes(Status_char))
 plot5 + geom_bar() + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust=-0.25) + scale_x_discrete(guide = guide_axis(n.dodge=2))
 ```
@@ -294,7 +309,7 @@ Analyzing Sequence Data: Optimal Matching in Management Research (T. Biemann and
 - Data source: 149 CVs of deans including public and private business schools.
 - Coded into yearly data with the states: administration (A), corporation (C), faculty (F), government (G).
 
-```{r, out.width = "600px", fig.align = "center"}
+```{r, out.width = "300px", fig.align = "center"}
 knitr::include_graphics("../Output/OMA_example0.png")
 ```
 
@@ -302,7 +317,7 @@ knitr::include_graphics("../Output/OMA_example0.png")
 
 Cost matrix:
 
-```{r, out.width = "800px", fig.align = "center"}
+```{r, out.width = "300px", fig.align = "center"}
 knitr::include_graphics("../Output/OMA_example1.png")
 ```
 
@@ -311,7 +326,7 @@ knitr::include_graphics("../Output/OMA_example1.png")
 
 Distance/dissimilarities matrix for five deans:
 
-```{r, out.width = "800px", fig.align = "center"}
+```{r, out.width = "300px", fig.align = "center"}
 knitr::include_graphics("../Output/OMA_example2.png")
 ```
 
@@ -320,7 +335,7 @@ knitr::include_graphics("../Output/OMA_example2.png")
 
 Two of the five resulting clusters:
 
-```{r, out.width = "800px", fig.align = "center"}
+```{r, out.width = "300px", fig.align = "center"}
 knitr::include_graphics("../Output/OMA_example3.png")
 ```
 
@@ -346,10 +361,10 @@ alphabet <- as.character(1:10)
 
 my_seq <- seqdef(test, alphabet = alphabet)
 
-cost_matrix_1 <- seqsubm(my_seq, method = "TRATE")
+cost_matrix_1 <- seqsubm(my_seq, method = "TRATE", with.missing = TRUE)
 ```
 
-```{r, out.width = "800px", fig.align = "center"}
+```{r, out.width = "300px", fig.align = "center"}
 knitr::include_graphics("../Output/cost_matrix.png")
 ```
 
@@ -361,29 +376,100 @@ knitr::include_graphics("../Output/cost_matrix.png")
 - There is a cost associated with each operation: The substitution cost are given by the cost matrix and insertion/deletion costs are set in a way that reduces/increases the importance of time shifts (low/high).
 - The distance between $x$ and $y$ is given by the lower cost mapping.
 
+```{r, echo=FALSE, message=FALSE}
+my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1, with.missing = TRUE)
+```
+
 
 ## Clustering (i)
 
 - Hierarchical method: Agglomerative Nesting (AGNES).
 - At the beginning each individual is a cluster and, at every step, the closest clusters are merged together.
 - Distance between two clusters is the average of the distances between the points in one cluster and the points in the other cluster.
-- For the first attempt: 6 clusters.
+
+```{r, echo=FALSE, message=FALSE}
+clusterward <- agnes(my_dist, diss = TRUE, method = "ward")
+```
 
 
 ## Clustering (ii)
 
 Dendrogram:
 
-```{r, out.width = "800px", fig.align = "center"}
-knitr::include_graphics("../Output/cluster1.png")
+```{r, out.width="300px", fig.align="center"}
+plot(clusterward, which.plots = 2, main = "Dendrogram")
+abline(h = 153, col = "red")
 ```
 
 
 ## Clustering (iii)
 
-```{r, out.width = "800px", fig.align = "center"}
-knitr::include_graphics("../Output/cluster2.png")
+```{r, echo=FALSE, message=FALSE, cache=TRUE}
+clusterward <- agnes(my_dist, diss = TRUE, method = "ward")
+
+clusters <- cutree(clusterward, k = 5)
+
+clusters_labels <- factor(clusters, labels = paste("Cluster", 1:5))
+```
+
+```{r, out.width = "320px", fig.align = "center"}
+#knitr::include_graphics("../Output/cluster2.png")
+par(mar = c(2, 1.7, 0.75, 0.5))
+seqdplot(my_seq, group = clusters_labels, border = NA, 
+         ltext = status_labels)
+dev.off()
 ```
 
 
+## What is personality?
+
+```{r, out.width = "200px", fig.align = "center"}
+knitr::include_graphics("../Output/personality1.png")
+```
+
+Personality refers to the enduring characteristics and behavior that comprise a person’s unique adjustment to life, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns.
+
+
+## Personality
+
+```{r, out.width = "300px", fig.align = "center"}
+knitr::include_graphics("../Output/personality2.png")
+```
+
+
+## Average personality scores by cluster
+
+```{r, echo=FALSE, message=FALSE}
+BFI_data <- read_excel("../Data_original/Adriana_BFI.xlsx")
+
+BFI_data <- BFI_data %>% 
+  select(PersCode,
+         starts_with("BFI"))
+
+all_data <- tibble(Id = colnames(my_dist), Cluster = clusters_labels) %>% 
+  left_join(BFI_data, by = c("Id" = "PersCode")) %>% 
+  group_by(Cluster) %>% 
+  summarise(Extraversion = mean(BFI_extraversion_mean, na.rm = TRUE),
+            Agreeableness = mean(BFI_agreeableness_mean, 
+                                         na.rm = TRUE),
+            Conscientiousness = mean(BFI_conscientiousness_mean,
+                                             na.rm = TRUE),
+            Neuroticism = mean(BFI_neuroticism_mean, na.rm = TRUE),
+            Openness = mean(BFI_openness_mean, na.rm = TRUE)) %>% 
+  ungroup()
+
+knitr::kable(all_data) %>% 
+  kableExtra::kable_styling(font_size = 7)
+  
+```
+
+
+
 ## References
+
+- Sequence Analysis: New Methods for Old Ideas - A. Abbott (1995)
+- Optimal Matching Analysis: A Methodological Note on Studying Career Mobility - T. W. Chan (1995)
+- Analyzing Sequence Data: Optimal Matching in
+Management Research - T. Biemann & D. K. Datta (2013)
+- Analyzing and Visualizing State Sequences in R
+with TraMineR - A. Gabadinho, G. Ritschard, N. S. Müller, M. Studer (2011)

@@ -193,34 +193,34 @@ tst <- raw_data %>%
   mutate(
     Status= case_when(
       Relationship_status == "No relationship" & Civil_status == "Single" & Children == "No" ~ 1,
-      Relationship_status == "No relationship" & Civil_status == "Single" & Children == "Yes" ~ 5,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "No" ~ 2,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "Yes"  ~ 9,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes" & Living_situation == "No" ~ 6,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes"  & Living_situation == "Yes" ~ 10,
+      Relationship_status == "No relationship" & Civil_status == "Single" & Children == "Yes" ~ 2,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "No" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "Yes"  ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes" & Living_situation == "No" ~ 7,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes"  & Living_situation == "Yes" ~ 8,
       Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "No" ~ 3,
-      Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "Yes" ~ 7,
-      Civil_status %in% c("Married", "Registered partnership") & Children == "No" ~ 4,
-      Civil_status %in% c("Married", "Registered partnership") & Children == "Yes" ~ 8,
+      Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "Yes" ~ 4,
+      Civil_status %in% c("Married", "Registered partnership") & Children == "No" ~ 9,
+      Civil_status %in% c("Married", "Registered partnership") & Children == "Yes" ~ 10,
       Relationship_status == "No relationship" & Civil_status == "Divorced" & Children == "No" ~ 1,
       Relationship_status == "No relationship" & Civil_status == "Divorced" & Children == "Yes" ~ 5,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "No" ~ 2,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "Yes" ~ 9,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "No" ~ 6,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "Yes" ~ 10,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "No" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "Yes" ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "No" ~ 7,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "Yes" ~ 8,
       Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "No" ~ 3,
-      Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "Yes" ~ 7,
+      Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "Yes" ~ 4,
       Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "No" ~ 1,
-      Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "Yes" ~ 5,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "No" ~ 2,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "Yes" ~ 9,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "No" ~ 6,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "Yes" ~ 10,
+      Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "Yes" ~ 2,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "No" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "Yes" ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "No" ~ 7,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "Yes" ~ 8,
       Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "No" ~ 3,
-      Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "Yes" ~ 3,
+      Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "Yes" ~ 4,
       TRUE ~ 0
-      )
-    )                
+    )
+  )                
 
 # tst <- raw_data %>% 
 #   mutate(
@@ -247,16 +247,16 @@ unique(tst$Status)
 # cont
 
 status_levels <- 1:10
-status_labels <- c("Single + no ch.",
-                   "Relationship + no ch. + not living tog.",
-                   "Changing relationships + no ch.",
-                   "Married + no ch.",
-                   "Single + ch.",
-                   "Relationship + ch. + not living tog.",
-                   "Changing rel. + ch.",
-                   "Married + ch.",
-                   "Relationship + no ch. + living tog.",
-                   "Relationship + ch. + living tog.")
+status_labels <- c("Single+no ch.",
+                   "Single+ch.",
+                   "Changing rel.+no ch.",
+                   "Changing rel.+ch.",
+                   "Rel.+apart+no ch.",
+                   "Rel.+together+no ch.",
+                   "Rel.+apart+ch.",
+                   "Rel.+together+ch.",
+                   "Married+no ch.",
+                   "Married+ch.")
 
 # status_levels <- 1:10
 # status_labels <- c("Single",
@@ -302,58 +302,47 @@ readr::write_csv(cm, "../Output/cost_matrix_cl.csv")
 
 # generate distances matrix with OM
 
-dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1, with.missing = TRUE)
+my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1, with.missing = TRUE)
 
 library(cluster)
 
-clusterward <- agnes(dist, diss = TRUE, method = "ward")
+clusterward <- agnes(my_dist, diss = TRUE, method = "ward")
 
-clusters <- cutree(clusterward, k = 6)
+clusters <- cutree(clusterward, k = 5)
 
-clusters_labels <- factor(clusters, labels = paste("Cluster", 1:6))
+clusters_labels <- factor(clusters, labels = paste("Cluster", 1:5))
 
 clusters_titles <- c("Married young with children", "Unstable relationships",
-                    "Married then separated with children", "Not married w/o children",
-                    "Long relationships, not married", "Married w/o children")
+                    "Married then separated with children", "Younger with children",
+                    "Long relationships w/o children", "Married w/o children")
 
 clusters_labs <- ifelse(clusters_labels == "Cluster 1", clusters_titles[1],
                         ifelse(clusters_labels == "Cluster 2", clusters_titles[2], 
                                ifelse(clusters_labels == "Cluster 3", clusters_titles[3],
-                                      ifelse(clusters_labels == "Cluster 4", clusters_titles[4],
-                                             ifelse(clusters_labels == "Cluster 5", clusters_titles[5], clusters_titles[6])))))
+                                      ifelse(clusters_labels == "Cluster 4", clusters_titles[4], clusters_titles[5]))))
 
 par(mar = c(0.5, 0.5, 0.5, 0.5))
-seqdplot(my_seq, group = clusters_labs, border = NA, 
+seqdplot(my_seq, group = clusters_labels, border = NA, 
          ltext = status_labels)
 
+BFI_data <- read_excel("../Data_original/Adriana_BFI.xlsx")
 
-### Examples with TraMineR
+BFI_data <- BFI_data %>% 
+  select(PersCode,
+         starts_with("BFI"))
 
-data("mvad")
+all_data <- tibble(Id = colnames(my_dist), Cluster = clusters_labels) %>% 
+  left_join(BFI_data, by = c("Id" = "PersCode")) %>% 
+  group_by(Cluster) %>% 
+  summarise(Average_extraversion = mean(BFI_extraversion_mean, na.rm = TRUE),
+            Average_agreeableness = mean(BFI_agreeableness_mean, na.rm = TRUE),
+            Average_conscientiousness = mean(BFI_conscientiousness_mean, na.rm = TRUE),
+            Average_neuroticism = mean(BFI_neuroticisms_mean, na.rm = TRUE),
+            Average_openness = mean(BFI_openness_mean, na.rm = TRUE)) %>% 
+  ungroup()
 
-# Alphabet of the states
-mvad.alphab <- c("employment", "FE", "HE", "joblessness",
-                 "school", "training")
+knitr::kable(all_data)
 
-# Define sequences with the data frame and the alphabet
-# xtstep is an argument for plotting
-mvad.seq <- seqdef(mvad, 17:86, xtstep = 6, alphabet = mvad.alphab)
 
-# Optimal matching with insertion/deletion cost 1 and replacement costs 
-# estimated by transition rates
-# The result is a (squared) distance matrix
-mvad.om <- seqdist(mvad.seq, method = "OM", indel = 1, sm = "TRATE")
-
-## Clustering
-
-library(cluster)
-
-clusterward <- agnes(mvad.om, diss = TRUE, method = "ward")
-
-# Vector containing cluster by individual
-mvad.cl4 <- cutree(clusterward, k = 4) 
-
-cl4.lab <- factor(mvad.cl4, labels = paste("Cluster", 1:4))
-
-# Plot cluster distributions
-seqdplot(mvad.seq, group = cl4.lab, border = NA)
+pam_clusters6 <- pam(x = dist, k =6)
+sil <- silhouette(pam_clusters6)
