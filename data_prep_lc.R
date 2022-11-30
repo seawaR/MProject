@@ -294,7 +294,7 @@ cost_matrix_1 <- seqsubm(my_seq, method = "TRATE", with.missing = TRUE)
 cost_matrix_2 <- seqsubm(my_seq, method = "FUTURE")
 cost_matrix_3 <- seqsubm(my_seq, method = "INDELSLOG")
 
-cm <- cbind(status_labels, data.frame(cost_matrix_1))
+cm <- cbind(status_labels, data.frame(cost_matrix_1[1:10,1:10]))
 colnames(cm) <- c("Status", status_labels)
 print(cm, digits = 4)
 
@@ -330,6 +330,23 @@ BFI_data <- read_excel("../Data_original/Adriana_BFI.xlsx")
 BFI_data <- BFI_data %>% 
   select(PersCode,
          starts_with("BFI"))
+
+pers_descrip <- BFI_data %>% 
+  select(PersCode,
+         ends_with("mean")) %>% 
+  pivot_longer(cols = ends_with("mean"), 
+               names_to = "Personality trait", 
+               values_to = "Value") %>% 
+  group_by(`Personality trait`) %>% 
+  summarise(Min = min(Value, na.rm = TRUE),
+            Max = max(Value, na.rm = TRUE),
+            Average = mean(Value, na.rm = TRUE),
+            `Std. deviation` = sd(Value, na.rm = TRUE)) %>% 
+  ungroup()
+
+pers_descrip[, 1] <- c("Agreeablenes", "Conscientiousness",
+                       "Extraversion", "Neuroticism", "Openness")
+  
 
 all_data <- tibble(Id = colnames(my_dist), Cluster = clusters_labels) %>% 
   left_join(BFI_data, by = c("Id" = "PersCode")) %>% 
