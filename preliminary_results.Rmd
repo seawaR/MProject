@@ -1,9 +1,12 @@
 ---
-title: "Preliminary results"
+title: "Analysis of the relationships history of women 40+"
 author: 
   - Adriana Clavijo Daza 
   - Serena Lozza (Fiacco), PhD
-date: "2022-11-30"
+institute:
+  - Statistics and Data Science Master's, Universität Bern
+  - ARTORG Center for Biomedical Engineering Research, Universität Bern
+date: "2022-12-12"
 output: beamer_presentation
 ---
 
@@ -202,13 +205,9 @@ knitr::include_graphics("../Output/sequence_example1.png")
 - Changing relationships (CR)
 
 
-## Research question(s)
+## Research question
 
-Find the methods that produce the best clusters of sequences.
-
-- Distances between sequences
-- Clustering method
-- Clustering performance evaluation metric
+- Can we get a good prediction of personality scores based on the relationship history sequences?
 
 
 ## Progress
@@ -216,15 +215,16 @@ Find the methods that produce the best clusters of sequences.
 - Data cleaning/pre-processing
 - Data exploration to find the variables to use (get a single sequence from several variables)
 - Calculation and evaluation of cost matrix
-- Clustering 
+- Hierarchical clustering 
+- Personality scores prediction using k-nearest neighbors
 
 
 ## Data pre-processing
 
-- Manual corrections of several inconsistent and incomplete records (unify sequences with example data or exclude individuals).
+- Manual corrections of several inconsistent and incomplete records.
 - Several additional automatic checks to identify sequences with inconsistent data.
-- Corrections based on secondary data source (e.g. double check number of children with another database that includes demographics and additional variables of the individuals).
-- Identification and selection of the variables and patterns that provide a wider perspective of the individuals' situations (several scenarios considered).
+- Corrections based on secondary data source.
+- Identification and selection of the variables and patterns that provide a wider perspective of the individuals' situations.
 - In total, 239 individuals are considered for the analysis.
 
 
@@ -364,7 +364,7 @@ Given a set of $k$ states, say, $S = \{s_1, \dots, s_k\}$, the substitution cost
 
 $$ C(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i)  $$
 
-where $P(s_i|s_j)$ is the probability of transition from state $s_i$ in time $t$ to $s_j$ in time $t+1$ and $c$ is a constant (set by default to $c = 2$ so that $0 \leq C(i, j) \leq 2$)¸.
+where $P(s_i|s_j)$ is the probability of transition from state $s_i$ in time $t$ to $s_j$ in time $t+1$ and $c$ is a constant (set by default to $c = 2$ so that $0 \leq C(s_i, s_j) \leq 2$)¸.
 
 ## Cost matrix (ii)
 
@@ -446,7 +446,7 @@ knitr::include_graphics("../Output/personality1.png")
 Personality refers to the enduring characteristics and behavior that comprise a person’s unique adjustment to life, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns.
 
 
-## Personality
+## The "Big Five" personality traits
 
 ```{r, out.width = "300px", fig.align = "center"}
 knitr::include_graphics("../Output/personality2.png")
@@ -478,7 +478,7 @@ pers_descrip <- BFI_data %>%
 pers_descrip[, 1] <- c("Agreeablenes", "Conscientiousness",
                        "Extraversion", "Neuroticism", "Openness")
 
-knitr::kable(pers_descrip) %>% 
+knitr::kable(pers_descrip, digits = 2) %>% 
   kableExtra::kable_styling(font_size = 8)
 ```
 
@@ -487,9 +487,8 @@ knitr::kable(pers_descrip) %>%
 
 ```{r, echo=FALSE, message=FALSE}
 all_data <- tibble(Id = colnames(my_dist), Cluster = clusters_labels) %>% 
-  left_join(BFI_data, by = c("Id" = "PersCode"))
-
-pers_descrip <- BFI_data
+  left_join(BFI_data, by = c("Id" = "PersCode")) %>% 
+  select(Id, Cluster, ends_with("mean"))
 
 by_cluster <- all_data %>% 
   group_by(Cluster) %>% 
@@ -502,15 +501,125 @@ by_cluster <- all_data %>%
             Openness = mean(BFI_openness_mean, na.rm = TRUE)) %>% 
   ungroup()
 
-knitr::kable(by_cluster) %>% 
+knitr::kable(by_cluster, digits = 2) %>% 
   kableExtra::kable_styling(font_size = 7)
+```
+
+Subjective description of the clusters:
+
+- Cluster 1: Married with children then divorced/widowed
+- Cluster 2: Sequences with more changes (unstable)
+- Cluster 3: Younger, not married with children
+- Cluster 4: Not married w/o children
+- Cluster 5: Married w/o children
+
+## k-Nearest Neighbors (kNN) algorithm
+
+- It's a non-parametric method.
+- Choose the $k$ nearest samples to an individual (distance matrix).
+- Calculate the average of the variable of interest with the $k$ samples $\rightarrow$ prediction.
+- Use a measure such as $MSE$ to select the optimal $k$.
+
+$$ MSE = \frac{1}{n} \sum_{i=1}^n (Y_i - \hat{Y}_i)^2, $$
+
+where $n$ is the number of data points considered, $Y_i$ is the observed value and $\hat{Y}_i$ is the predicted value.
+
+## k-Nearest Neighbors
+
+```{r, echo=FALSE, message=FALSE, cache=TRUE}
+set.seed(123)
+n <- dim(all_data)[1]
+size <- round(n*0.3)
+
+test_set <- sample.int(n, size)
+train_set <- 1:n
+train_set <- train_set[-test_set]
+
+test_names <- colnames(my_dist)[test_set]
+train_names <- colnames(my_dist)[train_set]
+
+find_neighbors <- function(i, matrix, k){
+  data <- sort(matrix[i, ])[-1][1:k]
+  return(names(data))
+}
+
+preditc_scores <- function(data, neighbors){
+  predictions <- data %>% 
+    filter(Id %in% neighbors) %>% 
+    summarise(Extraversion = mean(BFI_extraversion_mean, na.rm = TRUE),
+              Agreeableness = mean(BFI_agreeableness_mean, na.rm = TRUE),
+              Conscientiousness = mean(BFI_conscientiousness_mean, na.rm = TRUE),
+              Neuroticism = mean(BFI_neuroticism_mean, na.rm = TRUE),
+              Openness = mean(BFI_openness_mean, na.rm = TRUE)) %>% 
+    as.vector() %>% 
+    unlist()
+  return(predictions)
+}
+
+K <- 30
+results_train <- list()
+
+for(k in 1:K){
+all_neighbors_train <- list()
+
+for(i in seq_along(train_set)){
+  all_neighbors_train[[i]] <- find_neighbors(train_set[i], matrix = my_dist, k = k)
+}
+
+names(all_neighbors_train) <- train_names
+
+all_predictions_train <- list()
+
+for(i in seq_along(train_set)){
+  all_predictions_train[[i]] <- preditc_scores(all_data, neighbors = all_neighbors_train[[i]])
+}
+
+names(all_predictions_train) <- train_names
+
+predictions_train_df <- do.call(rbind.data.frame, all_predictions_train)
+
+colnames(predictions_train_df) <- names(all_predictions_train[[1]])
+
+predictions_train_df[, "Id"] <- train_names
+
+sq_error_train <- predictions_train_df %>% 
+  left_join(all_data, by = "Id") %>% 
+  mutate(sq_diff_Extraversion = (Extraversion - BFI_extraversion_mean)^2,
+         sq_diff_Agreeableness = (Agreeableness - BFI_agreeableness_mean)^2,
+         sq_diff_Conscientiousness = (Conscientiousness - BFI_conscientiousness_mean)^2,
+         sq_diff_Neuroticism = (Neuroticism - BFI_neuroticism_mean)^2,
+         sq_diff_Openness = (Openness - BFI_openness_mean)^2) %>% 
+  select(Id, Cluster, starts_with("sq_diff")) %>% 
+  pivot_longer(starts_with("sq_diff"), names_to = "Score", values_to = "Value") %>% 
+  group_by(Score) %>% 
+  summarise(MSQ = mean(Value, na.rm = TRUE)) %>% 
+  ungroup()
+
+colnames(sq_error_train)[2] <- paste0("MSQ_", k)
+
+sq_error_train[, 1] <- c("Agreeablenes", "Conscientiousness",
+                        "Extraversion", "Neuroticism", "Openness")
+
+results_train[[k]] <- sq_error_train
+}
+
+train_MSQ <- results_train %>% 
+  purrr::reduce(left_join, by = "Score") %>% 
+  pivot_longer(starts_with("MSQ_"), names_prefix = "MSQ_", names_to = "k", 
+               values_to = "MSE") %>% 
+  mutate(k = as.numeric(k))
+```
+
+```{r, echo=FALSE, message=FALSE, out.width = "300px", fig.align = "center"}
+ggplot(data = train_MSQ, aes(x = k, y = MSE, col = Score)) +
+  geom_line()
 ```
 
 
 ## What's next?
 
-- Prediction of personality scores based on the obtained distance matrix (k-nearest neighbors, distance-based LM) -> find the configuration that produces the best prediction
-- Ideas?
+- Use the kNN predictions to tune the parameters used in the specification of the cost matrix (e.g. indel cost, transition cost calculation)
+- Try other prediction methods (e.g. distance-based linear models)
 
 
 ## References
