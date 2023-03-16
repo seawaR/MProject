@@ -1,0 +1,510 @@
+---
+title: "Analysis of categorical sequences"
+author: "Adriana Clavijo Daza"
+date: "2023-02-15"
+output: 
+  pdf_document:
+    extra_dependencies: ["amsmath"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+```{r libs, echo = FALSE}
+library(readxl)
+library(tidyr)
+library(dplyr)
+library(stringr)
+library(ggplot2)
+library(TraMineR)
+library(cluster)
+```
+
+```{r data, echo = FALSE, cache=TRUE}
+cs_levels <- 1:6
+cs_labels <- c("Single", "Married", "Registered partnership", 
+               "Same-sex partnership", "Divorced", "Widowed")
+
+rs_levels <- 1:4
+rs_labels <- c("No relationship", "Relationship", 
+               "Open relationship", "Changing relationships")
+
+liv_levels <- 0:2
+liv_labels <- c("No partner", "Yes", "No")
+
+file <- "../Data_original/Tracker_Uni-Zurich_Modified.xlsx"
+
+raw_data <- read_excel(file)
+
+raw_data <- raw_data %>% 
+  select_if(~!all(is.na(.)))
+
+new_names <- vector(mode = "character")
+
+for (i in 1:12){
+  new_names[2*(i-1)+1] <- paste0("Start-", i)
+  new_names[2*(i-1)+2] <- paste0("End-", i)
+}
+
+colnames(raw_data)[1] <- "Id"
+colnames(raw_data)[58] <- "Age"
+colnames(raw_data)[59:82] <- new_names
+colnames(raw_data)[83:94] <- paste0("Civil-", 1:12)
+colnames(raw_data)[95:106] <- paste0("Relationship-", 1:12)
+colnames(raw_data)[119:130] <- paste0("Children-", 1:12)
+colnames(raw_data)[131:142] <- paste0("Living-", 1:12)
+
+raw_data <- raw_data %>% 
+  select(c(1, 58:106, 119:142)) 
+
+raw_data <- raw_data %>% 
+  pivot_longer(cols = starts_with("Start"),
+               names_to = "Phase",
+               names_prefix = "Start-",
+               values_to = "Start_age",
+               values_drop_na = TRUE) %>% 
+  pivot_longer(cols = starts_with("End"),
+               names_to = "Match2",
+               names_prefix = "End-",
+               values_to = "End_age",
+               values_drop_na = TRUE) %>% 
+  pivot_longer(cols = starts_with("Civil"),
+               names_to = "Match3",
+               names_prefix = "Civil-",
+               values_to = "Civil_status",
+               values_drop_na = TRUE) %>% 
+  pivot_longer(cols = starts_with("Relationship"),
+               names_to = "Match4",
+               names_prefix = "Relationship-",
+               values_to = "Relationship_status",
+               values_drop_na = TRUE) %>% 
+  pivot_longer(cols = starts_with("Children"),
+               names_to = "Match5",
+               names_prefix = "Children-",
+               values_to = "Children",
+               values_drop_na = TRUE) %>% 
+  pivot_longer(cols = starts_with("Living"),
+               names_to = "Match6",
+               names_prefix = "Living-",
+               values_to = "Living_situation",
+               values_drop_na = TRUE) %>% 
+  filter(Phase == Match2,
+         Phase == Match3,
+         Phase == Match4,
+         Phase == Match5,
+         Phase == Match6,
+         Start_age >= 15,
+         !Id %in% c("zr34u", "EN61O", "DN15U"),
+         !(Id == "GB28U" & Phase == "4")) %>% 
+  select(-contains("Match")) %>% 
+  mutate(Civil_status = factor(Civil_status, levels = cs_levels, labels = cs_labels),
+         Relationship_status = factor(Relationship_status, levels = rs_levels, labels = rs_labels),
+         Phase = as.numeric(Phase),
+         Living_situation = factor(Living_situation, levels = liv_levels, labels = liv_labels),
+         Children = case_when(
+           Children == 0 ~ "No",
+           is.na(Children) ~ "No",
+           Children > 0 ~ "Yes"
+         )
+         )
+
+tst <- raw_data %>% 
+  mutate(
+    Status= case_when(
+      Relationship_status == "No relationship" & Civil_status == "Single" & Children == "No" ~ 1,
+      Relationship_status == "No relationship" & Civil_status == "Single" & Children == "Yes" ~ 2,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "No" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "Yes"  ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes" & Living_situation == "No" ~ 7,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes"  & Living_situation == "Yes" ~ 8,
+      Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "No" ~ 3,
+      Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "Yes" ~ 4,
+      Civil_status %in% c("Married", "Registered partnership") & Children == "No" ~ 9,
+      Civil_status %in% c("Married", "Registered partnership") & Children == "Yes" ~ 10,
+      Relationship_status == "No relationship" & Civil_status == "Divorced" & Children == "No" ~ 1,
+      Relationship_status == "No relationship" & Civil_status == "Divorced" & Children == "Yes" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "No" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "Yes" ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "No" ~ 7,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "Yes" ~ 8,
+      Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "No" ~ 3,
+      Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "Yes" ~ 4,
+      Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "No" ~ 1,
+      Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "Yes" ~ 2,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "No" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "Yes" ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "No" ~ 7,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "Yes" ~ 8,
+      Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "No" ~ 3,
+      Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "Yes" ~ 4,
+      TRUE ~ 0
+      )
+    )                
+
+status_levels <- 1:10
+status_labels <- c("Single+no ch.",
+                   "Single+ch.",
+                   "Changing rel.+no ch.",
+                   "Changing rel.+ch.",
+                   "Rel.+apart+no ch.",
+                   "Rel.+together+no ch.",
+                   "Rel.+apart+ch.",
+                   "Rel.+together+ch.",
+                   "Married+no ch.",
+                   "Married+ch.")
+
+rh_data <- tst %>% 
+  select(-Civil_status, -Relationship_status, -Children) %>% 
+  mutate(Status_char = factor(Status, levels = status_levels, labels = status_labels))
+```
+
+
+## Optimal Matching
+
+Optimal Matching Analysis (OMA) is a technique used in social sciences for the comparison of sequences with applications on different areas, in particular, life course and career path analysis. OMA is based on the Needleman-Wunsch algorithm, which is used to align protein sequences. This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve.
+
+## The algorithm
+
+Given a set of $n$ states, say, $S = \{s_1, \dots, s_n\}$ a sequence of size $t > 0$ can be denoted as $X = (x_1, \dots, x_t)$, where $x_i \in S$ for $i = 1, \dots, t$. Also, the set of all possible sequences with states belonging to $S$ is denoted by $\mathbf{S}$.
+
+Let $X, Y \in \mathbf{S}$ be two sequences of size $t_1$ and $t_2$, respectively, that we want to align. In order to align the sequences, we define a matrix $F$ of size $(t_1+1) \times (t_2+1)$ structured as follows:
+
+\begin{equation}
+\label{eq:ini1}
+F(1, 1) = 0,
+\end{equation}
+
+\begin{equation}
+\label{eq:ini2}
+F(i, 1) = F(i-1, 0) - d \text{ for } i = 2, \dots, t_1,
+\end{equation}
+
+\begin{equation}
+\label{eq:ini3}
+F(1, j) = F(1, j-1) - d \text{ for } j = 2, \dots, t_2,
+\end{equation}
+
+\begin{equation}
+\label{eq:iter}
+F(i, j) = max\{F(i-1, j)-d, F(i, j-1)-d, F(i-1, j-1)+k(x_{i-1}, y{j-1})\},
+\end{equation}
+
+Where $d$ is the cost of inserting a gap, and $k(x_{i-1}, y{j-1})$ is the cost associated to change from the state $x_{i-1}$ to $y_{j-1}$, which is defined in a $K$ of size $n \times n$, known as the cost matrix.
+
+Equations \ref{eq:ini1}-\ref{eq:ini3} correspond to initialization and equation \ref{eq:iter} shows the row-wise recursion to fill the matrix and its terms represent inserting a gap in $X$, inserting a gap in $Y$ and match or mismatch, respectively.
+
+### Cost matrix
+
+There are several ways of obtaining the cost matrix.
+
+#### Transition rates
+
+The substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq n$, is calculated as:
+
+\begin{equation}
+\label{eq:transition}
+K(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i),
+\end{equation}
+
+where $P(s_i|s_j)$ is the probability of transition from state $s_i$ in time $t$ to $s_j$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
+
+### Example
+
+
+## Data from the 40+ Healthy Aging Study
+
+### About the data
+
+As part of the Women 40+ Healthy Aging Study, a large study that was conducted by the Department of Clinical Psychology and Psychotherapy of the University of Zurich, a psychometric instrument was developed in order to obtain information about the history of romantic relationships of women. The study was conducted between June 2017 and February 2018 with women between 40 and 75 years who (self-)reported good, very good or excellent health condition and the absence of acute or chronic somatic disease or mental disorder. The participants who reported psychotherapy or psychopharmacological treatment in the previous 6 months were excluded as well as habitual drinkers. Other exclusion criteria were pregnancy in the last 6 months, premature menopause, surgical menopause, intake of hormonal treatment (including contraceptives), shift-work and recent long-distance flight. The participants were recruited from the general population using online advertisement and flyers.
+
+The questionnaire asked the participants to provide information about relationship phases starting from the age of 15 years until the current age at the time of the data collection. The phases were defined by the start and end age and for each phase and information about civil status, relationship status, living situation, children and quality of the relationship was collected. Before including the data corresponding to their own history, the participants were prompted to answer some of the questions based on an example. Some of the participants were excluded when the example entries were not correctly filled. In total 250 individuals were considered in the analysis.
+
+In order to create a sequence for each participant the information about civil status, relationship status, living situation and the matenity is taken into account. A yearly sequence is created and the states considered are the following:
+
+- 1 = Single + no children
+- 2 = Single + children
+- 3 = Changing relationships + no children
+- 4 = Changing rel. + children
+- 5 = Relationship + living apart + no children
+- 6 = Relationship + living together + no children 
+- 7 = Relationship + living apart + children
+- 8 = Relationship + living together + children
+- 9 = Married + no children
+- 10 = Married + children
+
+Additionally, personality scores for the women included in the study are available. Personality refers to the enduring characteristics and behavior that comprise a person’s unique adjustment to life, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns. These scores are obtained via psychometric instruments and evaluate the main personality traits:
+
+- Agreeablenes
+- Conscientiousness 
+- Extraversion
+- Neuroticism
+- Openness
+
+Optimal matching analysis is performed with the aim to obtain clusters of sequences that are similar and characterize the most common relationship history profiles.
+
+### Application
+
+Using the `R` package `TraMineR` the cost matrix is calculated with transition rates between states.
+
+```{r cost-matrix, echo=FALSE, message=FALSE}
+test <- seqformat(rh_data, from = "SPELL", to = "STS",
+                  id = "Id", begin = "Start_age", end = "End_age", 
+                  status = "Status", covar = "Age", process = FALSE)
+
+alphabet <- as.character(1:10)
+
+my_seq <- seqdef(test, alphabet = alphabet)
+
+cost_matrix_1 <- seqsubm(my_seq, method = "TRATE", with.missing = TRUE)
+
+cm <- cbind(1:10, data.frame(cost_matrix_1[1:10,1:10]))
+colnames(cm) <- c("Status", 1:10)
+knitr::kable(cm, digits = 4)
+```
+
+From this cost matrix it is possible to calculate pairwise distances between sequences using the algorithm previously described. A correction of the distances is done to account for the differences in size of the sequences. This is done dividing the obtained distance by the length of the longest sequence.
+
+We then use this sequences to apply a hierarchical agglomerative clustering method called AGNES. The following figure shows the dendrogram. In this case, we decided to cut at 5 clusters in order to preserve enough individuals in each cluster.
+
+```{r, echo=FALSE, message=FALSE}
+my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1, 
+                   with.missing = TRUE, norm = "maxlength")
+```
+
+```{r, echo=FALSE, message=FALSE}
+clusterward <- agnes(my_dist, diss = TRUE, method = "ward")
+```
+
+```{r, out.width="400px", fig.align="center"}
+plot(clusterward, which.plots = 2, main = "Dendrogram")
+abline(h = 4.3, col = "red")
+```
+
+```{r, echo=FALSE, message=FALSE, cache=TRUE}
+clusterward <- agnes(my_dist, diss = TRUE, method = "ward")
+
+clusters <- cutree(clusterward, k = 5)
+
+clusters_labels <- factor(clusters, labels = paste("Cluster", 1:5))
+
+counts <- tibble(clusters) %>% 
+  group_by(clusters) %>% 
+  summarise(n = n()) %>% 
+  ungroup() %>% 
+  rename(Cluster = clusters)
+
+knitr::kable(counts)
+```
+
+We can visualize the clusters of sequences to and try to identify common features to describe them. It is important to consider that this description is subjective but can be useful to characterize the groups.
+
+- Cluster 1: Married with children then divorced/widowed
+- Cluster 2: Sequences with more changes (unstable)
+- Cluster 3: Younger, mostly not married without children
+- Cluster 4: Older, without children
+- Cluster 5: Married late then divorced/widowed, without children
+
+```{r, out.width = "350px", fig.align = "center"}
+#knitr::include_graphics("../Output/cluster2.png")
+par(mar = c(2, 1.7, 0.75, 0.5))
+seqdplot(my_seq, group = clusters_labels, border = NA, 
+         ltext = status_labels)
+invisible(dev.off())
+```
+
+```{r, echo=FALSE, message=FALSE}
+BFI_data <- read_excel("../Data_original/Adriana_BFI.xlsx")
+
+BFI_data <- BFI_data %>% 
+  select(PersCode,
+         starts_with("BFI"))
+
+pers_descrip <- BFI_data %>% 
+  select(PersCode,
+         ends_with("mean")) %>% 
+  pivot_longer(cols = ends_with("mean"), 
+               names_to = "Personality trait", 
+               values_to = "Value") %>% 
+  group_by(`Personality trait`) %>% 
+  summarise(Min = min(Value, na.rm = TRUE),
+            Max = max(Value, na.rm = TRUE),
+            Average = mean(Value, na.rm = TRUE),
+            `Std. deviation` = sd(Value, na.rm = TRUE)) %>% 
+  ungroup()
+
+pers_descrip[, 1] <- c("Agreeablenes", "Conscientiousness",
+                       "Extraversion", "Neuroticism", "Openness")
+
+# knitr::kable(pers_descrip, digits = 2) %>% 
+#   kableExtra::kable_styling(font_size = 8)
+```
+
+```{r, echo=FALSE, message=FALSE}
+data_all <- tibble(Id = colnames(my_dist), Cluster = clusters_labels) %>% 
+  left_join(BFI_data, by = c("Id" = "PersCode")) %>% 
+  select(Id, Cluster, ends_with("mean")) 
+
+data_all_long <- data_all %>% 
+  pivot_longer(cols = starts_with("BFI"), names_to = "Trait", 
+               names_prefix = "BFI_", values_to = "Trait_value") %>% 
+  mutate(Trait = case_when(Trait == "extraversion_mean" ~ "Extraversion",
+                           Trait == "agreeableness_mean" ~ "Agreeableness",
+                           Trait == "conscientiousness_mean" ~ "Conscientiousness",
+                           Trait == "neuroticism_mean" ~ "Neuroticism",
+                           Trait == "openness_mean" ~ "Openness",
+                           TRUE ~ "other"),
+         Cluster = sub("Cluster ", "", Cluster))
+
+# by_cluster <- data_all %>% 
+#   group_by(Cluster) %>% 
+#   summarise(Extraversion = mean(BFI_extraversion_mean, na.rm = TRUE),
+#             Agreeableness = mean(BFI_agreeableness_mean, 
+#                                          na.rm = TRUE),
+#             Conscientiousness = mean(BFI_conscientiousness_mean,
+#                                              na.rm = TRUE),
+#             Neuroticism = mean(BFI_neuroticism_mean, na.rm = TRUE),
+#             Openness = mean(BFI_openness_mean, na.rm = TRUE)) %>% 
+#   ungroup()
+# 
+# knitr::kable(by_cluster, digits = 2) %>% 
+#   kableExtra::kable_styling(font_size = 7)
+```
+Now, we are interested in predicting the personality scores based on the relationships history of the women. The following figure shows the distribution of the score for each trait by cluster. 
+
+```{r, out.width="350px", fig.align="center"}
+p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density))) 
+p + geom_histogram(bins = 14) + facet_grid(rows = vars(Cluster), 
+                                           cols = vars(Trait))
+```
+
+No difference is obvious at a first glance. However, we can also use the distance matrix to obtain predictions of the personality traits using $k$-nearest neighbors and compare them with a measure such as the mean squared error (MSE).
+
+\begin{equation}
+MSE = \frac{1}{n} \sum_{i=1}^n (Y_i - \hat{Y}_i)^2
+\end{equation}
+
+The following figure shows that the MSE for different values of $k$ decreases at the beginning and stays mostly flat after $k = 25$, meaning that the prediction is not very good and probably not much better than just taking the average value of the scores.
+
+```{r, echo=FALSE, message=FALSE, cache=TRUE}
+set.seed(123)
+n <- dim(data_all)[1]
+size <- round(n*0.3)
+
+test_set <- sample.int(n, size)
+train_set <- 1:n
+train_set <- train_set[-test_set]
+
+test_names <- colnames(my_dist)[test_set]
+train_names <- colnames(my_dist)[train_set]
+
+find_neighbors <- function(i, matrix, k){
+  data <- sort(matrix[i, ])[-1][1:k]
+  return(names(data))
+}
+
+preditc_scores <- function(data, neighbors){
+  predictions <- data %>% 
+    filter(Id %in% neighbors) %>% 
+    summarise(Extraversion = mean(BFI_extraversion_mean, na.rm = TRUE),
+              Agreeableness = mean(BFI_agreeableness_mean, na.rm = TRUE),
+              Conscientiousness = mean(BFI_conscientiousness_mean, na.rm = TRUE),
+              Neuroticism = mean(BFI_neuroticism_mean, na.rm = TRUE),
+              Openness = mean(BFI_openness_mean, na.rm = TRUE)) %>% 
+    as.vector() %>% 
+    unlist()
+  return(predictions)
+}
+
+K <- 100
+results_train <- list()
+
+for(k in 1:K){
+all_neighbors_train <- list()
+
+for(i in seq_along(train_set)){
+  all_neighbors_train[[i]] <- find_neighbors(train_set[i], matrix = my_dist, k = k)
+}
+
+names(all_neighbors_train) <- train_names
+
+all_predictions_train <- list()
+
+for(i in seq_along(train_set)){
+  all_predictions_train[[i]] <- preditc_scores(data_all, neighbors = all_neighbors_train[[i]])
+}
+
+names(all_predictions_train) <- train_names
+
+predictions_train_df <- do.call(rbind.data.frame, all_predictions_train)
+
+colnames(predictions_train_df) <- names(all_predictions_train[[1]])
+
+predictions_train_df[, "Id"] <- train_names
+
+sq_error_train <- predictions_train_df %>% 
+  left_join(data_all, by = "Id") %>% 
+  mutate(sq_diff_Extraversion = (Extraversion - BFI_extraversion_mean)^2,
+         sq_diff_Agreeableness = (Agreeableness - BFI_agreeableness_mean)^2,
+         sq_diff_Conscientiousness = (Conscientiousness - BFI_conscientiousness_mean)^2,
+         sq_diff_Neuroticism = (Neuroticism - BFI_neuroticism_mean)^2,
+         sq_diff_Openness = (Openness - BFI_openness_mean)^2) %>% 
+  select(Id, Cluster, starts_with("sq_diff")) %>% 
+  pivot_longer(starts_with("sq_diff"), names_to = "Score", values_to = "Value") %>% 
+  group_by(Score) %>% 
+  summarise(MSQ = mean(Value, na.rm = TRUE)) %>% 
+  ungroup()
+
+colnames(sq_error_train)[2] <- paste0("MSQ_", k)
+
+sq_error_train[, 1] <- c("Agreeablenes", "Conscientiousness",
+                        "Extraversion", "Neuroticism", "Openness")
+
+results_train[[k]] <- sq_error_train
+}
+
+train_MSQ <- results_train %>% 
+  purrr::reduce(left_join, by = "Score") %>% 
+  pivot_longer(starts_with("MSQ_"), names_prefix = "MSQ_", names_to = "k", 
+               values_to = "MSE") %>% 
+  mutate(k = as.numeric(k))
+```
+
+```{r, echo=FALSE, message=FALSE, out.width = "300px", fig.align = "center"}
+ggplot(data = train_MSQ, aes(x = k, y = MSE, col = Score)) +
+  geom_line()
+```
+
+### Other experiments
+
+Setting the constant $c$ as the maximum of $2 - P(s_i|s_j) - P(s_j|s_i)$.
+
+```{r, out.width = "400px", fig.align = "center"}
+knitr::include_graphics("../Output/exp1.pdf")
+```
+
+Using `norm = "gmean"` normalization in `TraMineR::seqdist`.
+
+```{r, out.width = "400px", fig.align = "center"}
+knitr::include_graphics("../Output/exp2.pdf")
+```
+
+Using `method = "FUTURE"` normalization in `TraMineR::seqcost`.
+
+```{r, out.width = "400px", fig.align = "center"}
+knitr::include_graphics("../Output/exp3.pdf")
+```
+
+Using `method = "INDELS"` normalization in `TraMineR::seqcost`.
+
+```{r, out.width = "400px", fig.align = "center"}
+knitr::include_graphics("../Output/exp4.pdf")
+```
+
+Using `method = "INDELSLOG"` normalization in `TraMineR::seqcost`.
+
+```{r, out.width = "400px", fig.align = "center"}
+knitr::include_graphics("../Output/exp5.pdf")
+```
