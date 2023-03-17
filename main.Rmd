@@ -1,5 +1,7 @@
 ---
 title: "Analysis of categorical sequences"
+header-includes:
+  - \usepackage{algpseudocode}
 author: "Adriana Clavijo Daza"
 date: "2023-02-15"
 output: 
@@ -170,37 +172,35 @@ Optimal Matching Analysis (OMA) is a technique used in social sciences for the c
 
 Given a set of $n$ states, say, $S = \{s_1, \dots, s_n\}$ a sequence of size $t > 0$ can be denoted as $X = (x_1, \dots, x_t)$, where $x_i \in S$ for $i = 1, \dots, t$. Also, the set of all possible sequences with states belonging to $S$ is denoted by $\mathbf{S}$.
 
-Let $X, Y \in \mathbf{S}$ be two sequences of size $t_1$ and $t_2$, respectively, that we want to align. In order to align the sequences, we define a matrix $F$ of size $(t_1+1) \times (t_2+1)$ structured as follows:
+Let $X, Y \in \mathbf{S}$ be two sequences of size $t_1$ and $t_2$, respectively. In order to align the sequences, we define a matrix $F$ of size $(t_1+1) \times (t_2+1)$. The matrix $F$ is filled as follows:
+\vspace{12pt}
 
-\begin{equation}
-\label{eq:ini1}
-F(1, 1) = 0,
-\end{equation}
+\begin{algorithmic}[1]
+\State $F(1, 1) \gets 0$
+\For{$j \gets 1,t_2+1$}
+  \State $F(1,j) \gets F(1, j-1) - d$
+\EndFor
+\For{$i \gets 1,t_1+1$}
+  \State $F(i,1) \gets F(i-1, 1) - d$
+\EndFor
+\For{$i \gets 2,t_1+1$}
+  \For{$j \gets 2,t_2+1$}
+    \State $F(i,j) \gets max\{F(i-1, j)-d, F(i, j-1)-d, F(i-1, j-1)+k(x_{i-1}, y_{j-1}\}$
+    \EndFor
+\EndFor
+\end{algorithmic}
 
-\begin{equation}
-\label{eq:ini2}
-F(i, 1) = F(i-1, 0) - d \text{ for } i = 2, \dots, t_1,
-\end{equation}
+Where $d$ is the cost of inserting a gap, and $k(x_{i-1}, y_{j-1})$ is the cost associated to change from the state $x_{i-1}$ to $y_{j-1}$, which is defined in a matrix $K$ of size $n \times n$, known as the cost matrix.
 
-\begin{equation}
-\label{eq:ini3}
-F(1, j) = F(1, j-1) - d \text{ for } j = 2, \dots, t_2,
-\end{equation}
+Lines 1-7 of the algorithm correspond to initialization and equation the remaining lines correspond to the row-wise recursion to fill the matrix $F$.
 
-\begin{equation}
-\label{eq:iter}
-F(i, j) = max\{F(i-1, j)-d, F(i, j-1)-d, F(i-1, j-1)+k(x_{i-1}, y{j-1})\},
-\end{equation}
-
-Where $d$ is the cost of inserting a gap, and $k(x_{i-1}, y{j-1})$ is the cost associated to change from the state $x_{i-1}$ to $y_{j-1}$, which is defined in a $K$ of size $n \times n$, known as the cost matrix.
-
-Equations \ref{eq:ini1}-\ref{eq:ini3} correspond to initialization and equation \ref{eq:iter} shows the row-wise recursion to fill the matrix and its terms represent inserting a gap in $X$, inserting a gap in $Y$ and match or mismatch, respectively.
+The value in the cell $F(t_1+1, t_2+1)$ corresponds to the minimal cost of aligning the two sequences $X$ and $Y$.
 
 ### Cost matrix
 
-There are several ways of obtaining the cost matrix.
+The `R` package `TraMineR` offers several methods for computing the cost matrix $K$.
 
-#### Transition rates
+#### Transition rates (`TRATE`)
 
 The substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq n$, is calculated as:
 
@@ -209,10 +209,54 @@ The substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq n$, is c
 K(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i),
 \end{equation}
 
-where $P(s_i|s_j)$ is the probability of transition from state $s_i$ in time $t$ to $s_j$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
+where $P(s_i|s_j)$ is the probability of transition from state $s_j$ in time $t$ to $s_i$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
+
+
+### Chi-squared distance (`FUTURE`)
+
+\begin{equation}
+\label{eq:chisq}
+K(s_i, s_j) = ChiDist(\mathbf{P_i}), \mathbf{P_j}),
+\end{equation}
+
+where $\mathbf{P_.} = (P(s_1|.), \dots, P(s_n|.))'$
+
+
+### Relative frequencies (`INDELS` and `INDELSLOG`)
+
+\begin{equation}
+\label{eq:indels}
+K(s_i, s_j) = indel_i + indel_j,
+\end{equation}
+
+where $indel_i = 1/f_i$ for method `INDEL`, $indel_i = \log[2/(1+f_i)]$ and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$. 
 
 ### Example
 
+Let us suppose that $S$ is the alphabet, and let $X = \{S,E,N,D\}$ and $Y = \{A,N,D\}$ be two sequences in $\mathbf{S}$. Supposing that $d = -2$ and 
+
+$$
+K(i,j) = 
+\begin{cases}
+1 & \text{if } i=j,\\
+-1 & \text{otherwise}
+\end{cases}
+$$
+The matrix $F$ is given by:
+
+|   |    | S  | E  | N  | D  |
+|---|----|----|----|----|----|
+|   | 0  | -2 | -4 | -6 | -8 |
+| A | -2 | -1 | -3 | -5 | -6 |
+| N | -4 | -3 | -2 | -2 | -4 |
+| D | -6 | -5 | -4 | -3 | -1 |
+
+In this simple example, we can easily see that the optimal (equivalent) alignments are:  
+S E N D with  
+A - N D or  
+- A N D  
+
+In both cases we have two matches (cost 2), one mismatch (cost -1) and one deletion (cost -2), giving a total cost -1.
 
 ## Data from the 40+ Healthy Aging Study
 
@@ -372,6 +416,7 @@ data_all_long <- data_all %>%
 # knitr::kable(by_cluster, digits = 2) %>% 
 #   kableExtra::kable_styling(font_size = 7)
 ```
+
 Now, we are interested in predicting the personality scores based on the relationships history of the women. The following figure shows the distribution of the score for each trait by cluster. 
 
 ```{r, out.width="350px", fig.align="center"}
@@ -380,13 +425,25 @@ p + geom_histogram(bins = 14) + facet_grid(rows = vars(Cluster),
                                            cols = vars(Trait))
 ```
 
-No difference is obvious at a first glance. However, we can also use the distance matrix to obtain predictions of the personality traits using $k$-nearest neighbors and compare them with a measure such as the mean squared error (MSE).
+No difference is obvious at a first glance. However, we can also use the distance matrix to obtain predictions of the personality traits using $k$-nearest neighbors ($k$NN); a non-parametric method used for prediction.
+
+Given a training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$ (a finite set of class labels for classification or a continuous range of values for regression). $k$-NN provides a way to predict the label or value for a new, data point $x_{n+1}$ (for which $Y$ is unknown) by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression).
+
+There are different ways of calculating the distance between the new data point $x_{n+1}$ and the points in $\mathcal{D}$. For instance, the Euclidean o Mahalanobis distances are usually used. In our case we already count with a matrix distance obtained by OMA.
+
+The choice of $k$ is a hyperparameter that can be tuned to optimize the performance of the $k$-NN algorithm. A larger $k$ reduces the effect of noise and outliers, but can also lead to overfitting. A smaller $k$ is more sensitive to noise and outliers, but can better capture local structure.
+
+To compare the performance of different values of $k$, we use the mean squared error (MSE).
 
 \begin{equation}
-MSE = \frac{1}{n} \sum_{i=1}^n (Y_i - \hat{Y}_i)^2
+\text{MSE} = \frac{1}{n} \sum_{i=1}^n (Y_i - \hat{Y}_i)^2
 \end{equation}
 
-The following figure shows that the MSE for different values of $k$ decreases at the beginning and stays mostly flat after $k = 25$, meaning that the prediction is not very good and probably not much better than just taking the average value of the scores.
+where $y_i$ is the observed value and $\hat{Y}_i$ is the predicted valua via $k$NN.
+
+The following figure shows for every personality score and different values of $k$ the MSE, i.e. for $k = 1, \dots, 100$ we predict values of $Y$ and compare them with the observed values using the MSE.
+
+As we can see, the MSE decreases at the beginning and stays mostly flat after $k = 25$, meaning that the prediction is not very good and probably not much better than just taking the average value of the scores.
 
 ```{r, echo=FALSE, message=FALSE, cache=TRUE}
 set.seed(123)
@@ -479,32 +536,32 @@ ggplot(data = train_MSQ, aes(x = k, y = MSE, col = Score)) +
 
 ### Other experiments
 
-Setting the constant $c$ as the maximum of $2 - P(s_i|s_j) - P(s_j|s_i)$.
+Setting the constant $c$ as the maximum of $2 - P(s_i|s_j) - P(s_j|s_i)$ for the calculation of the cost matrix.
 
-```{r, out.width = "400px", fig.align = "center"}
+```{r, out.width = "600px", fig.align = "center"}
 knitr::include_graphics("../Output/exp1.pdf")
 ```
 
 Using `norm = "gmean"` normalization in `TraMineR::seqdist`.
 
-```{r, out.width = "400px", fig.align = "center"}
+```{r, out.width = "600px", fig.align = "center"}
 knitr::include_graphics("../Output/exp2.pdf")
 ```
 
-Using `method = "FUTURE"` normalization in `TraMineR::seqcost`.
+Using `method = "FUTURE"` for the calculation of the cost matrix in `TraMineR::seqcost`.
 
-```{r, out.width = "400px", fig.align = "center"}
+```{r, out.width = "600px", fig.align = "center"}
 knitr::include_graphics("../Output/exp3.pdf")
 ```
 
-Using `method = "INDELS"` normalization in `TraMineR::seqcost`.
+Using `method = "INDELS"` for the calculation of the cost matrix in `TraMineR::seqcost`.
 
-```{r, out.width = "400px", fig.align = "center"}
+```{r, out.width = "600px", fig.align = "center"}
 knitr::include_graphics("../Output/exp4.pdf")
 ```
 
-Using `method = "INDELSLOG"` normalization in `TraMineR::seqcost`.
+Using `method = "INDELSLOG"` for the calculation of the cost matrix in `TraMineR::seqcost`.
 
-```{r, out.width = "400px", fig.align = "center"}
+```{r, out.width = "600px", fig.align = "center"}
 knitr::include_graphics("../Output/exp5.pdf")
 ```
