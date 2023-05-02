@@ -3,7 +3,7 @@ title: "Analysis of categorical sequences"
 header-includes:
   - \usepackage{algpseudocode}
 author: "Adriana Clavijo Daza"
-date: "2023-02-15"
+date: "2023-04-14"
 output: 
   pdf_document:
     extra_dependencies: ["amsmath"]
@@ -166,39 +166,41 @@ rh_data <- tst %>%
 
 ## Optimal Matching
 
-Optimal Matching Analysis (OMA) is a technique used in social sciences for the comparison of sequences with applications on different areas, in particular, life course and career path analysis. OMA is based on the Needleman-Wunsch algorithm, which is used to align protein sequences. This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve.
+Optimal Matching (OM) is a technique used in social sciences for the comparison of sequences of categorical states indexed by time. this method has applications in different areas of social sciences, for instance, life course or career path analysis. OM uses the Needleman-Wunsch algorithm, that was developed to compare biological sequences. This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve.
 
-## The algorithm
+## The OM algorithm
 
-Given a set of $n$ states, say, $S = \{s_1, \dots, s_n\}$ a sequence of size $t > 0$ can be denoted as $X = (x_1, \dots, x_t)$, where $x_i \in S$ for $i = 1, \dots, t$. Also, the set of all possible sequences with states belonging to $S$ is denoted by $\mathbf{S}$.
+Given a set of $n$ states, say, $S = \{s_1, \dots, s_n\}$ a sequence of size $t > 0$ can be denoted as $X = (x_1, \dots, x_t)$, where $x_i \in S$ for $i = 1, \dots, t$. Additionally, the set of all possible sequences with states belonging to $S$ is denoted by $\mathbf{S}$.
 
-Let $X, Y \in \mathbf{S}$ be two sequences of size $t_1$ and $t_2$, respectively. In order to align the sequences, we define a matrix $F$ of size $(t_1+1) \times (t_2+1)$. The matrix $F$ is filled as follows:
+Now, let $X, Y \in \mathbf{S}$ be two sequences of size $t_1$ and $t_2$, respectively. In order to find the optimal way to align these two sequences, we define an empty array, $F$, of size $(t_1+1) \times (t_2+1)$. The algorithm below explains how the array $F$ is filled.
 \vspace{12pt}
 
 \begin{algorithmic}[1]
 \State $F(1, 1) \gets 0$
-\For{$j \gets 1,t_2+1$}
-  \State $F(1,j) \gets F(1, j-1) - d$
+\For{$j \gets 2,t_2+1$}
+  \State $F(1,j) \gets F(1, j-1) + d$
 \EndFor
-\For{$i \gets 1,t_1+1$}
-  \State $F(i,1) \gets F(i-1, 1) - d$
+\For{$i \gets 2,t_1+1$}
+  \State $F(i,1) \gets F(i-1, 1) + d$
 \EndFor
 \For{$i \gets 2,t_1+1$}
   \For{$j \gets 2,t_2+1$}
-    \State $F(i,j) \gets max\{F(i-1, j)-d, F(i, j-1)-d, F(i-1, j-1)+k(x_{i-1}, y_{j-1}\}$
+    \State $F(i,j) \gets min\{F(i-1, j)+d, F(i, j-1)+d, F(i-1, j-1)+k(y_{i-1}, x_{j-1})\}$
     \EndFor
 \EndFor
 \end{algorithmic}
 
-Where $d$ is the cost of inserting a gap, and $k(x_{i-1}, y_{j-1})$ is the cost associated to change from the state $x_{i-1}$ to $y_{j-1}$, which is defined in a matrix $K$ of size $n \times n$, known as the cost matrix.
+Here, $d$ is the cost of inserting a gap, and $k(y_{i-1}, x_{j-1})$ is the cost associated to change from the state $y_{i-1}$ to $x_{j-1}$, which is defined in a matrix $K$ of size $n \times n$, usually known as the cost matrix.
 
-Lines 1-7 of the algorithm correspond to initialization and equation the remaining lines correspond to the row-wise recursion to fill the matrix $F$.
+The cost of inserting a gap, $d$, to align the sequences is also known as INDEL (insert or delete) cost and it can also be interpreted as deleting a term of the sequence $X$ or adding a term to the sequence $Y$, which is equivalent.
 
-The value in the cell $F(t_1+1, t_2+1)$ corresponds to the minimal cost of aligning the two sequences $X$ and $Y$.
+Lines 1-7 of the algorithm correspond to initialization and equation; starting with a cost of 0 in $F(1, 1)$ and with the first row and column representing cumulative costs of successively adding gaps. The remaining lines of the algorithm correspond to the row-wise recursion to fill the array $F$ according to the content of the sequences to be aligned. At any step of the recursion, the algorithm is looking at a specific pair of indexes (location) and calculating if substitution or insertion/deletion is the cheapest operation. Successively adding the costs of the cheapest operations results in the overall optimal cost for aligning the sequences $X$ and $Y$.
+
+When $F$ is completely filled, the value in the last cell, i.e. $F(t_1+1, t_2+1)$ corresponds to the optimal cost of aligning the sequences $X$ and $Y$. It is possible to recover the steps with a traceback from the last cell. However, this is not necessary to perform OM.
 
 ### Cost matrix
 
-The `R` package `TraMineR` offers several methods for computing the cost matrix $K$.
+The `R` package `TraMineR` provides several functions to work with sets of sequences. The package implements OM and offers several methods for computing the cost matrix $K$.
 
 #### Transition rates (`TRATE`)
 
@@ -216,7 +218,7 @@ where $P(s_i|s_j)$ is the probability of transition from state $s_j$ in time $t$
 
 \begin{equation}
 \label{eq:chisq}
-K(s_i, s_j) = ChiDist(\mathbf{P_i}), \mathbf{P_j}),
+K(s_i, s_j) = ChiDist(\mathbf{P_i}, \mathbf{P_j}),
 \end{equation}
 
 where $\mathbf{P_.} = (P(s_1|.), \dots, P(s_n|.))'$
@@ -231,32 +233,66 @@ K(s_i, s_j) = indel_i + indel_j,
 
 where $indel_i = 1/f_i$ for method `INDEL`, $indel_i = \log[2/(1+f_i)]$ and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$. 
 
-### Example
+### Example 
 
-Let us suppose that $S$ is the alphabet, and let $X = \{S,E,N,D\}$ and $Y = \{A,N,D\}$ be two sequences in $\mathbf{S}$. Supposing that $d = -2$ and 
+Let us suppose that $S$ is the alphabet, let $X = \{S,E,N,D\}$ and $Y = \{A,N,D\}$ be two sequences in $\mathbf{S}$. Supposing that $d = 2$ and 
 
 $$
 K(i,j) = 
 \begin{cases}
-1 & \text{if } i=j,\\
--1 & \text{otherwise}
+0 & \text{if } i=j,\\
+3 & \text{otherwise}
 \end{cases}
 $$
-The matrix $F$ is given by:
+The array $F$ is initialized as follows:
 
-|   |    | S  | E  | N  | D  |
-|---|----|----|----|----|----|
-|   | 0  | -2 | -4 | -6 | -8 |
-| A | -2 | -1 | -3 | -5 | -6 |
-| N | -4 | -3 | -2 | -2 | -4 |
-| D | -6 | -5 | -4 | -3 | -1 |
+|   |   | S | E | N | D |
+|---|---|---|---|---|---|
+|   | 0 | 2 | 4 | 6 | 8 |
+| A | 2 |   |   |   |   |
+| N | 4 |   |   |   |   |
+| D | 6 |   |   |   |   |
 
-In this simple example, we can easily see that the optimal (equivalent) alignments are:  
+To fill  the second row of $F$ we proceed as follows:
+
+- $F(2,2) = min\{F(1, 2)+d, F(2, 1)+d, F(1, 1)+k(y_{1}, x_{1})\} = min\{2+2, 2+2, 0+3\} = 3$
+- $F(2,3) = min\{F(1, 3)+d, F(2, 2)+d, F(1, 2)+k(y_{1}, x_{2})\} = min\{4+2, 3+2, 2+3\} = 5$
+- $F(2,4) = min\{F(1, 4)+d, F(2, 3)+d, F(1, 3)+k(y_{1}, x_{3})\} = min\{6+2, 5+2, 4+3\} = 7$
+- $F(2,5) = min\{F(1, 5)+d, F(2, 4)+d, F(1, 4)+k(y_{1}, x_{4})\} = min\{8+2, 7+2, 6+3\} = 9$
+- $F(3,2) = min\{F(2, 2)+d, F(3, 1)+d, F(2, 1)+k(y_{2}, x_{1})\} = min\{3+2, 4+2, 2+3\} = 5$
+- $F(3,3) = min\{F(2, 3)+d, F(3, 2)+d, F(2, 2)+k(y_{2}, x_{2})\} = min\{5+2, 5+2, 3+3\} = 6$
+- $F(3,4) = min\{F(2, 4)+d, F(3, 3)+d, F(2, 3)+k(y_{2}, x_{3})\} = min\{5+2, 5+2, 5+0\} = 5$
+- $F(3,5) = min\{F(2, 4)+d, F(3, 4)+d, F(2, 4)+k(y_{2}, x_{4})\} = min\{7+2, 5+2, 5+3\} = 7$
+- $F(4,2) = min\{F(3, 2)+d, F(4, 1)+d, F(3, 1)+k(y_{3}, x_{1})\} = min\{5+2, 6+2, 4+3\} = 7$
+- $F(4,3) = min\{F(3, 3)+d, F(4, 2)+d, F(3, 2)+k(y_{3}, x_{2})\} = min\{6+2, 7+2, 5+3\} = 8$
+- $F(4,4) = min\{F(3, 4)+d, F(4, 3)+d, F(3, 3)+k(y_{3}, x_{3})\} = min\{5+2, 8+2, 5+3\} = 7$
+- $F(4,5) = min\{F(3, 5)+d, F(4, 4)+d, F(3, 4)+k(y_{3}, x_{4})\} = min\{7+2, 7+2, 5+0\} = 5$
+
+|   |   | S | E | N | D |
+|---|---|---|---|---|---|
+|   | 0 | 2 | 4 | 6 | 8 |
+| A | 2 | 3 | 5 | 7 | 9 |
+| N | 4 | 5 | 6 | 5 | 7 |
+| D | 6 | 7 | 8 | 7 | 5 |
+
+In this simple example, we can easily obtain two optimal (equivalent) alignments:  
 S E N D with  
 A - N D or  
 - A N D  
 
-In both cases we have two matches (cost 2), one mismatch (cost -1) and one deletion (cost -2), giving a total cost -1.
+In both cases we have two matches (cost 0), one mismatch (cost 3) and one gap (cost 2), giving a total cost 5 that is exactly what we obtained in the last cell of $F$.
+
+### Normalization
+
+For cases when we have sequences of different lengths, it can be useful to account for this differences with a normalization factor. 
+
+Given a set two sequences $X, Y \in \mathbf{S}$ of length $t_1$ and $t_2$, respectively. Let $d_{X,Y}$ be the distance between the sequences $X$ and $Y$, $t_{max}$ the length of the longest sequence in $\mathbf{S}$ and $d_{max}$ the maximum distance between any pair of sequences in $\mathbf{S}$.
+
+We can find the following options to normalize the distances between sequences:
+
+- `maxlength`: $d_{X,Y}/t_{max}$
+- `gmean`: $1- \frac{d_{max}-d_{X,Y}}{\sqrt{t_1*t_2}}$
+- `maxdist`: $d_{X,Y}/d_{max}$
 
 ## Data from the 40+ Healthy Aging Study
 
@@ -289,7 +325,7 @@ Additionally, personality scores for the women included in the study are availab
 
 Optimal matching analysis is performed with the aim to obtain clusters of sequences that are similar and characterize the most common relationship history profiles.
 
-### Application
+### Application of OM
 
 Using the `R` package `TraMineR` the cost matrix is calculated with transition rates between states.
 
@@ -427,6 +463,8 @@ p + geom_histogram(bins = 14) + facet_grid(rows = vars(Cluster),
 
 No difference is obvious at a first glance. However, we can also use the distance matrix to obtain predictions of the personality traits using $k$-nearest neighbors ($k$NN); a non-parametric method used for prediction.
 
+## k-Nearest Neighbors
+
 Given a training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$ (a finite set of class labels for classification or a continuous range of values for regression). $k$-NN provides a way to predict the label or value for a new, data point $x_{n+1}$ (for which $Y$ is unknown) by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression).
 
 There are different ways of calculating the distance between the new data point $x_{n+1}$ and the points in $\mathcal{D}$. For instance, the Euclidean o Mahalanobis distances are usually used. In our case we already count with a matrix distance obtained by OMA.
@@ -476,32 +514,33 @@ preditc_scores <- function(data, neighbors){
 }
 
 K <- 100
-results_train <- list()
+results_test <- list()
 
 for(k in 1:K){
-all_neighbors_train <- list()
+all_neighbors_test <- list()
 
-for(i in seq_along(train_set)){
-  all_neighbors_train[[i]] <- find_neighbors(train_set[i], matrix = my_dist, k = k)
+for(i in seq_along(test_set)){
+  work_matrix <- my_dist[c(test_set[i],train_set), c(test_set[i],train_set)]
+  all_neighbors_test[[i]] <- find_neighbors(1, matrix = work_matrix, k = k)
 }
 
-names(all_neighbors_train) <- train_names
+names(all_neighbors_test) <- test_names
 
-all_predictions_train <- list()
+all_predictions_test <- list()
 
-for(i in seq_along(train_set)){
-  all_predictions_train[[i]] <- preditc_scores(data_all, neighbors = all_neighbors_train[[i]])
+for(i in seq_along(test_set)){
+  all_predictions_test[[i]] <- preditc_scores(data_all, neighbors = all_neighbors_test[[i]])
 }
 
-names(all_predictions_train) <- train_names
+names(all_predictions_test) <- test_names
 
-predictions_train_df <- do.call(rbind.data.frame, all_predictions_train)
+predictions_test_df <- do.call(rbind.data.frame, all_predictions_test)
 
-colnames(predictions_train_df) <- names(all_predictions_train[[1]])
+colnames(predictions_test_df) <- names(all_predictions_test[[1]])
 
-predictions_train_df[, "Id"] <- train_names
+predictions_test_df[, "Id"] <- test_names
 
-sq_error_train <- predictions_train_df %>% 
+sq_error_test <- predictions_test_df %>% 
   left_join(data_all, by = "Id") %>% 
   mutate(sq_diff_Extraversion = (Extraversion - BFI_extraversion_mean)^2,
          sq_diff_Agreeableness = (Agreeableness - BFI_agreeableness_mean)^2,
@@ -514,54 +553,60 @@ sq_error_train <- predictions_train_df %>%
   summarise(MSQ = mean(Value, na.rm = TRUE)) %>% 
   ungroup()
 
-colnames(sq_error_train)[2] <- paste0("MSQ_", k)
+colnames(sq_error_test)[2] <- paste0("MSQ_", k)
 
-sq_error_train[, 1] <- c("Agreeablenes", "Conscientiousness",
+sq_error_test[, 1] <- c("Agreeablenes", "Conscientiousness",
                         "Extraversion", "Neuroticism", "Openness")
 
-results_train[[k]] <- sq_error_train
+results_test[[k]] <- sq_error_test
 }
 
-train_MSQ <- results_train %>% 
+test_MSQ <- results_test %>% 
   purrr::reduce(left_join, by = "Score") %>% 
   pivot_longer(starts_with("MSQ_"), names_prefix = "MSQ_", names_to = "k", 
                values_to = "MSE") %>% 
   mutate(k = as.numeric(k))
 ```
 
-```{r, echo=FALSE, message=FALSE, out.width = "300px", fig.align = "center"}
-ggplot(data = train_MSQ, aes(x = k, y = MSE, col = Score)) +
-  geom_line()
+```{r, echo=FALSE, message=FALSE, out.width = "400px", fig.align = "center"}
+ggplot(data = test_MSQ, aes(x = k, y = MSE, col = Score)) +
+  geom_line() + ylim(0.3, 1)
 ```
 
 ### Other experiments
 
-Setting the constant $c$ as the maximum of $2 - P(s_i|s_j) - P(s_j|s_i)$ for the calculation of the cost matrix.
+- Setting the constant $c$ as the maximum of $2 - P(s_i|s_j) - P(s_j|s_i)$ for the calculation of the cost matrix.
 
-```{r, out.width = "600px", fig.align = "center"}
+```{r, out.width = "400px", fig.align = "center"}
 knitr::include_graphics("../Output/exp1.pdf")
 ```
 
-Using `norm = "gmean"` normalization in `TraMineR::seqdist`.
+- Using `norm = "gmean"` normalization in `TraMineR::seqdist`.
 
-```{r, out.width = "600px", fig.align = "center"}
+```{r, out.width = "400px", fig.align = "center"}
 knitr::include_graphics("../Output/exp2.pdf")
 ```
 
-Using `method = "FUTURE"` for the calculation of the cost matrix in `TraMineR::seqcost`.
+- Using `method = "FUTURE"` for the calculation of the cost matrix in `TraMineR::seqcost`.
 
-```{r, out.width = "600px", fig.align = "center"}
+```{r, out.width = "400px", fig.align = "center"}
 knitr::include_graphics("../Output/exp3.pdf")
 ```
 
-Using `method = "INDELS"` for the calculation of the cost matrix in `TraMineR::seqcost`.
+- Using `method = "INDELS"` for the calculation of the cost matrix in `TraMineR::seqcost`.
 
-```{r, out.width = "600px", fig.align = "center"}
+```{r, out.width = "400px", fig.align = "center"}
 knitr::include_graphics("../Output/exp4.pdf")
 ```
 
-Using `method = "INDELSLOG"` for the calculation of the cost matrix in `TraMineR::seqcost`.
+- Using `method = "INDELSLOG"` for the calculation of the cost matrix in `TraMineR::seqcost`.
 
-```{r, out.width = "600px", fig.align = "center"}
+```{r, out.width = "400px", fig.align = "center"}
 knitr::include_graphics("../Output/exp5.pdf")
+```
+
+- Using `method = "FUTURE"` for the calculation of the cost matrix in `TraMineR::seqcost` and `norm = "gmean"` normalization in `TraMineR::seqdist`.
+
+```{r, out.width = "400px", fig.align = "center"}
+knitr::include_graphics("../Output/exp6.pdf")
 ```

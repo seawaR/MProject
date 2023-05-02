@@ -154,17 +154,46 @@ alphabet <- as.character(1:10)
 
 my_seq <- seqdef(test, alphabet = alphabet)
 
-cost_matrix_1 <- seqcost(my_seq, method = "FUTURE",
-                         with.missing = TRUE)
+# exp6
+# cost_matrix_1 <- seqcost(my_seq, method = "FUTURE",
+#                          with.missing = TRUE)
+
+# exp5
+# cost_matrix_1 <- seqcost(my_seq, method = "INDELSLOG",
+#                          with.missing = TRUE)
+
+# exp4
+# cost_matrix_1 <- seqcost(my_seq, method = "INDELS",
+#                          with.missing = TRUE)
+
+# exp3
+# cost_matrix_1 <- seqcost(my_seq, method = "FUTURE",
+#                          with.missing = TRUE)
+
+# exp1
+cost_matrix_1 <- seqcost(my_seq, method = "TRATE",
+                         with.missing = TRUE, cval = 1.9982)
+
+# exp2
+# cost_matrix_1 <- seqcost(my_seq, method = "TRATE",
+#                          with.missing = TRUE)
 
 cm <- cbind(1:10, data.frame(cost_matrix_1$sm[1:10,1:10]))
 colnames(cm) <- c("Status", 1:10)
 
 
 ## ---- echo=FALSE, message=FALSE-----------
-my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1$sm, norm = "gmean",
-                   with.missing = TRUE)
+#exp6
+# my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1$sm, norm = "gmean",
+#                    with.missing = TRUE)
 
+#exp2
+# my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1$sm, norm = "gmean",
+#                    with.missing = TRUE)
+
+#base
+my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1$sm,
+                   with.missing = TRUE, norm = "maxlength")
 
 ## ---- echo=FALSE, message=FALSE-----------
 clusterward <- agnes(my_dist, diss = TRUE, method = "ward")
@@ -292,53 +321,54 @@ preditc_scores <- function(data, neighbors){
 }
 
 K <- 100
-results_train <- list()
+results_test <- list()
 
 for(k in 1:K){
-all_neighbors_train <- list()
-
-for(i in seq_along(train_set)){
-  all_neighbors_train[[i]] <- find_neighbors(train_set[i], matrix = my_dist, k = k)
+  all_neighbors_test <- list()
+  
+  for(i in seq_along(test_set)){
+    work_matrix <- my_dist[c(test_set[i],train_set), c(test_set[i],train_set)]
+    all_neighbors_test[[i]] <- find_neighbors(1, matrix = work_matrix, k = k)
+  }
+  
+  names(all_neighbors_test) <- test_names
+  
+  all_predictions_test <- list()
+  
+  for(i in seq_along(test_set)){
+    all_predictions_test[[i]] <- preditc_scores(data_all, neighbors = all_neighbors_test[[i]])
+  }
+  
+  names(all_predictions_test) <- test_names
+  
+  predictions_test_df <- do.call(rbind.data.frame, all_predictions_test)
+  
+  colnames(predictions_test_df) <- names(all_predictions_test[[1]])
+  
+  predictions_test_df[, "Id"] <- test_names
+  
+  sq_error_test <- predictions_test_df %>% 
+    left_join(data_all, by = "Id") %>% 
+    mutate(sq_diff_Extraversion = (Extraversion - BFI_extraversion_mean)^2,
+           sq_diff_Agreeableness = (Agreeableness - BFI_agreeableness_mean)^2,
+           sq_diff_Conscientiousness = (Conscientiousness - BFI_conscientiousness_mean)^2,
+           sq_diff_Neuroticism = (Neuroticism - BFI_neuroticism_mean)^2,
+           sq_diff_Openness = (Openness - BFI_openness_mean)^2) %>% 
+    select(Id, Cluster, starts_with("sq_diff")) %>% 
+    pivot_longer(starts_with("sq_diff"), names_to = "Score", values_to = "Value") %>% 
+    group_by(Score) %>% 
+    summarise(MSQ = mean(Value, na.rm = TRUE)) %>% 
+    ungroup()
+  
+  colnames(sq_error_test)[2] <- paste0("MSQ_", k)
+  
+  sq_error_test[, 1] <- c("Agreeablenes", "Conscientiousness",
+                          "Extraversion", "Neuroticism", "Openness")
+  
+  results_test[[k]] <- sq_error_test
 }
 
-names(all_neighbors_train) <- train_names
-
-all_predictions_train <- list()
-
-for(i in seq_along(train_set)){
-  all_predictions_train[[i]] <- preditc_scores(data_all, neighbors = all_neighbors_train[[i]])
-}
-
-names(all_predictions_train) <- train_names
-
-predictions_train_df <- do.call(rbind.data.frame, all_predictions_train)
-
-colnames(predictions_train_df) <- names(all_predictions_train[[1]])
-
-predictions_train_df[, "Id"] <- train_names
-
-sq_error_train <- predictions_train_df %>% 
-  left_join(data_all, by = "Id") %>% 
-  mutate(sq_diff_Extraversion = (Extraversion - BFI_extraversion_mean)^2,
-         sq_diff_Agreeableness = (Agreeableness - BFI_agreeableness_mean)^2,
-         sq_diff_Conscientiousness = (Conscientiousness - BFI_conscientiousness_mean)^2,
-         sq_diff_Neuroticism = (Neuroticism - BFI_neuroticism_mean)^2,
-         sq_diff_Openness = (Openness - BFI_openness_mean)^2) %>% 
-  select(Id, Cluster, starts_with("sq_diff")) %>% 
-  pivot_longer(starts_with("sq_diff"), names_to = "Score", values_to = "Value") %>% 
-  group_by(Score) %>% 
-  summarise(MSQ = mean(Value, na.rm = TRUE)) %>% 
-  ungroup()
-
-colnames(sq_error_train)[2] <- paste0("MSQ_", k)
-
-sq_error_train[, 1] <- c("Agreeablenes", "Conscientiousness",
-                        "Extraversion", "Neuroticism", "Openness")
-
-results_train[[k]] <- sq_error_train
-}
-
-train_MSQ <- results_train %>% 
+test_MSQ <- results_test %>% 
   purrr::reduce(left_join, by = "Score") %>% 
   pivot_longer(starts_with("MSQ_"), names_prefix = "MSQ_", names_to = "k", 
                values_to = "MSE") %>% 
@@ -346,6 +376,6 @@ train_MSQ <- results_train %>%
 
 
 ## ---- echo=FALSE, message=FALSE, out.width = "300px", fig.align = "center"----
-ggplot(data = train_MSQ, aes(x = k, y = MSE, col = Score)) +
-  geom_line()
+ggplot(data = test_MSQ, aes(x = k, y = MSE, col = Score)) +
+  geom_line() + ylim(0.3, 1)
 
