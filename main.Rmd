@@ -3,7 +3,7 @@ title: "Analysis of categorical sequences"
 header-includes:
   - \usepackage{algpseudocode}
 author: "Adriana Clavijo Daza"
-date: "2023-04-14"
+date: "2023-05-12"
 output: 
   pdf_document:
     extra_dependencies: ["amsmath"]
@@ -23,6 +23,8 @@ library(stringr)
 library(ggplot2)
 library(TraMineR)
 library(cluster)
+library(FastKNN)
+library(TraMineRextras)
 ```
 
 ```{r data, echo = FALSE, cache=TRUE}
@@ -317,7 +319,7 @@ In order to create a sequence for each participant the information about civil s
 
 Additionally, personality scores for the women included in the study are available. Personality refers to the enduring characteristics and behavior that comprise a person’s unique adjustment to life, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns. These scores are obtained via psychometric instruments and evaluate the main personality traits:
 
-- Agreeablenes
+- Agreeableness
 - Conscientiousness 
 - Extraversion
 - Neuroticism
@@ -364,17 +366,15 @@ abline(h = 4.3, col = "red")
 ```
 
 ```{r, echo=FALSE, message=FALSE, cache=TRUE}
-clusterward <- agnes(my_dist, diss = TRUE, method = "ward")
+clusters5 <- cutree(clusterward, k = 5)
 
-clusters <- cutree(clusterward, k = 5)
+clusters5_labels <- factor(clusters5, labels = paste("Cluster", 1:5))
 
-clusters_labels <- factor(clusters, labels = paste("Cluster", 1:5))
-
-counts <- tibble(clusters) %>% 
-  group_by(clusters) %>% 
+counts <- tibble(clusters5) %>% 
+  group_by(clusters5) %>% 
   summarise(n = n()) %>% 
   ungroup() %>% 
-  rename(Cluster = clusters)
+  rename(Cluster = clusters5)
 
 knitr::kable(counts)
 ```
@@ -387,10 +387,10 @@ We can visualize the clusters of sequences to and try to identify common feature
 - Cluster 4: Older, without children
 - Cluster 5: Married late then divorced/widowed, without children
 
-```{r, out.width = "350px", fig.align = "center"}
+```{r, out.width = "370px", fig.align = "center"}
 #knitr::include_graphics("../Output/cluster2.png")
 par(mar = c(2, 1.7, 0.75, 0.5))
-seqdplot(my_seq, group = clusters_labels, border = NA, 
+seqdplot(my_seq, group = clusters5_labels, border = NA, 
          ltext = status_labels)
 invisible(dev.off())
 ```
@@ -415,17 +415,25 @@ pers_descrip <- BFI_data %>%
             `Std. deviation` = sd(Value, na.rm = TRUE)) %>% 
   ungroup()
 
-pers_descrip[, 1] <- c("Agreeablenes", "Conscientiousness",
+pers_descrip[, 1] <- c("Agreeableness", "Conscientiousness",
                        "Extraversion", "Neuroticism", "Openness")
 
 # knitr::kable(pers_descrip, digits = 2) %>% 
 #   kableExtra::kable_styling(font_size = 8)
 ```
 
+```{r, echo=FALSE, message=FALSE, cache=TRUE}
+clusters2 <- cutree(clusterward, k = 2)
+
+clusters2_labels <- factor(clusters2, labels = paste("Cluster", 1:2))
+```
+
 ```{r, echo=FALSE, message=FALSE}
-data_all <- tibble(Id = colnames(my_dist), Cluster = clusters_labels) %>% 
+data_all <- tibble(Id = colnames(my_dist), Cluster_5 = clusters5_labels,
+                   Cluster_2 = clusters2_labels) %>% 
   left_join(BFI_data, by = c("Id" = "PersCode")) %>% 
-  select(Id, Cluster, ends_with("mean")) 
+  select(Id, Cluster_5, Cluster_2, ends_with("mean")) %>% 
+  filter(!is.na(BFI_extraversion_mean))
 
 data_all_long <- data_all %>% 
   pivot_longer(cols = starts_with("BFI"), names_to = "Trait", 
@@ -436,7 +444,8 @@ data_all_long <- data_all %>%
                            Trait == "neuroticism_mean" ~ "Neuroticism",
                            Trait == "openness_mean" ~ "Openness",
                            TRUE ~ "other"),
-         Cluster = sub("Cluster ", "", Cluster))
+         Cluster_5 = sub("Cluster ", "", Cluster_5),
+         Cluster_2 = sub("Cluster ", "", Cluster_2))
 
 # by_cluster <- data_all %>% 
 #   group_by(Cluster) %>% 
@@ -457,17 +466,55 @@ Now, we are interested in predicting the personality scores based on the relatio
 
 ```{r, out.width="350px", fig.align="center"}
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density))) 
-p + geom_histogram(bins = 14) + facet_grid(rows = vars(Cluster), 
-                                           cols = vars(Trait))
+p + geom_histogram(bins = 12) + facet_grid(rows = vars(Cluster_5), 
+                                           cols = vars(Trait),
+                                           scales = "free_x")
 ```
 
 No difference is obvious at a first glance. However, we can also use the distance matrix to obtain predictions of the personality traits using $k$-nearest neighbors ($k$NN); a non-parametric method used for prediction.
+
+We also explore with a lower number of clusters in order to find better defined groups. As we can observe in the distribution plots of the sequences states, the majority of women in cluster 1 have children, while we mostly find women without children in cluster 2.
+
+```{r, echo=FALSE, message=FALSE, cache=TRUE}
+counts2 <- tibble(clusters2) %>% 
+  group_by(clusters2) %>% 
+  summarise(n = n()) %>% 
+  ungroup() %>% 
+  rename(Cluster = clusters2)
+
+knitr::kable(counts2)
+```
+
+```{r, out.width = "350px", fig.align = "center"}
+seqdplot(my_seq, group = clusters2_labels, border = NA, 
+         ltext = status_labels, with.legend = "right")
+invisible(dev.off())
+```
+
+The transversal entropy of the sequences by cluster is displayed in the figure below.
+
+```{r, out.width="350px", fig.align="center"}
+seqplot.tentrop(my_seq, group = clusters2_labels, ylim=c(0,1))
+```
+
+We can observe that the entropy decreases significantly for the cluster of women with children as compared to women without children, which means that the variability of the states for the first group. This can be interpreted as a sign of stability.
+
+The following figure shows the distribution of the personality traits for the two clusters.
+
+```{r, out.width="350px", fig.align="center"}
+p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density))) 
+p + geom_histogram(bins = 10) + facet_grid(rows = vars(Cluster_2), 
+                                           cols = vars(Trait),
+                                           scales = "free_x")
+```
+
+There seems to be differences in the distributions of agreeableness, conscientiousness and neuroticism between the clusters. In the following section we explore the predictive capacity of the distance matrix obtained via OM.
 
 ## k-Nearest Neighbors
 
 Given a training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$ (a finite set of class labels for classification or a continuous range of values for regression). $k$-NN provides a way to predict the label or value for a new, data point $x_{n+1}$ (for which $Y$ is unknown) by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression).
 
-There are different ways of calculating the distance between the new data point $x_{n+1}$ and the points in $\mathcal{D}$. For instance, the Euclidean o Mahalanobis distances are usually used. In our case we already count with a matrix distance obtained by OMA.
+There are different ways of calculating the distance between the new data point $x_{n+1}$ and the points in $\mathcal{D}$. For instance, the Euclidean o Mahalanobis distances are usually used. In our case we already count with a matrix distance obtained with OM.
 
 The choice of $k$ is a hyperparameter that can be tuned to optimize the performance of the $k$-NN algorithm. A larger $k$ reduces the effect of noise and outliers, but can also lead to overfitting. A smaller $k$ is more sensitive to noise and outliers, but can better capture local structure.
 
@@ -479,14 +526,21 @@ To compare the performance of different values of $k$, we use the mean squared e
 
 where $y_i$ is the observed value and $\hat{Y}_i$ is the predicted valua via $k$NN.
 
-The following figure shows for every personality score and different values of $k$ the MSE, i.e. for $k = 1, \dots, 100$ we predict values of $Y$ and compare them with the observed values using the MSE.
+In this part of the analysis we only consider the individuals who have available personality scores, that leaves us with a sample size of 200 individuals. We also split the data into two subsets: train (70%) and test (30%). We evaluate the MSE of the predictions for the individuals in the test set but only using the data from the nearest neighbors available in the train set.
 
-As we can see, the MSE decreases at the beginning and stays mostly flat after $k = 25$, meaning that the prediction is not very good and probably not much better than just taking the average value of the scores.
+The following figure shows for every personality score and different values of $k$ the MSE, i.e. for $k = 1, \dots, 80$ we predict values of $Y$ and compare them with the observed values using the MSE. As a reference, a red line for every personality trait is added to indicate the MSE of the trivial prediction, i.e. the prediction considering all the sample points in the train set.
+
+For agreeableness, the MSE is minimum around $k=50$ and increases again. However, this minimum is not considerably lower than the trivial prediction.
+
+For openness, it is not very clear where the minimum MSE is and the prediction with kNN is always worse than the trivial prediction.
+
+For conscientiousness, extraversion and neuroticism we observe that the MSE decreases as $k$ increases and takes a minimum value (around $k=15$, $k=10$, $k=5$, respectively) thet is considerably lower than the trivial prediction and then the MSE increases again.
 
 ```{r, echo=FALSE, message=FALSE, cache=TRUE}
 set.seed(123)
 n <- dim(data_all)[1]
 size <- round(n*0.3)
+max_neighbors <- 80
 
 test_set <- sample.int(n, size)
 train_set <- 1:n
@@ -494,11 +548,6 @@ train_set <- train_set[-test_set]
 
 test_names <- colnames(my_dist)[test_set]
 train_names <- colnames(my_dist)[train_set]
-
-find_neighbors <- function(i, matrix, k){
-  data <- sort(matrix[i, ])[-1][1:k]
-  return(names(data))
-}
 
 preditc_scores <- function(data, neighbors){
   predictions <- data %>% 
@@ -513,15 +562,17 @@ preditc_scores <- function(data, neighbors){
   return(predictions)
 }
 
-K <- 100
 results_test <- list()
 
-for(k in 1:K){
+for(k in 1:max_neighbors){
 all_neighbors_test <- list()
 
 for(i in seq_along(test_set)){
-  work_matrix <- my_dist[c(test_set[i],train_set), c(test_set[i],train_set)]
-  all_neighbors_test[[i]] <- find_neighbors(1, matrix = work_matrix, k = k)
+  idx <- c(test_set[i], train_set)
+  neighbors <- k.nearest.neighbors(i = 1, 
+                                   distance_matrix = my_dist[idx, idx], 
+                                   k = k) - 1
+  all_neighbors_test[[i]] <- train_names[neighbors]
 }
 
 names(all_neighbors_test) <- test_names
@@ -547,7 +598,7 @@ sq_error_test <- predictions_test_df %>%
          sq_diff_Conscientiousness = (Conscientiousness - BFI_conscientiousness_mean)^2,
          sq_diff_Neuroticism = (Neuroticism - BFI_neuroticism_mean)^2,
          sq_diff_Openness = (Openness - BFI_openness_mean)^2) %>% 
-  select(Id, Cluster, starts_with("sq_diff")) %>% 
+  select(Id, Cluster_5, Cluster_2, starts_with("sq_diff")) %>% 
   pivot_longer(starts_with("sq_diff"), names_to = "Score", values_to = "Value") %>% 
   group_by(Score) %>% 
   summarise(MSQ = mean(Value, na.rm = TRUE)) %>% 
@@ -555,7 +606,7 @@ sq_error_test <- predictions_test_df %>%
 
 colnames(sq_error_test)[2] <- paste0("MSQ_", k)
 
-sq_error_test[, 1] <- c("Agreeablenes", "Conscientiousness",
+sq_error_test[, 1] <- c("Agreeableness", "Conscientiousness",
                         "Extraversion", "Neuroticism", "Openness")
 
 results_test[[k]] <- sq_error_test
@@ -573,40 +624,73 @@ ggplot(data = test_MSQ, aes(x = k, y = MSE, col = Score)) +
   geom_line() + ylim(0.3, 1)
 ```
 
+```{r}
+train_means <- data_all_long %>% 
+  filter(Id %in% train_names) %>% 
+  rename(Score = Trait) %>% 
+  group_by(Score) %>% 
+  summarise(Average = mean(Trait_value)) %>% 
+  ungroup()
+
+trivial_MSE <- data_all_long %>% 
+  rename(Score = Trait) %>% 
+  filter(Id %in% test_names) %>% 
+  left_join(train_means, by = "Score") %>% 
+  mutate(sq_difference = (Trait_value - Average)^2) %>%
+  group_by(Score) %>% 
+  summarise(MSE = mean(sq_difference)) %>% 
+  ungroup()
+  
+ggplot(test_MSQ %>% filter(k>5)) + 
+  geom_line(aes(x = k, y = MSE)) +
+  geom_hline(data = trivial_MSE, 
+             aes(yintercept = MSE, col = "red"), 
+             alpha = 0.5,
+             show.legend = FALSE) +
+  facet_grid(rows = vars(Score), scales = "free")
+```
+
+
 ### Other experiments
 
 - Setting the constant $c$ as the maximum of $2 - P(s_i|s_j) - P(s_j|s_i)$ for the calculation of the cost matrix.
 
 ```{r, out.width = "400px", fig.align = "center"}
-knitr::include_graphics("../Output/exp1.pdf")
+knitr::include_graphics("../Output/exp1a.pdf")
 ```
 
 - Using `norm = "gmean"` normalization in `TraMineR::seqdist`.
 
 ```{r, out.width = "400px", fig.align = "center"}
-knitr::include_graphics("../Output/exp2.pdf")
+knitr::include_graphics("../Output/exp2a.pdf")
 ```
 
 - Using `method = "FUTURE"` for the calculation of the cost matrix in `TraMineR::seqcost`.
 
 ```{r, out.width = "400px", fig.align = "center"}
-knitr::include_graphics("../Output/exp3.pdf")
+knitr::include_graphics("../Output/exp3a.pdf")
 ```
 
 - Using `method = "INDELS"` for the calculation of the cost matrix in `TraMineR::seqcost`.
 
 ```{r, out.width = "400px", fig.align = "center"}
-knitr::include_graphics("../Output/exp4.pdf")
+knitr::include_graphics("../Output/exp4a.pdf")
 ```
 
 - Using `method = "INDELSLOG"` for the calculation of the cost matrix in `TraMineR::seqcost`.
 
 ```{r, out.width = "400px", fig.align = "center"}
-knitr::include_graphics("../Output/exp5.pdf")
+knitr::include_graphics("../Output/exp5a.pdf")
 ```
 
 - Using `method = "FUTURE"` for the calculation of the cost matrix in `TraMineR::seqcost` and `norm = "gmean"` normalization in `TraMineR::seqdist`.
 
 ```{r, out.width = "400px", fig.align = "center"}
-knitr::include_graphics("../Output/exp6.pdf")
+knitr::include_graphics("../Output/exp6a.pdf")
+```
+
+- Using `method = "FUTURE"` and setting the cost of missing to a fixed value in the cost matrix in `TraMineR::seqcost` and `norm = "gmean"` normalization in `TraMineR::seqdist`.
+
+```{r, out.width = "400px", fig.align = "center"}
+knitr::include_graphics("../Output/exp7a.pdf")
 ```

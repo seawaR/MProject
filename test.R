@@ -5,6 +5,8 @@ library(stringr)
 library(ggplot2)
 library(TraMineR)
 library(cluster)
+library(FastKNN)
+library(TraMineRextras)
 
 
 ## ----data, echo = FALSE, cache=TRUE-------
@@ -142,7 +144,8 @@ status_labels <- c("Single+no ch.",
 
 rh_data <- tst %>% 
   select(-Civil_status, -Relationship_status, -Children) %>% 
-  mutate(Status_char = factor(Status, levels = status_levels, labels = status_labels))
+  mutate(Status_char = factor(Status, levels = status_levels, labels = status_labels)) %>% 
+  filter(Start_age >= 20, End_age <=55)
 
 
 ## ----cost-matrix, echo=FALSE, message=FALSE----
@@ -153,6 +156,18 @@ test <- seqformat(rh_data, from = "SPELL", to = "STS",
 alphabet <- as.character(1:10)
 
 my_seq <- seqdef(test, alphabet = alphabet)
+
+# exp7b
+# cost_matrix_1 <- seqcost(my_seq, method = "FUTURE",
+#                          with.missing = TRUE, 
+#                          miss.cost.fixed = TRUE, 
+#                          miss.cost = 0.1)
+
+# exp7a
+cost_matrix_1 <- seqcost(my_seq, method = "FUTURE",
+                         with.missing = TRUE,
+                         miss.cost.fixed = TRUE,
+                         miss.cost = 1)
 
 # exp6
 # cost_matrix_1 <- seqcost(my_seq, method = "FUTURE",
@@ -171,8 +186,8 @@ my_seq <- seqdef(test, alphabet = alphabet)
 #                          with.missing = TRUE)
 
 # exp1
-cost_matrix_1 <- seqcost(my_seq, method = "TRATE",
-                         with.missing = TRUE, cval = 1.9982)
+# cost_matrix_1 <- seqcost(my_seq, method = "TRATE",
+#                          with.missing = TRUE, cval = 1.9982)
 
 # exp2
 # cost_matrix_1 <- seqcost(my_seq, method = "TRATE",
@@ -183,17 +198,21 @@ colnames(cm) <- c("Status", 1:10)
 
 
 ## ---- echo=FALSE, message=FALSE-----------
-#exp6
+# exp7
+my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1$sm, norm = "gmean",
+                   with.missing = TRUE)
+
+# exp6
 # my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1$sm, norm = "gmean",
 #                    with.missing = TRUE)
 
-#exp2
+# exp2
 # my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1$sm, norm = "gmean",
 #                    with.missing = TRUE)
 
 #base
-my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1$sm,
-                   with.missing = TRUE, norm = "maxlength")
+# my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1$sm,
+#                    with.missing = TRUE, norm = "maxlength")
 
 ## ---- echo=FALSE, message=FALSE-----------
 clusterward <- agnes(my_dist, diss = TRUE, method = "ward")
@@ -207,9 +226,11 @@ abline(h = 4.3, col = "red")
 ## ---- echo=FALSE, message=FALSE, cache=TRUE----
 clusterward <- agnes(my_dist, diss = TRUE, method = "ward")
 
-clusters <- cutree(clusterward, k = 5)
+# clusters <- cutree(clusterward, k = 5)
+clusters <- cutree(clusterward, k = 2)
 
-clusters_labels <- factor(clusters, labels = paste("Cluster", 1:5))
+# clusters_labels <- factor(clusters, labels = paste("Cluster", 1:5))
+clusters_labels <- factor(clusters, labels = paste("Cluster", 1:2))
 
 counts <- tibble(clusters) %>% 
   group_by(clusters) %>% 
@@ -220,10 +241,13 @@ counts <- tibble(clusters) %>%
 
 ## ---- out.width = "350px", fig.align = "center"----
 #knitr::include_graphics("../Output/cluster2.png")
-par(mar = c(2, 1.7, 0.75, 0.5))
+# par(mar = c(2, 1.7, 0.75, 0.5))
+# seqdplot(my_seq, group = clusters_labels, border = NA, 
+#          ltext = status_labels)
+# invisible(dev.off())
+
 seqdplot(my_seq, group = clusters_labels, border = NA, 
-         ltext = status_labels)
-invisible(dev.off())
+         ltext = status_labels, with.legend = "right")
 
 
 ## ---- echo=FALSE, message=FALSE-----------
@@ -256,7 +280,8 @@ pers_descrip[, 1] <- c("Agreeablenes", "Conscientiousness",
 ## ---- echo=FALSE, message=FALSE-----------
 data_all <- tibble(Id = colnames(my_dist), Cluster = clusters_labels) %>% 
   left_join(BFI_data, by = c("Id" = "PersCode")) %>% 
-  select(Id, Cluster, ends_with("mean")) 
+  select(Id, Cluster, ends_with("mean")) %>% 
+  filter(!is.na(BFI_extraversion_mean))
 
 data_all_long <- data_all %>% 
   pivot_longer(cols = starts_with("BFI"), names_to = "Trait", 
@@ -285,15 +310,23 @@ data_all_long <- data_all %>%
 
 
 ## ---- out.width="350px", fig.align="center"----
+# p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density))) 
+# p + geom_histogram(bins = 14) + facet_grid(rows = vars(Cluster), 
+#                                            cols = vars(Trait))
+
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density))) 
-p + geom_histogram(bins = 14) + facet_grid(rows = vars(Cluster), 
-                                           cols = vars(Trait))
+p + geom_histogram(bins = 10) + facet_grid(rows = vars(Cluster), 
+                                           cols = vars(Trait),
+                                           scales = "free_x")
+
+seqplot.tentrop(my_seq, group = clusters_labels, ylim=c(0,1))
 
 
 ## ---- echo=FALSE, message=FALSE, cache=TRUE----
 set.seed(123)
 n <- dim(data_all)[1]
 size <- round(n*0.3)
+max_neighbors <- 80
 
 test_set <- sample.int(n, size)
 train_set <- 1:n
@@ -320,15 +353,17 @@ preditc_scores <- function(data, neighbors){
   return(predictions)
 }
 
-K <- 100
 results_test <- list()
 
-for(k in 1:K){
+for(k in 1:max_neighbors){
   all_neighbors_test <- list()
   
   for(i in seq_along(test_set)){
-    work_matrix <- my_dist[c(test_set[i],train_set), c(test_set[i],train_set)]
-    all_neighbors_test[[i]] <- find_neighbors(1, matrix = work_matrix, k = k)
+    idx <- c(test_set[i], train_set)
+    neighbors <- k.nearest.neighbors(i = 1, 
+                                     distance_matrix = my_dist[idx, idx], 
+                                     k = k) - 1
+    all_neighbors_test[[i]] <- train_names[neighbors]
   }
   
   names(all_neighbors_test) <- test_names
@@ -362,7 +397,7 @@ for(k in 1:K){
   
   colnames(sq_error_test)[2] <- paste0("MSQ_", k)
   
-  sq_error_test[, 1] <- c("Agreeablenes", "Conscientiousness",
+  sq_error_test[, 1] <- c("Agreeableness", "Conscientiousness",
                           "Extraversion", "Neuroticism", "Openness")
   
   results_test[[k]] <- sq_error_test
@@ -379,3 +414,28 @@ test_MSQ <- results_test %>%
 ggplot(data = test_MSQ, aes(x = k, y = MSE, col = Score)) +
   geom_line() + ylim(0.3, 1)
 
+## new plot
+
+train_means <- data_all_long %>% 
+  filter(Id %in% train_names) %>% 
+  rename(Score = Trait) %>% 
+  group_by(Score) %>% 
+  summarise(Average = mean(Trait_value)) %>% 
+  ungroup()
+
+trivial_MSE <- data_all_long %>% 
+  rename(Score = Trait) %>% 
+  filter(Id %in% test_names) %>% 
+  left_join(train_means, by = "Score") %>% 
+  mutate(sq_difference = (Trait_value - Average)^2) %>%
+  group_by(Score) %>% 
+  summarise(MSE = mean(sq_difference)) %>% 
+  ungroup()
+
+ggplot(test_MSQ %>% filter(k>5)) + 
+  geom_line(aes(x = k, y = MSE)) +
+  geom_hline(data = trivial_MSE, 
+             aes(yintercept = MSE, col = "red"), 
+             alpha = 0.5,
+             show.legend = FALSE) +
+  facet_grid(rows = vars(Score), scales = "free")
