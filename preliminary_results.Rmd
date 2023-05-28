@@ -2,11 +2,9 @@
 title: "Analysis of the relationships history of women 40+"
 author: 
   - Adriana Clavijo Daza 
-  - Serena Lozza (Fiacco), PhD
 institute:
   - Statistics and Data Science Master's, Universität Bern
-  - ARTORG Center for Biomedical Engineering Research, Universität Bern
-date: "2022-12-12"
+date: "2022-06-02"
 output: beamer_presentation
 ---
 
@@ -23,6 +21,8 @@ library(stringr)
 library(ggplot2)
 library(TraMineR)
 library(cluster)
+source("predict_scores.R")
+source("get_MSE.R")
 ```
 
 ```{r data, echo = FALSE, cache=TRUE}
@@ -205,18 +205,25 @@ knitr::include_graphics("../Output/sequence_example1.png")
 - Changing relationships (CR)
 
 
+## What is personality?
+
+```{r, out.width = "200px", fig.align = "center"}
+knitr::include_graphics("../Output/personality1.png")
+```
+
+Personality refers to the enduring characteristics and behavior that comprise a person’s unique adjustment to life, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns.
+
+
+## The "Big Five" personality traits
+
+```{r, out.width = "300px", fig.align = "center"}
+knitr::include_graphics("../Output/personality2.png")
+```
+
+
 ## Research question
 
 - Can we get a good prediction of personality scores based on the relationship history sequences?
-
-
-## Progress
-
-- Data cleaning/pre-processing
-- Data exploration to find the variables to use (get a single sequence from several variables)
-- Calculation and evaluation of cost matrix
-- Hierarchical clustering 
-- Personality scores prediction using k-nearest neighbors
 
 
 ## Data pre-processing
@@ -308,12 +315,13 @@ plot5 + geom_bar() + geom_bar() + geom_text(stat = "count", aes(label = ..count.
 ```
 
 
-## Optimal Matching Analysis (OMA)
+## Optimal Matching (OM)
 
-- Technique used in social sciences for the comparison of sequences.
+- Technique used in social sciences for the comparison of sequences of categorical states indexed by time.
 - Applications on life course and career path analysis. 
-- Given two sequences, it is possible to transform one sequence into another using a set of operations on the states: insert, delete and replace (*edit distance*).
-- Numerical values are assigned to each of this operations  and are defined in a **cost matrix**. 
+- Uses the Needleman-Wunsch algorithm, that was developed to compare biological sequences.
+- The Needleman-Wunsch algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems.
+- Numerical values are assigned to each of this operations and are defined in a **cost matrix**. 
 - As a result, pairwise distances between the sequences can be obtained to apply a clustering method.
 
 
@@ -434,22 +442,6 @@ par(mar = c(2, 1.7, 0.75, 0.5))
 seqdplot(my_seq, group = clusters_labels, border = NA, 
          ltext = status_labels)
 dev.off()
-```
-
-
-## What is personality?
-
-```{r, out.width = "200px", fig.align = "center"}
-knitr::include_graphics("../Output/personality1.png")
-```
-
-Personality refers to the enduring characteristics and behavior that comprise a person’s unique adjustment to life, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns.
-
-
-## The "Big Five" personality traits
-
-```{r, out.width = "300px", fig.align = "center"}
-knitr::include_graphics("../Output/personality2.png")
 ```
 
 

@@ -1,10 +1,11 @@
 library(tidyverse)
-library(TraMineR)
+library(FastKNN)
+source("distance_matrix.R")
 source("predict_scores.R")
 
 get_MSE <- function(data,
                     prediction_data,
-                    tain_names, 
+                    train_names, 
                     test_names, 
                     max_neighbors, 
                     cm_method, 
@@ -14,51 +15,17 @@ get_MSE <- function(data,
                     min_age = NULL, 
                     max_age = NULL){
   
-  if (!is.null(min_age)){
-    data <- data %>% 
-      filter(Start_age >= min_age)
-  }
+  dist_matrix <- distance_matrix(data = data,
+                                 cm_method = cm_method, 
+                                 dm_norm = dm_norm, 
+                                 constant = constant, 
+                                 missing_cost = missing_cost,
+                                 min_age = min_age, 
+                                 max_age = max_age)
   
-  if (!is.null(max_age)){
-    data <- data %>% 
-      filter(End_age <= max_age)
-  }
+  train_names <- train_names[train_names %in% colnames(dist_matrix)]
   
-  seq_data <- seqformat(data, 
-                        from = "SPELL", 
-                        to = "STS",
-                        id = "Id", 
-                        begin = "Start_age", 
-                        end = "End_age",
-                        status = "Status", 
-                        covar = "Age", 
-                        process = FALSE)
-  
-  alphabet <- as.character(1:length(unique(data$Status)))
-  
-  my_seq <- seqdef(data = seq_data, 
-                   alphabet = alphabet)
-  
-  if (!is.null(missing_cost)){
-    cost_matrix <- seqcost(seqdata = my_seq, 
-                           method = cm_method,
-                           with.missing = TRUE,
-                           cval = constant,
-                           miss.cost.fixed = TRUE,
-                           miss.cost = missing_cost)
-  } else{
-    cost_matrix <- seqcost(seqdata = my_seq, 
-                           method = cm_method,
-                           with.missing = TRUE,
-                           cval = constant)
-  }
-  
-  my_dist <- seqdist(seqdata = my_seq, 
-                     method = "OM", 
-                     sm = cost_matrix$sm, 
-                     indel = cost_matrix$indel,
-                     with.missing = TRUE, 
-                     norm = dm_norm)
+  test_names <- test_names[test_names %in% colnames(dist_matrix)]
   
   results_test <- list()
   
@@ -68,7 +35,7 @@ get_MSE <- function(data,
     for(i in seq_along(test_names)){
       idx <- c(test_names[i], train_names)
       neighbors <- k.nearest.neighbors(i = 1, 
-                                       distance_matrix = my_dist[idx, idx], 
+                                       distance_matrix = dist_matrix[idx, idx], 
                                        k = k) - 1
       all_neighbors_test[[i]] <- train_names[neighbors]
     }
@@ -118,65 +85,3 @@ get_MSE <- function(data,
   
   return(MSE_df)
 }
-
-experiments <- tibble::tribble(
-   ~cm_method,    ~dm_norm, ~constant, ~missing_cost, ~min_age, ~max_age,
-      "TRATE", "maxlength",      NULL,          NULL,     NULL,     NULL,
-      "TRATE", "maxlength",    1.9982,          NULL,     NULL,     NULL,
-      "TRATE",     "gmean",      NULL,          NULL,     NULL,     NULL,
-     "FUTURE", "maxlength",      NULL,          NULL,     NULL,     NULL,
-     "INDELS", "maxlength",      NULL,          NULL,     NULL,     NULL,
-  "INDELSLOG", "maxlength",      NULL,          NULL,     NULL,     NULL,
-     "FUTURE",     "gmean",      NULL,          NULL,     NULL,     NULL,
-     "FUTURE",     "gmean",      NULL,             1,     NULL,     NULL,
-#     "FUTURE",     "gmean",      NULL,          NULL,       20,       55,
-#     "FUTURE",     "gmean",      NULL,          NULL,       20,       40,
-)
-
-eval_experiments <- experiments %>%
-  dplyr::rowwise() %>%
-  mutate(result = list(get_MSE(
-    data = rh_data,
-    prediction_data = data_all,
-    tain_names = tain_names, 
-    test_names = test_names,
-    max_neighbors = 80,
-    cm_method = cm_method, 
-    dm_norm = dm_norm,
-    constant = constant,
-    missing_cost = missing_cost,
-    min_age = min_age,
-    max_age = max_age)))
-
-## Expand the results in a tidy tbl with unnest:
-# eval_experiments %>% tidyr::unnest(result)
-
-# example2 <- get_MSE(data = rh_data,
-#                     prediction_data = data_all,
-#                     tain_names = tain_names,
-#                     test_names = test_names,
-#                     max_neighbors = 80,
-#                     cm_method = "TRATE",
-#                     dm_norm = "maxlength",
-#                     min_age = 20, 
-#                     max_age = 55)
-# 
-# rownames_all <- rownames(seq_data)
-# rownames_age <- rownames(seq_data)
-# issues <- rownames_all[!rownames_all %in% rownames_age]
-
-my_exp <- eval_experiments %>% 
-  tibble::add_column(Experiment = 1:8) %>% 
-  select(Experiment, result) %>% 
-  tidyr::unnest(result) %>% 
-  group_by(Experiment, Score) %>% 
-  summarise(min_MSE = min(MSE)) %>% 
-  ungroup() %>% 
-  left_join(trivial_MSE, by = "Score") %>% 
-  mutate(Improvement = (1-(min_MSE/MSE))*100)
-
-ggplot(my_exp, aes(Experiment, Score)) +
-  geom_tile(aes(fill = Improvement)) +
-  geom_text(aes(label = round(Improvement, 2))) +
-  scale_fill_gradient(low = "white", high = "red") +
-  scale_x_continuous(breaks = 1:8)

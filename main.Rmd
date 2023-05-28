@@ -3,7 +3,7 @@ title: "Analysis of categorical sequences"
 header-includes:
   - \usepackage{algpseudocode}
 author: "Adriana Clavijo Daza"
-date: "2023-05-12"
+date: "2023-06-02"
 output: 
   pdf_document:
     extra_dependencies: ["amsmath"]
@@ -25,6 +25,8 @@ library(TraMineR)
 library(cluster)
 library(FastKNN)
 library(TraMineRextras)
+source("predict_scores.R")
+#source("get_MSE.R")
 ```
 
 ```{r data, echo = FALSE, cache=TRUE}
