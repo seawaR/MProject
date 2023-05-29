@@ -123,7 +123,7 @@ knitr::include_graphics("../Input/sequence_example2.png")
 
 ```{r final-status, fig.align = "center", out.width = "300px"}
 plot5 <- ggplot(data = rh_data, aes(Status_char))
-plot5 + geom_bar() + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust=-0.25) + scale_x_discrete(guide = guide_axis(n.dodge=2)) + theme(axis.text = element_text(size = 12))
+plot5 + geom_bar() + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust = -0.25) + scale_x_discrete(guide = guide_axis(n.dodge = 2)) + theme(axis.text = element_text(size = 12))
 ```
 
 
@@ -305,9 +305,11 @@ $$
 ## Cost matrix (ii)
 
 ```{r cost-matrix, echo=FALSE, message=FALSE}
-test <- seqformat(rh_data, from = "SPELL", to = "STS",
-                  id = "Id", begin = "Start_age", end = "End_age", 
-                  status = "Status", covar = "Age", process = FALSE)
+test <- seqformat(rh_data,
+  from = "SPELL", to = "STS",
+  id = "Id", begin = "Start_age", end = "End_age",
+  status = "Status", covar = "Age", process = FALSE
+)
 
 alphabet <- as.character(1:10)
 
@@ -365,10 +367,12 @@ clusters_labels <- factor(clusters, labels = paste("Cluster", 1:5))
 ```
 
 ```{r, out.width = "320px", fig.align = "center"}
-#knitr::include_graphics("../Output/cluster2.png")
+# knitr::include_graphics("../Output/cluster2.png")
 par(mar = c(2, 1.7, 0.75, 0.5))
-seqdplot(my_seq, group = clusters_labels, border = NA, 
-         ltext = status_labels)
+seqdplot(my_seq,
+  group = clusters_labels, border = NA,
+  ltext = status_labels
+)
 dev.off()
 ```
 
@@ -378,27 +382,37 @@ dev.off()
 ```{r, echo=FALSE, message=FALSE}
 BFI_data <- read_excel("../Data_original/Adriana_BFI.xlsx")
 
-BFI_data <- BFI_data %>% 
-  select(PersCode,
-         starts_with("BFI"))
+BFI_data <- BFI_data %>%
+  select(
+    PersCode,
+    starts_with("BFI")
+  )
 
-pers_descrip <- BFI_data %>% 
-  select(PersCode,
-         ends_with("mean")) %>% 
-  pivot_longer(cols = ends_with("mean"), 
-               names_to = "Personality trait", 
-               values_to = "Value") %>% 
-  group_by(`Personality trait`) %>% 
-  summarise(Min = min(Value, na.rm = TRUE),
-            Max = max(Value, na.rm = TRUE),
-            Average = mean(Value, na.rm = TRUE),
-            `Std. deviation` = sd(Value, na.rm = TRUE)) %>% 
+pers_descrip <- BFI_data %>%
+  select(
+    PersCode,
+    ends_with("mean")
+  ) %>%
+  pivot_longer(
+    cols = ends_with("mean"),
+    names_to = "Personality trait",
+    values_to = "Value"
+  ) %>%
+  group_by(`Personality trait`) %>%
+  summarise(
+    Min = min(Value, na.rm = TRUE),
+    Max = max(Value, na.rm = TRUE),
+    Average = mean(Value, na.rm = TRUE),
+    `Std. deviation` = sd(Value, na.rm = TRUE)
+  ) %>%
   ungroup()
 
-pers_descrip[, 1] <- c("Agreeablenes", "Conscientiousness",
-                       "Extraversion", "Neuroticism", "Openness")
+pers_descrip[, 1] <- c(
+  "Agreeablenes", "Conscientiousness",
+  "Extraversion", "Neuroticism", "Openness"
+)
 
-knitr::kable(pers_descrip, digits = 2) %>% 
+knitr::kable(pers_descrip, digits = 2) %>%
   kableExtra::kable_styling(font_size = 8)
 ```
 
@@ -406,22 +420,26 @@ knitr::kable(pers_descrip, digits = 2) %>%
 ## Average personality scores by cluster
 
 ```{r, echo=FALSE, message=FALSE}
-all_data <- tibble(Id = colnames(my_dist), Cluster = clusters_labels) %>% 
-  left_join(BFI_data, by = c("Id" = "PersCode")) %>% 
+all_data <- tibble(Id = colnames(my_dist), Cluster = clusters_labels) %>%
+  left_join(BFI_data, by = c("Id" = "PersCode")) %>%
   select(Id, Cluster, ends_with("mean"))
 
-by_cluster <- all_data %>% 
-  group_by(Cluster) %>% 
-  summarise(Extraversion = mean(BFI_extraversion_mean, na.rm = TRUE),
-            Agreeableness = mean(BFI_agreeableness_mean, 
-                                         na.rm = TRUE),
-            Conscientiousness = mean(BFI_conscientiousness_mean,
-                                             na.rm = TRUE),
-            Neuroticism = mean(BFI_neuroticism_mean, na.rm = TRUE),
-            Openness = mean(BFI_openness_mean, na.rm = TRUE)) %>% 
+by_cluster <- all_data %>%
+  group_by(Cluster) %>%
+  summarise(
+    Extraversion = mean(BFI_extraversion_mean, na.rm = TRUE),
+    Agreeableness = mean(BFI_agreeableness_mean,
+      na.rm = TRUE
+    ),
+    Conscientiousness = mean(BFI_conscientiousness_mean,
+      na.rm = TRUE
+    ),
+    Neuroticism = mean(BFI_neuroticism_mean, na.rm = TRUE),
+    Openness = mean(BFI_openness_mean, na.rm = TRUE)
+  ) %>%
   ungroup()
 
-knitr::kable(by_cluster, digits = 2) %>% 
+knitr::kable(by_cluster, digits = 2) %>%
   kableExtra::kable_styling(font_size = 7)
 ```
 
@@ -449,7 +467,7 @@ where $n$ is the number of data points considered, $Y_i$ is the observed value a
 ```{r, echo=FALSE, message=FALSE, cache=TRUE}
 set.seed(123)
 n <- dim(all_data)[1]
-size <- round(n*0.3)
+size <- round(n * 0.3)
 
 test_set <- sample.int(n, size)
 train_set <- 1:n
@@ -458,20 +476,22 @@ train_set <- train_set[-test_set]
 test_names <- colnames(my_dist)[test_set]
 train_names <- colnames(my_dist)[train_set]
 
-find_neighbors <- function(i, matrix, k){
+find_neighbors <- function(i, matrix, k) {
   data <- sort(matrix[i, ])[-1][1:k]
   return(names(data))
 }
 
-preditc_scores <- function(data, neighbors){
-  predictions <- data %>% 
-    filter(Id %in% neighbors) %>% 
-    summarise(Extraversion = mean(BFI_extraversion_mean, na.rm = TRUE),
-              Agreeableness = mean(BFI_agreeableness_mean, na.rm = TRUE),
-              Conscientiousness = mean(BFI_conscientiousness_mean, na.rm = TRUE),
-              Neuroticism = mean(BFI_neuroticism_mean, na.rm = TRUE),
-              Openness = mean(BFI_openness_mean, na.rm = TRUE)) %>% 
-    as.vector() %>% 
+preditc_scores <- function(data, neighbors) {
+  predictions <- data %>%
+    filter(Id %in% neighbors) %>%
+    summarise(
+      Extraversion = mean(BFI_extraversion_mean, na.rm = TRUE),
+      Agreeableness = mean(BFI_agreeableness_mean, na.rm = TRUE),
+      Conscientiousness = mean(BFI_conscientiousness_mean, na.rm = TRUE),
+      Neuroticism = mean(BFI_neuroticism_mean, na.rm = TRUE),
+      Openness = mean(BFI_openness_mean, na.rm = TRUE)
+    ) %>%
+    as.vector() %>%
     unlist()
   return(predictions)
 }
@@ -479,54 +499,60 @@ preditc_scores <- function(data, neighbors){
 K <- 30
 results_train <- list()
 
-for(k in 1:K){
-all_neighbors_train <- list()
+for (k in 1:K) {
+  all_neighbors_train <- list()
 
-for(i in seq_along(train_set)){
-  all_neighbors_train[[i]] <- find_neighbors(train_set[i], matrix = my_dist, k = k)
+  for (i in seq_along(train_set)) {
+    all_neighbors_train[[i]] <- find_neighbors(train_set[i], matrix = my_dist, k = k)
+  }
+
+  names(all_neighbors_train) <- train_names
+
+  all_predictions_train <- list()
+
+  for (i in seq_along(train_set)) {
+    all_predictions_train[[i]] <- preditc_scores(all_data, neighbors = all_neighbors_train[[i]])
+  }
+
+  names(all_predictions_train) <- train_names
+
+  predictions_train_df <- do.call(rbind.data.frame, all_predictions_train)
+
+  colnames(predictions_train_df) <- names(all_predictions_train[[1]])
+
+  predictions_train_df[, "Id"] <- train_names
+
+  sq_error_train <- predictions_train_df %>%
+    left_join(all_data, by = "Id") %>%
+    mutate(
+      sq_diff_Extraversion = (Extraversion - BFI_extraversion_mean)^2,
+      sq_diff_Agreeableness = (Agreeableness - BFI_agreeableness_mean)^2,
+      sq_diff_Conscientiousness = (Conscientiousness - BFI_conscientiousness_mean)^2,
+      sq_diff_Neuroticism = (Neuroticism - BFI_neuroticism_mean)^2,
+      sq_diff_Openness = (Openness - BFI_openness_mean)^2
+    ) %>%
+    select(Id, Cluster, starts_with("sq_diff")) %>%
+    pivot_longer(starts_with("sq_diff"), names_to = "Score", values_to = "Value") %>%
+    group_by(Score) %>%
+    summarise(MSQ = mean(Value, na.rm = TRUE)) %>%
+    ungroup()
+
+  colnames(sq_error_train)[2] <- paste0("MSQ_", k)
+
+  sq_error_train[, 1] <- c(
+    "Agreeablenes", "Conscientiousness",
+    "Extraversion", "Neuroticism", "Openness"
+  )
+
+  results_train[[k]] <- sq_error_train
 }
 
-names(all_neighbors_train) <- train_names
-
-all_predictions_train <- list()
-
-for(i in seq_along(train_set)){
-  all_predictions_train[[i]] <- preditc_scores(all_data, neighbors = all_neighbors_train[[i]])
-}
-
-names(all_predictions_train) <- train_names
-
-predictions_train_df <- do.call(rbind.data.frame, all_predictions_train)
-
-colnames(predictions_train_df) <- names(all_predictions_train[[1]])
-
-predictions_train_df[, "Id"] <- train_names
-
-sq_error_train <- predictions_train_df %>% 
-  left_join(all_data, by = "Id") %>% 
-  mutate(sq_diff_Extraversion = (Extraversion - BFI_extraversion_mean)^2,
-         sq_diff_Agreeableness = (Agreeableness - BFI_agreeableness_mean)^2,
-         sq_diff_Conscientiousness = (Conscientiousness - BFI_conscientiousness_mean)^2,
-         sq_diff_Neuroticism = (Neuroticism - BFI_neuroticism_mean)^2,
-         sq_diff_Openness = (Openness - BFI_openness_mean)^2) %>% 
-  select(Id, Cluster, starts_with("sq_diff")) %>% 
-  pivot_longer(starts_with("sq_diff"), names_to = "Score", values_to = "Value") %>% 
-  group_by(Score) %>% 
-  summarise(MSQ = mean(Value, na.rm = TRUE)) %>% 
-  ungroup()
-
-colnames(sq_error_train)[2] <- paste0("MSQ_", k)
-
-sq_error_train[, 1] <- c("Agreeablenes", "Conscientiousness",
-                        "Extraversion", "Neuroticism", "Openness")
-
-results_train[[k]] <- sq_error_train
-}
-
-train_MSQ <- results_train %>% 
-  purrr::reduce(left_join, by = "Score") %>% 
-  pivot_longer(starts_with("MSQ_"), names_prefix = "MSQ_", names_to = "k", 
-               values_to = "MSE") %>% 
+train_MSQ <- results_train %>%
+  purrr::reduce(left_join, by = "Score") %>%
+  pivot_longer(starts_with("MSQ_"),
+    names_prefix = "MSQ_", names_to = "k",
+    values_to = "MSE"
+  ) %>%
   mutate(k = as.numeric(k))
 ```
 
