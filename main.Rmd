@@ -26,7 +26,7 @@ library(cluster)
 library(FastKNN)
 library(TraMineRextras)
 source("predict_scores.R")
-#source("get_MSE.R")
+source("get_MSE.R")
 ```
 
 ```{r data, echo = FALSE, cache=TRUE}

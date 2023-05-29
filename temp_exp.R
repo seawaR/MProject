@@ -71,3 +71,12 @@ my_exp2 <- eval_experiments %>%
   filter(Score == "Neuroticism") %>% 
   arrange(MSE)
 
+example2 <- get_MSE(data = rh_data,
+                    prediction_data = data_all,
+                    tain_names = tain_names,
+                    test_names = test_names,
+                    max_neighbors = 80,
+                    cm_method = "TRATE",
+                    dm_norm = "maxlength",
+                    min_age = 20,
+                    max_age = 40)

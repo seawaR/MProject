@@ -25,149 +25,13 @@ source("predict_scores.R")
 source("get_MSE.R")
 ```
 
-```{r data, echo = FALSE, cache=TRUE}
-cs_levels <- 1:6
-cs_labels <- c("Single", "Married", "Registered partnership", 
-               "Same-sex partnership", "Divorced", "Widowed")
-
-rs_levels <- 1:4
-rs_labels <- c("No relationship", "Relationship", 
-               "Open relationship", "Changing relationships")
-
-liv_levels <- 0:2
-liv_labels <- c("No partner", "Yes", "No")
-
-file <- "../Data_original/Tracker_Uni-Zurich_Modified.xlsx"
-
-raw_data <- read_excel(file)
-
-raw_data <- raw_data %>% 
-  select_if(~!all(is.na(.)))
-
-new_names <- vector(mode = "character")
-
-for (i in 1:12){
-  new_names[2*(i-1)+1] <- paste0("Start-", i)
-  new_names[2*(i-1)+2] <- paste0("End-", i)
-}
-
-colnames(raw_data)[1] <- "Id"
-colnames(raw_data)[58] <- "Age"
-colnames(raw_data)[59:82] <- new_names
-colnames(raw_data)[83:94] <- paste0("Civil-", 1:12)
-colnames(raw_data)[95:106] <- paste0("Relationship-", 1:12)
-colnames(raw_data)[119:130] <- paste0("Children-", 1:12)
-colnames(raw_data)[131:142] <- paste0("Living-", 1:12)
-
-raw_data <- raw_data %>% 
-  select(c(1, 58:106, 119:142)) 
-
-raw_data <- raw_data %>% 
-  pivot_longer(cols = starts_with("Start"),
-               names_to = "Phase",
-               names_prefix = "Start-",
-               values_to = "Start_age",
-               values_drop_na = TRUE) %>% 
-  pivot_longer(cols = starts_with("End"),
-               names_to = "Match2",
-               names_prefix = "End-",
-               values_to = "End_age",
-               values_drop_na = TRUE) %>% 
-  pivot_longer(cols = starts_with("Civil"),
-               names_to = "Match3",
-               names_prefix = "Civil-",
-               values_to = "Civil_status",
-               values_drop_na = TRUE) %>% 
-  pivot_longer(cols = starts_with("Relationship"),
-               names_to = "Match4",
-               names_prefix = "Relationship-",
-               values_to = "Relationship_status",
-               values_drop_na = TRUE) %>% 
-  pivot_longer(cols = starts_with("Children"),
-               names_to = "Match5",
-               names_prefix = "Children-",
-               values_to = "Children",
-               values_drop_na = TRUE) %>% 
-  pivot_longer(cols = starts_with("Living"),
-               names_to = "Match6",
-               names_prefix = "Living-",
-               values_to = "Living_situation",
-               values_drop_na = TRUE) %>% 
-  filter(Phase == Match2,
-         Phase == Match3,
-         Phase == Match4,
-         Phase == Match5,
-         Phase == Match6,
-         Start_age >= 15,
-         !Id %in% c("zr34u", "EN61O", "DN15U"),
-         !(Id == "GB28U" & Phase == "4")) %>% 
-  select(-contains("Match")) %>% 
-  mutate(Civil_status = factor(Civil_status, levels = cs_levels, labels = cs_labels),
-         Relationship_status = factor(Relationship_status, levels = rs_levels, labels = rs_labels),
-         Phase = as.numeric(Phase),
-         Living_situation = factor(Living_situation, levels = liv_levels, labels = liv_labels),
-         Children = case_when(
-           Children == 0 ~ "No",
-           is.na(Children) ~ "No",
-           Children > 0 ~ "Yes"
-         )
-         )
-
-tst <- raw_data %>% 
-  mutate(
-    Status= case_when(
-      Relationship_status == "No relationship" & Civil_status == "Single" & Children == "No" ~ 1,
-      Relationship_status == "No relationship" & Civil_status == "Single" & Children == "Yes" ~ 2,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "No" ~ 5,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "Yes"  ~ 6,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes" & Living_situation == "No" ~ 7,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes"  & Living_situation == "Yes" ~ 8,
-      Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "No" ~ 3,
-      Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "Yes" ~ 4,
-      Civil_status %in% c("Married", "Registered partnership") & Children == "No" ~ 9,
-      Civil_status %in% c("Married", "Registered partnership") & Children == "Yes" ~ 10,
-      Relationship_status == "No relationship" & Civil_status == "Divorced" & Children == "No" ~ 1,
-      Relationship_status == "No relationship" & Civil_status == "Divorced" & Children == "Yes" ~ 5,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "No" ~ 5,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "Yes" ~ 6,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "No" ~ 7,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "Yes" ~ 8,
-      Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "No" ~ 3,
-      Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "Yes" ~ 4,
-      Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "No" ~ 1,
-      Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "Yes" ~ 2,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "No" ~ 5,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "Yes" ~ 6,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "No" ~ 7,
-      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "Yes" ~ 8,
-      Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "No" ~ 3,
-      Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "Yes" ~ 4,
-      TRUE ~ 0
-      )
-    )                
-
-status_levels <- 1:10
-status_labels <- c("Single+no ch.",
-                   "Single+ch.",
-                   "Changing rel.+no ch.",
-                   "Changing rel.+ch.",
-                   "Rel.+apart+no ch.",
-                   "Rel.+together+no ch.",
-                   "Rel.+apart+ch.",
-                   "Rel.+together+ch.",
-                   "Married+no ch.",
-                   "Married+ch.")
-
-rh_data <- tst %>% 
-  select(-Civil_status, -Relationship_status, -Children) %>% 
-  mutate(Status_char = factor(Status, levels = status_levels, labels = status_labels))
+```{r, child="data_prep.Rmd"}
 ```
-
 
 ## Motivation
 
 ```{r, out.width = "150px", fig.align = "center"}
-knitr::include_graphics("../Output/couple.png")
+knitr::include_graphics("../Input/couple.png")
 ```
 
 Understand the differences in the romantic relationships history of a group of women.
@@ -176,7 +40,7 @@ Understand the differences in the romantic relationships history of a group of w
 ## Women 40+ Healthy Aging Study (i)
 
 ```{r, echo = FALSE, out.width= "49%", out.height = "20%", fig.show = "hold", fig.align = "center"}
-knitr::include_graphics(c("../Output/logo2.png", "../Output/logo1.png"))
+knitr::include_graphics(c("../Input/logo2.png", "../Input/logo1.png"))
 ``` 
 
 - Data from 250 individuals collected between June 2017 and February 2018.
@@ -195,7 +59,7 @@ knitr::include_graphics(c("../Output/logo2.png", "../Output/logo1.png"))
 Consider the relationship status:
 
 ```{r, out.width = "300px"}
-knitr::include_graphics("../Output/sequence_example1.png")
+knitr::include_graphics("../Input/sequence_example1.png")
 ```
 *Current age
 
@@ -208,7 +72,7 @@ knitr::include_graphics("../Output/sequence_example1.png")
 ## What is personality?
 
 ```{r, out.width = "200px", fig.align = "center"}
-knitr::include_graphics("../Output/personality1.png")
+knitr::include_graphics("../Input/personality1.png")
 ```
 
 Personality refers to the enduring characteristics and behavior that comprise a person’s unique adjustment to life, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns.
@@ -217,7 +81,7 @@ Personality refers to the enduring characteristics and behavior that comprise a 
 ## The "Big Five" personality traits
 
 ```{r, out.width = "300px", fig.align = "center"}
-knitr::include_graphics("../Output/personality2.png")
+knitr::include_graphics("../Input/personality2.png")
 ```
 
 
@@ -304,7 +168,7 @@ The instrument asked about the number of children in different phases but it wil
 - 10 = Married + children
 
 ```{r, out.width = "280px"}
-knitr::include_graphics("../Output/sequence_example2.png")
+knitr::include_graphics("../Input/sequence_example2.png")
 ```
 
 ## Distribution of states
@@ -334,7 +198,7 @@ Analyzing Sequence Data: Optimal Matching in Management Research (T. Biemann and
 - Coded into yearly data with the states: administration (A), corporation (C), faculty (F), government (G).
 
 ```{r, out.width = "300px", fig.align = "center"}
-knitr::include_graphics("../Output/OMA_example0.png")
+knitr::include_graphics("../Input/OMA_example0.png")
 ```
 
 ## Example (ii)
@@ -342,7 +206,7 @@ knitr::include_graphics("../Output/OMA_example0.png")
 Cost matrix:
 
 ```{r, out.width = "300px", fig.align = "center"}
-knitr::include_graphics("../Output/OMA_example1.png")
+knitr::include_graphics("../Input/OMA_example1.png")
 ```
 
 
@@ -351,7 +215,7 @@ knitr::include_graphics("../Output/OMA_example1.png")
 Distance/dissimilarities matrix for five deans:
 
 ```{r, out.width = "300px", fig.align = "center"}
-knitr::include_graphics("../Output/OMA_example2.png")
+knitr::include_graphics("../Input/OMA_example2.png")
 ```
 
 
@@ -360,7 +224,7 @@ knitr::include_graphics("../Output/OMA_example2.png")
 Two of the five resulting clusters:
 
 ```{r, out.width = "300px", fig.align = "center"}
-knitr::include_graphics("../Output/OMA_example3.png")
+knitr::include_graphics("../Input/OMA_example3.png")
 ```
 
 
