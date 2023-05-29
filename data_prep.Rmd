@@ -1,0 +1,146 @@
+---
+title: "data_prep"
+author: "Adriana Clavijo Daza"
+date: "2023-05-29"
+output: pdf_document
+---
+
+```{r definitions, cache=TRUE}
+cs_levels <- 1:6
+cs_labels <- c("Single", "Married", "Registered partnership", 
+               "Same-sex partnership", "Divorced", "Widowed")
+
+rs_levels <- 1:4
+rs_labels <- c("No relationship", "Relationship", 
+               "Open relationship", "Changing relationships")
+
+liv_levels <- 0:2
+liv_labels <- c("No partner", "Yes", "No")
+```
+
+```{r data_reading, cache=TRUE}
+file <- "../Data_original/Tracker_Uni-Zurich_Modified.xlsx"
+
+raw_data <- read_excel(file)
+
+raw_data <- raw_data %>% 
+  select_if(~!all(is.na(.)))
+
+new_names <- vector(mode = "character")
+
+for (i in 1:12){
+  new_names[2*(i-1)+1] <- paste0("Start-", i)
+  new_names[2*(i-1)+2] <- paste0("End-", i)
+}
+
+colnames(raw_data)[1] <- "Id"
+colnames(raw_data)[58] <- "Age"
+colnames(raw_data)[59:82] <- new_names
+colnames(raw_data)[83:94] <- paste0("Civil-", 1:12)
+colnames(raw_data)[95:106] <- paste0("Relationship-", 1:12)
+colnames(raw_data)[119:130] <- paste0("Children-", 1:12)
+colnames(raw_data)[131:142] <- paste0("Living-", 1:12)
+```
+
+```{r data_processing, cache=TRUE}
+raw_data <- raw_data %>% 
+  select(c(1, 58:106, 119:142)) %>% 
+  pivot_longer(cols = starts_with("Start"),
+               names_to = "Phase",
+               names_prefix = "Start-",
+               values_to = "Start_age",
+               values_drop_na = TRUE) %>% 
+  pivot_longer(cols = starts_with("End"),
+               names_to = "Match2",
+               names_prefix = "End-",
+               values_to = "End_age",
+               values_drop_na = TRUE) %>% 
+  pivot_longer(cols = starts_with("Civil"),
+               names_to = "Match3",
+               names_prefix = "Civil-",
+               values_to = "Civil_status",
+               values_drop_na = TRUE) %>% 
+  pivot_longer(cols = starts_with("Relationship"),
+               names_to = "Match4",
+               names_prefix = "Relationship-",
+               values_to = "Relationship_status",
+               values_drop_na = TRUE) %>% 
+  pivot_longer(cols = starts_with("Children"),
+               names_to = "Match5",
+               names_prefix = "Children-",
+               values_to = "Children",
+               values_drop_na = TRUE) %>% 
+  pivot_longer(cols = starts_with("Living"),
+               names_to = "Match6",
+               names_prefix = "Living-",
+               values_to = "Living_situation",
+               values_drop_na = TRUE) %>% 
+  filter(Phase == Match2,
+         Phase == Match3,
+         Phase == Match4,
+         Phase == Match5,
+         Phase == Match6,
+         Start_age >= 15,
+         !Id %in% c("zr34u", "EN61O", "DN15U"),
+         !(Id == "GB28U" & Phase == "4")) %>% 
+  select(-contains("Match")) %>% 
+  mutate(Civil_status = factor(Civil_status, levels = cs_levels, labels = cs_labels),
+         Relationship_status = factor(Relationship_status, levels = rs_levels, labels = rs_labels),
+         Phase = as.numeric(Phase),
+         Living_situation = factor(Living_situation, levels = liv_levels, labels = liv_labels),
+         Children = case_when(
+           Children == 0 ~ "No",
+           is.na(Children) ~ "No",
+           Children > 0 ~ "Yes"
+         )
+         )
+
+# set levels and labels for final statuses to be considered
+status_levels <- 1:10
+status_labels <- c("Single+no ch.",
+                   "Single+ch.",
+                   "Changing rel.+no ch.",
+                   "Changing rel.+ch.",
+                   "Rel.+apart+no ch.",
+                   "Rel.+together+no ch.",
+                   "Rel.+apart+ch.",
+                   "Rel.+together+ch.",
+                   "Married+no ch.",
+                   "Married+ch.")
+
+# create data frame of relationships history data
+rh_data <- raw_data %>% 
+  mutate(
+    Status= case_when(
+      Relationship_status == "No relationship" & Civil_status == "Single" & Children == "No" ~ 1,
+      Relationship_status == "No relationship" & Civil_status == "Single" & Children == "Yes" ~ 2,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "No" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "No" & Living_situation == "Yes"  ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes" & Living_situation == "No" ~ 7,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Single" & Children == "Yes"  & Living_situation == "Yes" ~ 8,
+      Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "No" ~ 3,
+      Relationship_status == "Changing relationships" & Civil_status == "Single" & Children == "Yes" ~ 4,
+      Civil_status %in% c("Married", "Registered partnership") & Children == "No" ~ 9,
+      Civil_status %in% c("Married", "Registered partnership") & Children == "Yes" ~ 10,
+      Relationship_status == "No relationship" & Civil_status == "Divorced" & Children == "No" ~ 1,
+      Relationship_status == "No relationship" & Civil_status == "Divorced" & Children == "Yes" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "No" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "No" & Living_situation == "Yes" ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "No" ~ 7,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Divorced" & Children == "Yes" & Living_situation == "Yes" ~ 8,
+      Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "No" ~ 3,
+      Relationship_status == "Changing relationships" & Civil_status == "Divorced" & Children == "Yes" ~ 4,
+      Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "No" ~ 1,
+      Relationship_status == "No relationship" & Civil_status == "Widowed" & Children == "Yes" ~ 2,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "No" ~ 5,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "No" & Living_situation == "Yes" ~ 6,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "No" ~ 7,
+      Relationship_status %in% c("Relationship", "Open relationship") & Civil_status == "Widowed" & Children == "Yes" & Living_situation == "Yes" ~ 8,
+      Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "No" ~ 3,
+      Relationship_status == "Changing relationships" & Civil_status == "Widowed" & Children == "Yes" ~ 4,
+      TRUE ~ 0
+      )
+    ) %>% 
+  select(-Civil_status, -Relationship_status, -Children) %>% 
+  mutate(Status_char = factor(Status, levels = status_levels, labels = status_labels))
+```
