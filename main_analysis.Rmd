@@ -35,6 +35,10 @@ clusters4_counts <- tibble(clusters4) %>%
   summarise(n = n()) %>%
   ungroup() %>%
   rename(Cluster = clusters4)
+
+clusters2 <- cutree(cluster_ward, k = 2)
+
+clusters2_labels <- factor(clusters2, labels = paste("Cluster", 1:2))
 ```
 
 ```{r BFI_data_prep, cache = TRUE}
@@ -72,4 +76,32 @@ pers_descrip[, 1] <- c(
 
 # knitr::kable(pers_descrip, digits = 2) %>%
 #   kableExtra::kable_styling(font_size = 8)
+```
+
+```{r, cache = TRUE}
+data_all <- tibble(
+  Id = colnames(results$dm), Cluster_4 = clusters4_labels,
+  Cluster_2 = clusters2_labels
+) %>%
+  left_join(BFI_data, by = c("Id" = "PersCode")) %>%
+  select(Id, Cluster_4, Cluster_2, ends_with("mean")) %>%
+  filter(!is.na(BFI_extraversion_mean))
+
+data_all_long <- data_all %>%
+  pivot_longer(
+    cols = starts_with("BFI"), names_to = "Trait",
+    names_prefix = "BFI_", values_to = "Trait_value"
+  ) %>%
+  mutate(
+    Trait = case_when(
+      Trait == "extraversion_mean" ~ "Extraversion",
+      Trait == "agreeableness_mean" ~ "Agreeableness",
+      Trait == "conscientiousness_mean" ~ "Conscientiousness",
+      Trait == "neuroticism_mean" ~ "Neuroticism",
+      Trait == "openness_mean" ~ "Openness",
+      TRUE ~ "other"
+    ),
+    Cluster_4 = sub("Cluster ", "", Cluster_4),
+    Cluster_2 = sub("Cluster ", "", Cluster_2)
+  )
 ```
