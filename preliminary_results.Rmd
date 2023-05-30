@@ -348,7 +348,10 @@ Base setup: `TRATE` and `maxlenght`
 ```
 
 ```{r cost_matrix}
-knitr::kable(cost_matrix_base, digits = 2, row.names = FALSE)
+knitr::kable(cost_matrix_base, digits = 2, row.names = FALSE) %>%
+  ## Default font size is 11; reducing it to easily fit in slide. See:
+  ## bookdown.org/yihui/rmarkdown-cookbook/kableextra.html#set-the-font-size
+  kableExtra::kable_styling(font_size = 8)
 ```
 
 
