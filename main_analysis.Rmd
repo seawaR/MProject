@@ -1,0 +1,75 @@
+---
+title: "Untitled"
+author: "Adriana Clavijo Daza"
+date: "2023-05-30"
+output: html_document
+---
+
+```{r base_results, cache = TRUE}
+
+
+
+results <- distance_matrix(
+  data = rh_data,
+  cm_method = "TRATE",
+  dm_norm = "maxlength",
+  extras_out = TRUE
+  )
+
+cm_names <- c(1:10, "NA")
+
+cost_matrix_base <- cbind(cm_names, data.frame(results$cm))
+
+colnames(cost_matrix_base) <- c("State", cm_names)
+```
+
+```{r clustering, cache = TRUE}
+cluster_ward <- hclust(d = as.dist(results$dm), method = "ward.D2")
+
+clusters4 <- cutree(cluster_ward, k = 4)
+
+clusters4_labels <- factor(clusters4, labels = paste("Cluster", 1:4))
+
+clusters4_counts <- tibble(clusters4) %>%
+  group_by(clusters4) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  rename(Cluster = clusters4)
+```
+
+```{r BFI_data_prep, cache = TRUE}
+BFI_data <- read_excel("../Data_original/Adriana_BFI.xlsx")
+
+BFI_data <- BFI_data %>%
+  select(
+    PersCode,
+    starts_with("BFI")
+  )
+
+pers_descrip <- BFI_data %>%
+  select(
+    PersCode,
+    ends_with("mean")
+  ) %>%
+  pivot_longer(
+    cols = ends_with("mean"),
+    names_to = "Personality trait",
+    values_to = "Value"
+  ) %>%
+  group_by(`Personality trait`) %>%
+  summarise(
+    Min = min(Value, na.rm = TRUE),
+    Max = max(Value, na.rm = TRUE),
+    Average = mean(Value, na.rm = TRUE),
+    `Std. deviation` = sd(Value, na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+pers_descrip[, 1] <- c(
+  "Agreeableness", "Conscientiousness",
+  "Extraversion", "Neuroticism", "Openness"
+)
+
+# knitr::kable(pers_descrip, digits = 2) %>%
+#   kableExtra::kable_styling(font_size = 8)
+```

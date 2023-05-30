@@ -344,7 +344,7 @@ plot5 + geom_bar() + geom_bar() + geom_text(stat = "count", aes(label = ..count.
 
 Base setup: `TRATE` and `maxlenght`
 
-```{r, child = "base_setup.Rmd"}
+```{r, child = "main_analysis.Rmd"}
 ```
 
 ```{r cost_matrix}
@@ -356,7 +356,7 @@ knitr::kable(cost_matrix_base, digits = 2, row.names = FALSE)
 
 ```{r, out.width="200px", fig.align="center"}
 plot(cluster_ward, labels = FALSE, hang = -1, xlab = "", ylab = "", sub = "")
-abline(h = 4.3, col = "red")
+abline(h = 5.5, col = "red")
 ```
 
 
@@ -366,7 +366,7 @@ abline(h = 4.3, col = "red")
 par(mar = c(2, 2, 0.9, 0.5))
 
 seqdplot(results$sd,
-  group = clusters5_labels, 
+  group = clusters4_labels, 
   border = NA,
   ltext = status_labels,
   cex.legend = 1.4
@@ -378,21 +378,24 @@ invisible(dev.off())
 
 ## Application: clustering
 
-```{r}
-knitr::kable(clusters5_counts)
+```{r, out.width="300px", fig.align="center"}
+seqplot.tentrop(results$sd, group = clusters4_labels, ylim = c(0, 1))
 ```
-
-- Cluster 1: Married young and had children
-- Cluster 2: Constantly in relationship but not married
-- Cluster 3: Older, mostly married or in long relationship without children
-- Cluster 4: Younger, single or in a relationship without children
 
 
 ## Application: clustering
 
-```{r, out.width="350px", fig.align="center"}
-seqplot.tentrop(results$sd, group = clusters5_labels, ylim = c(0, 1))
+```{r}
+knitr::kable(clusters4_counts)
 ```
+
+- Cluster 1: Married young and had children
+- Cluster 2: Often in relationships but not married
+- Cluster 3: Older, mostly married or in long relationship without children
+- Cluster 4: Younger, single or in a relationship without children
+
+
+
 
 
 ## Distance matrix
