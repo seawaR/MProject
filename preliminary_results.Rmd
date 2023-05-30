@@ -10,7 +10,7 @@ header-includes:
 output: beamer_presentation
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 ```
@@ -22,6 +22,7 @@ library(dplyr)
 library(stringr)
 library(ggplot2)
 library(TraMineR)
+library(TraMineRextras)
 library(cluster)
 source("predict_scores.R")
 source("get_MSE.R")
@@ -39,7 +40,7 @@ Understand the similarities and differences in the romantic relationships histor
 
 ## Women 40+ Healthy Aging Study (i)
 
-```{r, echo = FALSE, out.width= "49%", out.height = "20%", fig.show = "hold", fig.align = "center"}
+```{r, out.width = "49%", out.height = "20%", fig.show = "hold", fig.align = "center"}
 knitr::include_graphics(c("../Input/logo2.png", "../Input/logo1.png"))
 ``` 
 
@@ -88,43 +89,6 @@ knitr::include_graphics("../Input/personality2.png")
 ## Research question
 
 - Can we get a good prediction of personality scores based on the relationship history sequences?
-
-
-## Data pre-processing
-
-- Manual corrections of several inconsistent and incomplete records.
-- Several additional automatic checks to identify sequences with inconsistent data.
-- Corrections based on secondary data source.
-- Identification and selection of the variables and patterns that provide a wider perspective of the individuals' situations.
-- In total, 239 individuals are considered for the analysis.
-
-```{r, child="data_prep.Rmd"}
-```
-
-
-## Considered states
-
-- 1 = Single + no children
-- 2 = Single + children
-- 3 = Changing relationships + no children
-- 4 = Changing rel. + children
-- 5 = Relationship + living apart + no children
-- 6 = Relationship + living together + no children 
-- 7 = Relationship + living apart + children
-- 8 = Relationship + living together + children
-- 9 = Married + no children
-- 10 = Married + children
-
-```{r, out.width = "280px"}
-knitr::include_graphics("../Input/sequence_example2.png")
-```
-
-## Distribution of states
-
-```{r final-status, fig.align = "center", out.width = "300px"}
-plot5 <- ggplot(data = rh_data, aes(Status_char))
-plot5 + geom_bar() + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust = -0.25) + scale_x_discrete(guide = guide_axis(n.dodge = 2)) + theme(axis.text = element_text(size = 12))
-```
 
 
 ## Optimal Matching (OM)
@@ -239,10 +203,10 @@ where $P(s_i|s_j)$ is the probability of transition from state $s_j$ in time $t$
 
 \begin{equation}
 \label{eq:chisq}
-K(s_i, s_j) = ChiDist(\mathbf{P_i}, \mathbf{P_j}),
+K(s_i, s_j) = d_{\chi^2}(\mathbf{P_i}, \mathbf{P_j}),
 \end{equation}
 
-where $\mathbf{P_.} = (P(s_1|.), \dots, P(s_n|.))'$
+where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$
 
 
 ## Cost matrix (iv)
@@ -259,6 +223,8 @@ where $indel_i = 1/f_i$ for method `INDEL`, $indel_i = \log[2/(1+f_i)]$ and $f_i
 
 ## Example (i)
 
+Setup:
+
 - $S$ = the alphabet
 - $X = \{S,E,N,D\}, Y = \{A,N,D\} \in \mathbf{S}$
 - $d = 2$  
@@ -274,6 +240,8 @@ $$
 
 ## Example (ii)
 
+Initialization of $F$:
+
 |   |   | S | E | N | D |
 |---|---|---|---|---|---|
 |   | 0 | 2 | 4 | 6 | 8 |
@@ -281,10 +249,11 @@ $$
 | N | 4 |   |   |   |   |
 | D | 6 |   |   |   |   |
 
-- $F(2,2) = min\{F(1, 2)+d, F(2, 1)+d, F(1, 1)+k(y_{1}, x_{1})\} = min\{2+2, 2+2, 0+3\} = 3$
-- $F(2,3) = min\{F(1, 3)+d, F(2, 2)+d, F(1, 2)+k(y_{1}, x_{2})\} = min\{4+2, 3+2, 2+3\} = 5$
-- $F(2,4) = min\{F(1, 4)+d, F(2, 3)+d, F(1, 3)+k(y_{1}, x_{3})\} = min\{6+2, 5+2, 4+3\} = 7$
-- $F(2,5) = min\{F(1, 5)+d, F(2, 4)+d, F(1, 4)+k(y_{1}, x_{4})\} = min\{8+2, 7+2, 6+3\} = 9$
+
+- $F(2,2) = \min\{F(1, 2)+d, F(2, 1)+d, F(1, 1)+k(y_{1}, x_{1})\} = \min\{2+2, 2+2, 0+3\} = 3$
+- $F(2,3) = \min\{F(1, 3)+d, F(2, 2)+d, F(1, 2)+k(y_{1}, x_{2})\} = \min\{4+2, 3+2, 2+3\} = 5$
+- $F(2,4) = \min\{F(1, 4)+d, F(2, 3)+d, F(1, 3)+k(y_{1}, x_{3})\} = \min\{6+2, 5+2, 4+3\} = 7$
+- $F(2,5) = \min\{F(1, 5)+d, F(2, 4)+d, F(1, 4)+k(y_{1}, x_{4})\} = \min\{8+2, 7+2, 6+3\} = 9$
 
 
 ## Example (iii)
@@ -297,29 +266,132 @@ $$
 | D | 6 |   |   |   |   |
 
 
-- $F(3,2) = min\{F(2, 2)+d, F(3, 1)+d, F(2, 1)+k(y_{2}, x_{1})\} = min\{3+2, 4+2, 2+3\} = 5$
-- $F(3,3) = min\{F(2, 3)+d, F(3, 2)+d, F(2, 2)+k(y_{2}, x_{2})\} = min\{5+2, 5+2, 3+3\} = 6$
+- $F(3,2) = \min\{F(2, 2)+d, F(3, 1)+d, F(2, 1)+k(y_{2}, x_{1})\} = \min\{3+2, 4+2, 2+3\} = 5$
+- $F(3,3) = \min\{F(2, 3)+d, F(3, 2)+d, F(2, 2)+k(y_{2}, x_{2})\} = \min\{5+2, 5+2, 3+3\} = 6$
 - $\dots$
 
 
-## Cost matrix (ii)
+## Example (iv)
 
-```{r cost-matrix, echo=FALSE, message=FALSE}
-test <- seqformat(rh_data,
-  from = "SPELL", to = "STS",
-  id = "Id", begin = "Start_age", end = "End_age",
-  status = "Status", covar = "Age", process = FALSE
-)
+|   |   | S | E | N | D |
+|---|---|---|---|---|---|
+|   | 0 | 2 | 4 | 6 | 8 |
+| A | 2 | 3 | 5 | 7 | 9 |
+| N | 4 | 5 | 6 | 5 | 7 |
+| D | 6 | 7 | 8 | 7 | 5 |
 
-alphabet <- as.character(1:10)
+S E N D with  
+A - N D or $\hspace{0.5cm}$ ---> $\hspace{0.5cm}$ Optimal (equivalent) alignments   
+-\ A N D  
 
-my_seq <- seqdef(test, alphabet = alphabet)
+- 2 matches: 0 
+- 1 mismatch: 3 
+- 1 gap: 2
+- Total: 5
 
-cost_matrix_1 <- seqsubm(my_seq, method = "TRATE", with.missing = TRUE)
+
+## Normalization
+
+Given $X, Y \in \mathbf{S}$ of length $t_1$ and $t_2$, respectively. 
+Let $d(X,Y)$ be the distance between the sequences $X$ and $Y$, $t_{max}$ the length of the longest sequence in $\mathbf{S}$ and $d_{max}$ the maximum distance between any pair of sequences in $\mathbf{S}$.
+
+`TraMineR` provides the following options for normalization:
+
+- `maxlength`: $d(X,Y)/t_{max}$
+- `gmean`: $1- \frac{d_{max}-d(X,Y)}{\sqrt{t_1*t_2}}$
+- `maxdist`: $d(X,Y)/d_{max}$
+
+
+## Application: data pre-processing
+
+- Manual corrections of several inconsistent and incomplete records.
+- Several additional automatic checks to identify sequences with inconsistent data.
+- Corrections based on secondary data source.
+- Identification and selection of the variables and patterns that provide a wider perspective of the individuals' situations.
+- In total, 239 individuals are considered for the analysis.
+
+```{r, child = "data_prep.Rmd"}
 ```
 
+
+## Application: considered states
+
+- 1 = Single + no children
+- 2 = Single + children
+- 3 = Changing relationships + no children
+- 4 = Changing rel. + children
+- 5 = Relationship + living apart + no children
+- 6 = Relationship + living together + no children 
+- 7 = Relationship + living apart + children
+- 8 = Relationship + living together + children
+- 9 = Married + no children
+- 10 = Married + children
+
+```{r, out.width = "280px"}
+knitr::include_graphics("../Input/sequence_example2.png")
+```
+
+
+## Application: distribution of states
+
+```{r final-states, fig.align = "center", out.width = "300px"}
+plot5 <- ggplot(data = rh_data, aes(Status_char))
+plot5 + geom_bar() + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust = -0.25) + scale_x_discrete(guide = guide_axis(n.dodge = 2)) + theme(axis.text = element_text(size = 12))
+```
+
+
+## Application: cost matrix
+
+Base setup: `TRATE` and `maxlenght`
+
+```{r, child = "base_setup.Rmd"}
+```
+
+```{r cost_matrix}
+knitr::kable(cost_matrix_base, digits = 2, row.names = FALSE)
+```
+
+
+## Application: clustering
+
+```{r, out.width="200px", fig.align="center"}
+plot(cluster_ward, labels = FALSE, hang = -1, xlab = "", ylab = "", sub = "")
+abline(h = 4.3, col = "red")
+```
+
+
+## Application: clustering
+
 ```{r, out.width = "300px", fig.align = "center"}
-knitr::include_graphics("../Output/cost_matrix.png")
+par(mar = c(2, 2, 0.9, 0.5))
+
+seqdplot(results$sd,
+  group = clusters5_labels, 
+  border = NA,
+  ltext = status_labels,
+  cex.legend = 1.4
+)
+
+invisible(dev.off())
+```
+
+
+## Application: clustering
+
+```{r}
+knitr::kable(clusters5_counts)
+```
+
+- Cluster 1: Married young and had children
+- Cluster 2: Constantly in relationship but not married
+- Cluster 3: Older, mostly married or in long relationship without children
+- Cluster 4: Younger, single or in a relationship without children
+
+
+## Application: clustering
+
+```{r, out.width="350px", fig.align="center"}
+seqplot.tentrop(results$sd, group = clusters5_labels, ylim = c(0, 1))
 ```
 
 
@@ -330,249 +402,4 @@ knitr::include_graphics("../Output/cost_matrix.png")
 - There is a cost associated with each operation: The substitution cost are given by the cost matrix and insertion/deletion costs are set in a way that reduces/increases the importance of time shifts (low/high).
 - The distance between $x$ and $y$ is given by the lower cost mapping.
 
-```{r, echo=FALSE, message=FALSE}
-my_dist <- seqdist(my_seq, method = "OM", sm = cost_matrix_1, with.missing = TRUE)
-```
 
-
-## Clustering (i)
-
-- Hierarchical method: Agglomerative Nesting (AGNES).
-- At the beginning each individual is a cluster and, at every step, the closest clusters are merged together.
-- Distance between two clusters is the average of the distances between the points in one cluster and the points in the other cluster.
-
-```{r, echo=FALSE, message=FALSE}
-clusterward <- agnes(my_dist, diss = TRUE, method = "ward")
-```
-
-
-## Clustering (ii)
-
-Dendrogram:
-
-```{r, out.width="300px", fig.align="center"}
-plot(clusterward, which.plots = 2, main = "Dendrogram")
-abline(h = 153, col = "red")
-```
-
-
-## Clustering (iii)
-
-```{r, echo=FALSE, message=FALSE, cache=TRUE}
-clusterward <- agnes(my_dist, diss = TRUE, method = "ward")
-
-clusters <- cutree(clusterward, k = 5)
-
-clusters_labels <- factor(clusters, labels = paste("Cluster", 1:5))
-```
-
-```{r, out.width = "320px", fig.align = "center"}
-# knitr::include_graphics("../Output/cluster2.png")
-par(mar = c(2, 1.7, 0.75, 0.5))
-seqdplot(my_seq,
-  group = clusters_labels, border = NA,
-  ltext = status_labels
-)
-dev.off()
-```
-
-
-## Descriptive statistics of personality scores
-
-```{r, echo=FALSE, message=FALSE}
-BFI_data <- read_excel("../Data_original/Adriana_BFI.xlsx")
-
-BFI_data <- BFI_data %>%
-  select(
-    PersCode,
-    starts_with("BFI")
-  )
-
-pers_descrip <- BFI_data %>%
-  select(
-    PersCode,
-    ends_with("mean")
-  ) %>%
-  pivot_longer(
-    cols = ends_with("mean"),
-    names_to = "Personality trait",
-    values_to = "Value"
-  ) %>%
-  group_by(`Personality trait`) %>%
-  summarise(
-    Min = min(Value, na.rm = TRUE),
-    Max = max(Value, na.rm = TRUE),
-    Average = mean(Value, na.rm = TRUE),
-    `Std. deviation` = sd(Value, na.rm = TRUE)
-  ) %>%
-  ungroup()
-
-pers_descrip[, 1] <- c(
-  "Agreeablenes", "Conscientiousness",
-  "Extraversion", "Neuroticism", "Openness"
-)
-
-knitr::kable(pers_descrip, digits = 2) %>%
-  kableExtra::kable_styling(font_size = 8)
-```
-
-
-## Average personality scores by cluster
-
-```{r, echo=FALSE, message=FALSE}
-all_data <- tibble(Id = colnames(my_dist), Cluster = clusters_labels) %>%
-  left_join(BFI_data, by = c("Id" = "PersCode")) %>%
-  select(Id, Cluster, ends_with("mean"))
-
-by_cluster <- all_data %>%
-  group_by(Cluster) %>%
-  summarise(
-    Extraversion = mean(BFI_extraversion_mean, na.rm = TRUE),
-    Agreeableness = mean(BFI_agreeableness_mean,
-      na.rm = TRUE
-    ),
-    Conscientiousness = mean(BFI_conscientiousness_mean,
-      na.rm = TRUE
-    ),
-    Neuroticism = mean(BFI_neuroticism_mean, na.rm = TRUE),
-    Openness = mean(BFI_openness_mean, na.rm = TRUE)
-  ) %>%
-  ungroup()
-
-knitr::kable(by_cluster, digits = 2) %>%
-  kableExtra::kable_styling(font_size = 7)
-```
-
-Subjective description of the clusters:
-
-- Cluster 1: Married with children then divorced/widowed
-- Cluster 2: Sequences with more changes (unstable)
-- Cluster 3: Younger, not married with children
-- Cluster 4: Not married w/o children
-- Cluster 5: Married w/o children
-
-## k-Nearest Neighbors (kNN) algorithm
-
-- It's a non-parametric method.
-- Choose the $k$ nearest samples to an individual (distance matrix).
-- Calculate the average of the variable of interest with the $k$ samples $\rightarrow$ prediction.
-- Use a measure such as $MSE$ to select the optimal $k$.
-
-$$ MSE = \frac{1}{n} \sum_{i=1}^n (Y_i - \hat{Y}_i)^2, $$
-
-where $n$ is the number of data points considered, $Y_i$ is the observed value and $\hat{Y}_i$ is the predicted value.
-
-## k-Nearest Neighbors
-
-```{r, echo=FALSE, message=FALSE, cache=TRUE}
-set.seed(123)
-n <- dim(all_data)[1]
-size <- round(n * 0.3)
-
-test_set <- sample.int(n, size)
-train_set <- 1:n
-train_set <- train_set[-test_set]
-
-test_names <- colnames(my_dist)[test_set]
-train_names <- colnames(my_dist)[train_set]
-
-find_neighbors <- function(i, matrix, k) {
-  data <- sort(matrix[i, ])[-1][1:k]
-  return(names(data))
-}
-
-preditc_scores <- function(data, neighbors) {
-  predictions <- data %>%
-    filter(Id %in% neighbors) %>%
-    summarise(
-      Extraversion = mean(BFI_extraversion_mean, na.rm = TRUE),
-      Agreeableness = mean(BFI_agreeableness_mean, na.rm = TRUE),
-      Conscientiousness = mean(BFI_conscientiousness_mean, na.rm = TRUE),
-      Neuroticism = mean(BFI_neuroticism_mean, na.rm = TRUE),
-      Openness = mean(BFI_openness_mean, na.rm = TRUE)
-    ) %>%
-    as.vector() %>%
-    unlist()
-  return(predictions)
-}
-
-K <- 30
-results_train <- list()
-
-for (k in 1:K) {
-  all_neighbors_train <- list()
-
-  for (i in seq_along(train_set)) {
-    all_neighbors_train[[i]] <- find_neighbors(train_set[i], matrix = my_dist, k = k)
-  }
-
-  names(all_neighbors_train) <- train_names
-
-  all_predictions_train <- list()
-
-  for (i in seq_along(train_set)) {
-    all_predictions_train[[i]] <- preditc_scores(all_data, neighbors = all_neighbors_train[[i]])
-  }
-
-  names(all_predictions_train) <- train_names
-
-  predictions_train_df <- do.call(rbind.data.frame, all_predictions_train)
-
-  colnames(predictions_train_df) <- names(all_predictions_train[[1]])
-
-  predictions_train_df[, "Id"] <- train_names
-
-  sq_error_train <- predictions_train_df %>%
-    left_join(all_data, by = "Id") %>%
-    mutate(
-      sq_diff_Extraversion = (Extraversion - BFI_extraversion_mean)^2,
-      sq_diff_Agreeableness = (Agreeableness - BFI_agreeableness_mean)^2,
-      sq_diff_Conscientiousness = (Conscientiousness - BFI_conscientiousness_mean)^2,
-      sq_diff_Neuroticism = (Neuroticism - BFI_neuroticism_mean)^2,
-      sq_diff_Openness = (Openness - BFI_openness_mean)^2
-    ) %>%
-    select(Id, Cluster, starts_with("sq_diff")) %>%
-    pivot_longer(starts_with("sq_diff"), names_to = "Score", values_to = "Value") %>%
-    group_by(Score) %>%
-    summarise(MSQ = mean(Value, na.rm = TRUE)) %>%
-    ungroup()
-
-  colnames(sq_error_train)[2] <- paste0("MSQ_", k)
-
-  sq_error_train[, 1] <- c(
-    "Agreeablenes", "Conscientiousness",
-    "Extraversion", "Neuroticism", "Openness"
-  )
-
-  results_train[[k]] <- sq_error_train
-}
-
-train_MSQ <- results_train %>%
-  purrr::reduce(left_join, by = "Score") %>%
-  pivot_longer(starts_with("MSQ_"),
-    names_prefix = "MSQ_", names_to = "k",
-    values_to = "MSE"
-  ) %>%
-  mutate(k = as.numeric(k))
-```
-
-```{r, echo=FALSE, message=FALSE, out.width = "300px", fig.align = "center"}
-ggplot(data = train_MSQ, aes(x = k, y = MSE, col = Score)) +
-  geom_line()
-```
-
-
-## What's next?
-
-- Use the kNN predictions to tune the parameters used in the specification of the cost matrix (e.g. indel cost, transition cost calculation)
-- Try other prediction methods (e.g. distance-based linear models)
-
-
-## References
-
-- Sequence Analysis: New Methods for Old Ideas - A. Abbott (1995)
-- Optimal Matching Analysis: A Methodological Note on Studying Career Mobility - T. W. Chan (1995)
-- Analyzing Sequence Data: Optimal Matching in
-Management Research - T. Biemann & D. K. Datta (2013)
-- Analyzing and Visualizing State Sequences in R
-with TraMineR - A. Gabadinho, G. Ritschard, N. S. Müller, M. Studer (2011)

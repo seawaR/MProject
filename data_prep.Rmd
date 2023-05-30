@@ -5,7 +5,7 @@ date: "2023-05-29"
 output: pdf_document
 ---
 
-```{r definitions, cache=TRUE}
+```{r definitions, cache = TRUE}
 cs_levels <- 1:6
 cs_labels <- c(
   "Single", "Married", "Registered partnership",
@@ -22,7 +22,7 @@ liv_levels <- 0:2
 liv_labels <- c("No partner", "Yes", "No")
 ```
 
-```{r data_reading, cache=TRUE}
+```{r data_reading, cache = TRUE}
 file <- "../Data_original/Tracker_Uni-Zurich_Modified.xlsx"
 
 raw_data <- read_excel(file)
@@ -46,7 +46,7 @@ colnames(raw_data)[119:130] <- paste0("Children-", 1:12)
 colnames(raw_data)[131:142] <- paste0("Living-", 1:12)
 ```
 
-```{r data_processing, cache=TRUE}
+```{r data_processing, cache = TRUE}
 raw_data <- raw_data %>%
   select(c(1, 58:106, 119:142)) %>%
   pivot_longer(

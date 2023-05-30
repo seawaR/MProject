@@ -81,5 +81,4 @@ example2 <- get_MSE(
   cm_method = "TRATE",
   dm_norm = "maxlength",
   min_age = 20,
-  max_age = 40
-)
+  max_age = 40)

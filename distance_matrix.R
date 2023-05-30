@@ -8,7 +8,7 @@ distance_matrix <- function(data,
                             missing_cost = NULL,
                             min_age = NULL,
                             max_age = NULL,
-                            cm_out = FALSE) {
+                            extras_out = FALSE) {
   if (!is.null(min_age)) {
     data <- data %>%
       filter(Start_age >= min_age)
@@ -64,8 +64,8 @@ distance_matrix <- function(data,
     norm = dm_norm
   )
 
-  if (cm_out) {
-    return(list(cm = cost_matrix$cm, dm = distance_matrix))
+  if (extras_out) {
+    return(list(cm = cost_matrix$sm, dm = distance_matrix, sd = sequences))
   } else {
     return(distance_matrix)
   }
