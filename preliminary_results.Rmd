@@ -344,7 +344,7 @@ invisible(dev.off())
 
 ## Application: clustering
 
-```{r, out.width="300px", fig.align="center"}
+```{r, out.width = "300px", fig.align = "center", results = "hide"}
 seqplot.tentrop(results$sd, group = clusters4_labels, ylim = c(0, 1))
 ```
 
@@ -393,7 +393,7 @@ invisible(dev.off())
 
 ## Application: clustering
 
-```{r, out.width = "300px", fig.align = "center"}
+```{r, out.width = "300px", fig.align = "center", results = "hide"}
 seqplot.tentrop(results$sd, group = clusters2_labels, ylim = c(0, 1))
 ```
 
