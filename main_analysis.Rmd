@@ -162,7 +162,9 @@ experiments <- tibble::tribble(
   "FUTURE", "gmean", NULL, NULL, 20, 40,
   "FUTURE", "gmean", NULL, 1, 20, 55,
 )
+```
 
+```{r experiments_evaluation, cache = TRUE}
 eval_experiments <- experiments %>%
   dplyr::rowwise() %>%
   mutate(result = list(get_MSE(
@@ -178,12 +180,14 @@ eval_experiments <- experiments %>%
     min_age = min_age,
     max_age = max_age
   )))
+```
 
+```{r experiments_results, cache = TRUE}
 my_exp <- eval_experiments %>%
-  tibble::add_column(Experiment = 1:11) %>%
-  select(Experiment, result) %>%
+  tibble::add_column(Scenario = 1:11) %>%
+  select(Scenario, result) %>%
   tidyr::unnest(result) %>%
-  group_by(Experiment, Score) %>%
+  group_by(Scenario, Score) %>%
   slice_min(order_by = MSE, n = 1) %>%
   ungroup() %>%
   left_join(trivial_MSE, by = "Score") %>%

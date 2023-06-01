@@ -37,7 +37,7 @@ source("get_MSE.R")
 knitr::include_graphics("../Input/couple.png")
 ```
 
-Understand the similarities and differences in the romantic relationships history of a group of women over 40 years old and use this information as a predictor of personality traits.
+Understand the similarities and differences in the romantic relationships history of a group of women over 40 years old and explore the use of this information as a predictor for other characteristics of interest.
 
 
 ## Women 40+ Healthy Aging Study (i)
@@ -54,7 +54,7 @@ knitr::include_graphics(c("../Input/logo2.png", "../Input/logo1.png"))
 
 - Information about relationship phases starting from the age of 15 years until the current age at the time of the data collection.
 - The phases are defined by the start and end age and for each phase and information about civil status, relationship status, living situation, children and quality of the relationship was collected.
-- Additional information about the individuals was collected, in particular, scores for personality scores.
+- Additional information about the individuals was collected, in particular, scores for personality traits.
 
 
 ## Data example
@@ -70,6 +70,44 @@ knitr::include_graphics("../Input/sequence_example1.png")
 - In a relationship (R)
 - Open relationship (OR)
 - Changing relationships (CR)
+
+
+## Data pre-processing
+
+- Manual corrections of several inconsistent and incomplete records.
+- Several additional automatic checks to identify sequences with inconsistent data.
+- Corrections based on secondary data source.
+- Identification and selection of the variables and patterns that provide a wider perspective of the individuals situations at a given time.
+- In total, 239 individuals are considered for the analysis.
+
+
+## Considered states
+
+- 1 = Single + no children
+- 2 = Single + children
+- 3 = Changing relationships + no children
+- 4 = Changing rel. + children
+- 5 = Relationship + living apart + no children
+- 6 = Relationship + living together + no children 
+- 7 = Relationship + living apart + children
+- 8 = Relationship + living together + children
+- 9 = Married + no children
+- 10 = Married + children
+
+```{r, out.width = "280px"}
+knitr::include_graphics("../Input/sequence_example2.png")
+```
+
+
+## Distribution of states
+
+```{r, child = "data_prep.Rmd"}
+```
+
+```{r final-states, fig.align = "center", out.width = "300px"}
+plot5 <- ggplot(data = rh_data, aes(Status_char))
+plot5 + geom_bar() + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust = -0.25) + scale_x_discrete(guide = guide_axis(n.dodge = 2)) + theme(axis.text = element_text(size = 12))
+```
 
 
 ## What is personality?
@@ -99,45 +137,6 @@ knitr::include_graphics("../Input/personality2.png")
 - Applications on life course and career path analysis. 
 - Uses the Needleman-Wunsch algorithm, that was developed to compare biological sequences.
 - The Needleman-Wunsch algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems.
-
-
-## Example (i)
-
-Analyzing Sequence Data: Optimal Matching in Management Research (T. Biemann and D. K. Datta)
-
-- Goal: study career paths of deans at US business schools.
-- Data source: 149 CVs of deans including public and private business schools.
-- Coded into yearly data with the states: administration (A), corporation (C), faculty (F), government (G).
-
-```{r, out.width = "300px", fig.align = "center"}
-knitr::include_graphics("../Input/OMA_example0.png")
-```
-
-## Example (ii)
-
-Cost matrix:
-
-```{r, out.width = "300px", fig.align = "center"}
-knitr::include_graphics("../Input/OMA_example1.png")
-```
-
-
-## Example (iii)
-
-Distance/dissimilarities matrix for five deans:
-
-```{r, out.width = "300px", fig.align = "center"}
-knitr::include_graphics("../Input/OMA_example2.png")
-```
-
-
-## Example (iv)
-
-Two of the five resulting clusters:
-
-```{r, out.width = "300px", fig.align = "center"}
-knitr::include_graphics("../Input/OMA_example3.png")
-```
 
 
 ## The OM algortihm (i)
@@ -304,44 +303,6 @@ Let $d(X,Y)$ be the distance between the sequences $X$ and $Y$, $t_{max}$ the le
 - `maxdist`: $d(X,Y)/d_{max}$
 
 
-## Application: data pre-processing
-
-- Manual corrections of several inconsistent and incomplete records.
-- Several additional automatic checks to identify sequences with inconsistent data.
-- Corrections based on secondary data source.
-- Identification and selection of the variables and patterns that provide a wider perspective of the individuals' situations.
-- In total, 239 individuals are considered for the analysis.
-
-```{r, child = "data_prep.Rmd"}
-```
-
-
-## Application: considered states
-
-- 1 = Single + no children
-- 2 = Single + children
-- 3 = Changing relationships + no children
-- 4 = Changing rel. + children
-- 5 = Relationship + living apart + no children
-- 6 = Relationship + living together + no children 
-- 7 = Relationship + living apart + children
-- 8 = Relationship + living together + children
-- 9 = Married + no children
-- 10 = Married + children
-
-```{r, out.width = "280px"}
-knitr::include_graphics("../Input/sequence_example2.png")
-```
-
-
-## Application: distribution of states
-
-```{r final-states, fig.align = "center", out.width = "300px"}
-plot5 <- ggplot(data = rh_data, aes(Status_char))
-plot5 + geom_bar() + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust = -0.25) + scale_x_discrete(guide = guide_axis(n.dodge = 2)) + theme(axis.text = element_text(size = 12))
-```
-
-
 ## Application: cost matrix
 
 Base setup: `TRATE` and `maxlenght`
@@ -396,6 +357,7 @@ knitr::kable(clusters4_counts) %>%
 ```
 
 &nbsp;
+Characterization of the clusters:
 
 - Cluster 1: Married young and had children
 - Cluster 2: Often in relationships but not married
@@ -450,8 +412,14 @@ p + geom_histogram(bins = 10) + facet_grid(
 
 ## Application: Personality scores
 
+```{r}
+knitr::kable(pers_descrip, digits = 2) %>% 
+  kableExtra::kable_styling(font_size = 8)
+```
+
+&nbsp;
+
 ```{r, out.width = "180px", fig.align = "center"}
-knitr::kable(pers_descrip, digits = 2)
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density)))
 p + geom_histogram(bins = 10) + facet_grid(
   cols = vars(Trait),
@@ -517,7 +485,7 @@ knitr::kable(experiments, digits = 2, row.names = FALSE) %>%
 ## Prediction of personality scores
 
 ```{r, out.width = "300px", fig.align = "center"}
-ggplot(my_exp, aes(Experiment, Score)) +
+ggplot(my_exp, aes(Scenario, Score)) +
   geom_tile(aes(fill = Improvement)) +
   geom_text(aes(label = paste(round(Improvement, 2), paste0("k = ", k), sep = "\n"))) +
   scale_fill_gradient(low = "red", high = "green") +
