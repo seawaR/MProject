@@ -161,6 +161,7 @@ experiments <- tibble::tribble(
   "FUTURE", "gmean", NULL, NULL, 20, 55,
   "FUTURE", "gmean", NULL, NULL, 20, 40,
   "FUTURE", "gmean", NULL, 1, 20, 55,
+  "FUTURE", "gmean", NULL, 0.5, 20, 55,
 )
 ```
 
@@ -172,7 +173,7 @@ eval_experiments <- experiments %>%
     prediction_data = data_all,
     train_names = train_names,
     test_names = test_names,
-    max_neighbors = 80,
+    max_neighbors = 100,
     cm_method = cm_method,
     dm_norm = dm_norm,
     constant = constant,
@@ -184,7 +185,7 @@ eval_experiments <- experiments %>%
 
 ```{r experiments_results, cache = TRUE}
 my_exp <- eval_experiments %>%
-  tibble::add_column(Scenario = 1:11) %>%
+  tibble::add_column(Scenario = 1:12) %>%
   select(Scenario, result) %>%
   tidyr::unnest(result) %>%
   group_by(Scenario, Score) %>%

@@ -474,7 +474,8 @@ ggplot(base_MSE %>% filter(k > 3)) +
 ## Prediction of personality scores
 
 ```{r}
-knitr::kable(experiments, digits = 2, row.names = FALSE) %>%
+rownames(experiments) <- 1:nrow(experiments)
+knitr::kable(experiments, digits = 2, row.names = TRUE) %>%
   ## Default font size is 11; reducing it to easily fit in slide. See:
   ## bookdown.org/yihui/rmarkdown-cookbook/kableextra.html#set-the-font-size
   kableExtra::kable_styling(font_size = 8)
@@ -488,8 +489,129 @@ ggplot(my_exp, aes(Scenario, Score)) +
   geom_tile(aes(fill = Improvement)) +
   geom_text(aes(label = paste(round(Improvement, 2), paste0("k = ", k), sep = "\n"))) +
   scale_fill_gradient(low = "red", high = "green") +
-  scale_x_continuous(breaks = 1:11)
+  scale_x_continuous(breaks = 1:12)
 ```
+
+
+## Neuroticism - Scenario 3
+
+```{r, out.width = "250px", fig.align = "center"}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:12) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(Scenario == 3,
+         Score == "Neuroticism",
+         k > 1) %>% 
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  )
+```
+
+
+## Neuroticism - Scenario 7
+
+```{r, out.width = "250px", fig.align = "center"}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:12) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(Scenario == 7,
+         Score == "Neuroticism",
+         k > 1) %>% 
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  )
+```
+
+
+## Openness
+
+```{r, out.width = "250px", fig.align = "center"}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:12) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(Scenario == 12,
+         Score == "Openness",
+         k > 1) %>% 
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  )
+```
+
+
+## Extraversion
+
+```{r, out.width = "250px", fig.align = "center"}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:12) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(Scenario == 8,
+         Score == "Extraversion",
+         k > 4) %>% 
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  )
+```
+
+
+## Conscientiousness
+
+```{r, out.width = "250px", fig.align = "center"}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:12) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(Scenario == 1,
+         Score == "Conscientiousness",
+         k > 4) %>% 
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  )
+```
+
+
+## Agreeableness
+
+```{r, out.width = "250px", fig.align = "center"}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:12) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(Scenario == 12,
+         Score == "Agreeableness",
+         k > 4) %>% 
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  )
+```
+
 
 
 ## Final comments
