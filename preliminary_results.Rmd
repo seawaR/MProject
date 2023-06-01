@@ -451,11 +451,10 @@ where $y_i$ is the observed value and $\hat{y}_i$ is the predicted value via $k$
 ## Prediction of personality scores
 
 ```{r, out.width = "300px", fig.align = "center"}
-ggplot(base_MSE %>% filter(k > 5)) +
+ggplot(base_MSE %>% filter(k > 3)) +
   geom_line(aes(x = k, y = MSE)) +
-  geom_hline(
-    data = trivial_MSE,
-    aes(yintercept = MSE, col = "red"),
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
   ) +

@@ -172,7 +172,7 @@ eval_experiments <- experiments %>%
     prediction_data = data_all,
     train_names = train_names,
     test_names = test_names,
-    max_neighbors = 100,
+    max_neighbors = 80,
     cm_method = cm_method,
     dm_norm = dm_norm,
     constant = constant,
@@ -190,7 +190,6 @@ my_exp <- eval_experiments %>%
   group_by(Scenario, Score) %>%
   slice_min(order_by = MSE, n = 1) %>%
   ungroup() %>%
-  left_join(trivial_MSE, by = "Score") %>%
-  mutate(Improvement = (1 - (MSE.x / MSE.y)) * 100)
+  mutate(Improvement = (1 - (MSE / Trivial)) * 100)
 ```
 
