@@ -409,3 +409,22 @@ ggplot(my_exps, aes(Experiment, Score)) +
   geom_text(aes(label = paste(round(Improvement, 2), paste0("k = ", k), sep = "\n"))) +
   scale_fill_gradient(low = "red", high = "green") +
   scale_x_continuous(breaks = 1:12)
+
+
+##########################
+
+seqdplot(results$sd, sortv = "from.start", ltext = status_labels, border = NA)
+
+qs <- quantile(temp$BFI_neuroticism_mean, probs = c(0.2, 0.8))
+seqplot.tentrop(res, group = temp$Neuroticism_level, ylim = c(0, 1))
+
+temp <- data_all %>% 
+  filter(Id %in% rownames(res)) %>% 
+  arrange(factor(Id, levels = rownames(res)))
+
+res <- results$sd[rownames(results$sd) %in% data_all$Id,]
+
+temp <- temp %>% 
+  mutate(Neuroticism_level = case_when(BFI_neuroticism_mean < qs[1] ~ "Low",
+                                       BFI_neuroticism_mean < qs[2] ~ "High",
+                                       TRUE ~ "Medium"))
