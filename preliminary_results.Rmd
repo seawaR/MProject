@@ -11,9 +11,16 @@ output: beamer_presentation
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-knitr::opts_chunk$set(message = FALSE)
-knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  ## Default width x height for figures for LaTex is 10 x 7. Keep the ratio but
+  ## reduce it by 25% making larger plots for presentation. Individual plots can
+  ## be adjusted as needed.
+  fig.width = 7.5,
+  fig.height = 5.25
+)
 ```
 
 ```{r libs, echo = FALSE}
@@ -105,8 +112,13 @@ knitr::include_graphics("../Input/sequence_example2.png")
 ```
 
 ```{r final-states, fig.align = "center", out.width = "300px"}
-plot5 <- ggplot(data = rh_data, aes(Status_char))
-plot5 + geom_bar() + geom_bar() + geom_text(stat = "count", aes(label = ..count..), vjust = -0.25) + scale_x_discrete(guide = guide_axis(n.dodge = 2)) + theme(axis.text = element_text(size = 12))
+plot5 <- ggplot(data = rh_data, aes(x = Status_char))
+plot5 +
+  geom_bar() +
+  geom_text(stat = "count", aes(label = ..count..), vjust = -0.25) +
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  theme(axis.text = element_text(size = 10)) +
+  labs(x = "State", y = "Count")
 ```
 
 
@@ -320,7 +332,7 @@ knitr::kable(cost_matrix_base, digits = 2, row.names = FALSE) %>%
 
 ## Application: clustering
 
-```{r, out.width="200px", fig.align="center"}
+```{r plot-dendogram, out.width = "300px", fig.align = "center"}
 plot(cluster_ward, labels = FALSE, hang = -1, xlab = "", ylab = "", sub = "")
 abline(h = 5.5, col = "red")
 ```
@@ -328,14 +340,14 @@ abline(h = 5.5, col = "red")
 
 ## Application: clustering
 
-```{r, out.width = "300px", fig.align = "center"}
-par(mar = c(2, 2, 0.9, 0.5))
+```{r plot-seqdplot-1, out.width = "300px", fig.align = "center"}
+# Reduce the bottom and right margin of (sub)plots by ~50%.
+par(mar = par()$mar * c(0.5, 1, 1, 0.5))
 
 seqdplot(results$sd,
   group = clusters4_labels,
   border = NA,
-  ltext = status_labels,
-  cex.legend = 1.4
+  ltext = status_labels
 )
 
 invisible(dev.off())
@@ -344,7 +356,7 @@ invisible(dev.off())
 
 ## Application: clustering
 
-```{r, out.width="300px", fig.align="center"}
+```{r, out.width = "300px", fig.align = "center", results = "hide"}
 seqplot.tentrop(results$sd, group = clusters4_labels, ylim = c(0, 1))
 ```
 
@@ -369,44 +381,50 @@ Characterization of the clusters:
 
 ```{r, out.width = "300px", fig.align = "center"}
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density)))
-p + geom_histogram(bins = 12) + facet_grid(
-  rows = vars(Cluster_4),
-  cols = vars(Trait),
-  scales = "free_x"
-)
+p +
+  geom_histogram(bins = 12) +
+  facet_grid(
+    rows = vars(Cluster_4),
+    cols = vars(Trait),
+    scales = "free_x"
+  ) +
+  labs(x = "Trait Value", y = "Density")
 ```
 
 
 ## Application: clustering
 
-```{r, out.width = "300px", fig.align = "center"}
+```{r plot-seqdplot-2, out.width = "300px", fig.align = "center"}
 seqdplot(results$sd,
   group = clusters2_labels,
   border = NA,
   ltext = status_labels,
-  cex.legend = 1.4
+  cex.legend = 0.75
 )
 
-invisible(dev.off())
+# invisible(dev.off())
 ```
 
 
 ## Application: clustering
 
-```{r, out.width = "300px", fig.align = "center"}
+```{r, out.width = "300px", fig.align = "center", results = "hide"}
 seqplot.tentrop(results$sd, group = clusters2_labels, ylim = c(0, 1))
 ```
 
 
 ## Application: clustering
 
-```{r, out.width = "300px", fig.align = "center"}
+```{r, fig.width = 7.5, fig.height = 5.25, out.width = "300px", fig.align = "center"}
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density)))
-p + geom_histogram(bins = 10) + facet_grid(
-  rows = vars(Cluster_2),
-  cols = vars(Trait),
-  scales = "free_x"
-)
+p +
+  geom_histogram(bins = 10) +
+  facet_grid(
+    rows = vars(Cluster_2),
+    cols = vars(Trait),
+    scales = "free_x"
+  ) +
+  labs(x = "Trait Value", y = "Density")
 ```
 
 
@@ -419,12 +437,15 @@ knitr::kable(pers_descrip, digits = 2) %>%
 
 &nbsp;
 
-```{r, out.width = "180px", fig.align = "center"}
+```{r, fig.height = 3, fig.width = 7.5, out.width = "300px", fig.align = "center"}
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density)))
-p + geom_histogram(bins = 10) + facet_grid(
-  cols = vars(Trait),
-  scales = "free_x"
-)
+p +
+  geom_histogram(bins = 10) +
+  facet_grid(
+    cols = vars(Trait),
+    scales = "free_x"
+  ) +
+  labs(x = "Trait Value", y = "Density")
 ```
 
 
@@ -450,15 +471,24 @@ where $y_i$ is the observed value and $\hat{y}_i$ is the predicted value via $k$
 
 ## Prediction of personality scores
 
-```{r, out.width = "300px", fig.align = "center"}
-ggplot(base_MSE %>% filter(k > 3)) +
+```{r, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25),  out.width = "220px", fig.align = "center"}
+base_MSE %>%
+  filter(k > 3) %>%
+  ggplot() +
   geom_line(aes(x = k, y = MSE)) +
   geom_line(
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
   ) +
-  facet_grid(rows = vars(Score), scales = "free")
+  facet_wrap(
+    facets = vars(Score),
+    ncol = 1,
+    scales = "free",
+    strip.position = "top"
+  ) +
+  theme_minimal() +
+  theme(strip.text = element_text(hjust = 0))
 ```
 
 
@@ -484,12 +514,26 @@ knitr::kable(experiments, digits = 2, row.names = TRUE) %>%
 
 ## Prediction of personality scores
 
-```{r, out.width = "300px", fig.align = "center"}
-ggplot(my_exp, aes(Scenario, Score)) +
+```{r, out.width = "325px", fig.align = "center"}
+my_exp %>%
+  ggplot() +
+  aes(Scenario, Score) +
   geom_tile(aes(fill = Improvement)) +
-  geom_text(aes(label = paste(round(Improvement, 2), paste0("k = ", k), sep = "\n"))) +
-  scale_fill_gradient(low = "red", high = "green") +
-  scale_x_continuous(breaks = 1:12)
+  geom_text(
+    aes(label = paste(round(Improvement, 2), paste0("k = ", k), sep = "\n")),
+    size = 2.25, # default is GeomLabel$default_aes$size (3.88)
+  ) +
+  scale_fill_gradient(
+    low = rgb(1, 0, 0, alpha = 0.7),
+    high = rgb(0, 1, 0, alpha = 0.7)
+  ) +
+  # A recommended alternative color scale is: 
+  # scale_fill_viridis_c(alpha = 0.7) 
+  scale_x_continuous(breaks = 1:11) +
+  coord_fixed(ratio = 1) +
+  labs(y = "Trait") +
+  theme_minimal() +
+  theme(panel.grid = element_blank())
 ```
 
 
@@ -605,7 +649,7 @@ eval_experiments %>%
 
 ## Agreeableness
 
-```{r, out.width = "250px", fig.align = "center"}
+```{r, fig.width = 7.5, fig.height = 5.25, out.width = "250px", fig.align = "center"}
 eval_experiments %>%
   tibble::add_column(Scenario = 1:12) %>%
   select(Scenario, result) %>%
