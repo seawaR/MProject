@@ -13,6 +13,7 @@ output: beamer_presentation
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
 ```
 
 ```{r libs, echo = FALSE}
@@ -24,6 +25,7 @@ library(ggplot2)
 library(TraMineR)
 library(TraMineRextras)
 library(cluster)
+source("distance_matrix.R")
 source("predict_scores.R")
 source("get_MSE.R")
 ```
@@ -389,8 +391,11 @@ seqplot.tentrop(results$sd, group = clusters4_labels, ylim = c(0, 1))
 ## Application: clustering
 
 ```{r}
-knitr::kable(clusters4_counts)
+knitr::kable(clusters4_counts) %>% 
+  kableExtra::kable_styling(position = "center")
 ```
+
+&nbsp;
 
 - Cluster 1: Married young and had children
 - Cluster 2: Often in relationships but not married
@@ -458,18 +463,72 @@ p + geom_histogram(bins = 10) + facet_grid(
 ## $k$-nearest neighbors ($k$NN)
 
 - Non-parametric method for prediction.
-- Given a training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$ (a finite set of class labels for classification or a continuous range of values for regression). $k$-NN provides a way to predict the label or value for a new, data point $x_{n+1}$ (for which $Y$ is unknown) by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression).
-- To compare the performance of different values of $k$, we use the mean squared error (MSE).
+- Training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$ (a finite set of for classification or a continuous range of values for regression). 
+- Predict the label or value ($y_{n+1}$ unknown) for $x_{n+1}$ by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression).
+- To compare the performance of different values of $k$, we calculate the mean squared error (MSE) in a test set of size $m$.
 
-\begin{equation}
-\text{MSE} = \frac{1}{n} \sum_{i=1}^n (Y_i - \hat{Y}_i)^2
-\end{equation}
+$$\text{MSE} = \frac{1}{m} \sum_{i=1}^n (y_i - \hat{y}_i)^2$$
+
+where $y_i$ is the observed value and $\hat{y}_i$ is the predicted value via $k$NN.
 
 
-## What's next?
+## Prediction of personality scores
 
-- Use the kNN predictions to tune the parameters used in the specification of the cost matrix (e.g. indel cost, transition cost calculation)
-- Try other prediction methods (e.g. distance-based linear models)
+- Only individuals who have available personality scores
+- New sample size: 200 individuals. 
+- Data split into two subsets: train (70%) and test (30%). 
+- Evaluate the MSE of the predictions in the test set only using the data from the nearest neighbors available in the train set.
+
+
+## Prediction of personality scores
+
+```{r, out.width = "300px", fig.align = "center"}
+ggplot(base_MSE %>% filter(k > 5)) +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_hline(
+    data = trivial_MSE,
+    aes(yintercept = MSE, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  ) +
+  facet_grid(rows = vars(Score), scales = "free")
+```
+
+
+## Prediction of personality scores
+
+- Method for calculation of cost matrix
+- Constant $c$ for cost matrix obtained from transition rates
+- Normalization of distances
+- Cost of transition from/to NA 
+- Limit range of the sequence
+
+
+## Prediction of personality scores
+
+```{r}
+knitr::kable(experiments, digits = 2, row.names = FALSE) %>%
+  ## Default font size is 11; reducing it to easily fit in slide. See:
+  ## bookdown.org/yihui/rmarkdown-cookbook/kableextra.html#set-the-font-size
+  kableExtra::kable_styling(font_size = 8)
+```
+
+
+## Prediction of personality scores
+
+```{r, out.width = "300px", fig.align = "center"}
+ggplot(my_exp, aes(Experiment, Score)) +
+  geom_tile(aes(fill = Improvement)) +
+  geom_text(aes(label = paste(round(Improvement, 2), paste0("k = ", k), sep = "\n"))) +
+  scale_fill_gradient(low = "red", high = "green") +
+  scale_x_continuous(breaks = 1:11)
+```
+
+
+## Final comments
+
+- ...
+- ...
 
 
 ## References

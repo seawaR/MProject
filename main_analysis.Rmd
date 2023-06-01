@@ -7,8 +7,6 @@ output: html_document
 
 ```{r base_results, cache = TRUE}
 
-
-
 results <- distance_matrix(
   data = rh_data,
   cm_method = "TRATE",
@@ -105,3 +103,90 @@ data_all_long <- data_all %>%
     Cluster_2 = sub("Cluster ", "", Cluster_2)
   )
 ```
+
+```{r data_split, cache = TRUE}
+set.seed(123)
+n <- dim(data_all)[1]
+size <- round(n * 0.3)
+max_neighbors <- 80
+
+test_set <- sample.int(n, size)
+train_set <- (1:n)[-test_set]
+
+test_names <- colnames(results$dm)[test_set]
+train_names <- colnames(results$dm)[train_set]
+```
+
+```{r base_prediction, cache = TRUE}
+base_MSE <- get_MSE(data = rh_data,
+                    prediction_data = data_all,
+                    train_names = train_names,
+                    test_names = test_names,
+                    max_neighbors = 80,
+                    cm_method = "TRATE",
+                    dm_norm = "maxlength")
+```
+
+```{r trivial_MSE, cache = TRUE}
+train_means <- data_all_long %>%
+  filter(Id %in% train_names) %>%
+  rename(Score = Trait) %>%
+  group_by(Score) %>%
+  summarise(Average = mean(Trait_value)) %>%
+  ungroup()
+
+trivial_MSE <- data_all_long %>%
+  rename(Score = Trait) %>%
+  filter(Id %in% test_names) %>%
+  left_join(train_means, by = "Score") %>%
+  mutate(sq_difference = (Trait_value - Average)^2) %>%
+  group_by(Score) %>%
+  summarise(MSE = mean(sq_difference)) %>%
+  ungroup()
+```
+
+```{r additional_experiments, cache = TRUE}
+c_mod <- max(results$cm[results$cm < 2])
+
+experiments <- tibble::tribble(
+  ~cm_method, ~dm_norm, ~constant, ~missing_cost, ~min_age, ~max_age,
+  "TRATE", "maxlength", NULL, NULL, NULL, NULL,
+  "TRATE", "maxlength", c_mod, NULL, NULL, NULL,
+  "TRATE", "gmean", NULL, NULL, NULL, NULL,
+  "FUTURE", "maxlength", NULL, NULL, NULL, NULL,
+  "INDELS", "maxlength", NULL, NULL, NULL, NULL,
+  "INDELSLOG", "maxlength", NULL, NULL, NULL, NULL,
+  "FUTURE", "gmean", NULL, NULL, NULL, NULL,
+  "FUTURE", "gmean", NULL, 1, NULL, NULL,
+  "FUTURE", "gmean", NULL, NULL, 20, 55,
+  "FUTURE", "gmean", NULL, NULL, 20, 40,
+  "FUTURE", "gmean", NULL, 1, 20, 55,
+)
+
+eval_experiments <- experiments %>%
+  dplyr::rowwise() %>%
+  mutate(result = list(get_MSE(
+    data = rh_data,
+    prediction_data = data_all,
+    train_names = train_names,
+    test_names = test_names,
+    max_neighbors = 100,
+    cm_method = cm_method,
+    dm_norm = dm_norm,
+    constant = constant,
+    missing_cost = missing_cost,
+    min_age = min_age,
+    max_age = max_age
+  )))
+
+my_exp <- eval_experiments %>%
+  tibble::add_column(Experiment = 1:11) %>%
+  select(Experiment, result) %>%
+  tidyr::unnest(result) %>%
+  group_by(Experiment, Score) %>%
+  slice_min(order_by = MSE, n = 1) %>%
+  ungroup() %>%
+  left_join(trivial_MSE, by = "Score") %>%
+  mutate(Improvement = (1 - (MSE.x / MSE.y)) * 100)
+```
+

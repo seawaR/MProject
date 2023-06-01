@@ -68,7 +68,7 @@ get_MSE <- function(data,
         sq_diff_Neuroticism = (Neuroticism - BFI_neuroticism_mean)^2,
         sq_diff_Openness = (Openness - BFI_openness_mean)^2
       ) %>%
-      select(Id, Cluster_5, Cluster_2, starts_with("sq_diff")) %>%
+      select(Id, Cluster_4, Cluster_2, starts_with("sq_diff")) %>%
       pivot_longer(starts_with("sq_diff"), names_to = "Score", values_to = "Value") %>%
       group_by(Score) %>%
       summarise(MSQ = mean(Value, na.rm = TRUE)) %>%
