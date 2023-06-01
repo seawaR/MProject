@@ -58,7 +58,7 @@ get_MSE <- function(data,
     colnames(predictions_test_df) <- names(all_predictions_test[[1]])
 
     predictions_test_df[, "Id"] <- test_names
-    
+
     sq_error_test <- predictions_test_df %>%
       left_join(prediction_data, by = "Id") %>%
       mutate(
@@ -83,7 +83,7 @@ get_MSE <- function(data,
 
     results_test[[k]] <- sq_error_test
   }
-  
+
   data_long <- data_all %>%
     pivot_longer(
       cols = starts_with("BFI"), names_to = "Trait",
@@ -101,14 +101,14 @@ get_MSE <- function(data,
       Cluster_4 = sub("Cluster ", "", Cluster_4),
       Cluster_2 = sub("Cluster ", "", Cluster_2)
     )
-  
+
   train_means <- data_long %>%
     filter(Id %in% train_names) %>%
     rename(Score = Trait) %>%
     group_by(Score) %>%
     summarise(Average = mean(Trait_value)) %>%
     ungroup()
-  
+
   trivial_MSE <- data_long %>%
     rename(Score = Trait) %>%
     filter(Id %in% test_names) %>%
@@ -124,7 +124,7 @@ get_MSE <- function(data,
       names_prefix = "MSQ_", names_to = "k",
       values_to = "MSE"
     ) %>%
-    mutate(k = as.numeric(k)) %>% 
+    mutate(k = as.numeric(k)) %>%
     left_join(trivial_MSE, by = "Score")
 
   return(MSE_df)

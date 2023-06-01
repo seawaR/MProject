@@ -6,13 +6,12 @@ output: html_document
 ---
 
 ```{r base_results, cache = TRUE}
-
 results <- distance_matrix(
   data = rh_data,
   cm_method = "TRATE",
   dm_norm = "maxlength",
   extras_out = TRUE
-  )
+)
 
 cm_names <- c(1:10, "NA")
 
@@ -118,13 +117,15 @@ train_names <- colnames(results$dm)[train_set]
 ```
 
 ```{r base_prediction, cache = TRUE}
-base_MSE <- get_MSE(data = rh_data,
-                    prediction_data = data_all,
-                    train_names = train_names,
-                    test_names = test_names,
-                    max_neighbors = 80,
-                    cm_method = "TRATE",
-                    dm_norm = "maxlength")
+base_MSE <- get_MSE(
+  data = rh_data,
+  prediction_data = data_all,
+  train_names = train_names,
+  test_names = test_names,
+  max_neighbors = 80,
+  cm_method = "TRATE",
+  dm_norm = "maxlength"
+)
 ```
 
 ```{r trivial_MSE, cache = TRUE}
@@ -193,4 +194,3 @@ my_exp <- eval_experiments %>%
   ungroup() %>%
   mutate(Improvement = (1 - (MSE / Trivial)) * 100)
 ```
-
