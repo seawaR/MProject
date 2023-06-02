@@ -50,48 +50,34 @@ source("get_MSE.R")
 knitr::include_graphics("../Input/couple.png")
 ```
 
-Understand the similarities and differences in the romantic relationships history of a group of women over 40 years old and explore the use of this information as a predictor for other characteristics of interest.
+Understand the similarities and differences in the romantic relationships history of a group of women over 40 years old and explore the use of this information as a predictor for other psychosocial characteristics of interest.
 
 
 ## Women 40+ Healthy Aging Study (i)
 
-```{r, out.width = "49%", out.height = "20%", fig.show = "hold", fig.align = "center"}
+```{r, out.width = "38%", out.height = "15%", fig.show = "hold", fig.align = "center"}
 knitr::include_graphics(c("../Input/logo2.png", "../Input/logo1.png"))
 ``` 
 
-- Data from 250 individuals collected between June 2017 and February 2018.
-- Psychometric instrument to obtain information about the history of romantic relationships of women aged between 40 and 75 years.
-
-
-## Women 40+ Healthy Aging Study (ii)
-
-- Information about relationship phases starting from the age of 15 years until the current age at the time of the data collection.
-- The phases are defined by the start and end age and for each phase and information about civil status, relationship status, living situation, children and quality of the relationship was collected.
-- Additional information about the individuals was collected, in particular, scores for personality traits.
-
-
-## Data example
-
-Consider the relationship status:
-
-```{r, out.width = "300px"}
-knitr::include_graphics("../Input/sequence_example1.png")
-```
-*Current age
-
-- No relationship (NR)
-- In a relationship (R)
-- Open relationship (OR)
-- Changing relationships (CR)
+- Data from 250 women (ages 40-75) collected between June 2017 and February 2018.
+- Information about relationship phases starting from the age of 15 years until the current age obtained with a psychometric instrument.
+- Phases defined by the start and end age 
+- For each phase: civil status, relationship status, living situation, children and quality of the relationship.
+- Additional information collected, in particular, scores for personality traits.
 
 
 ## Obtaining the sequences
 
-- Manual corrections of several inconsistent and incomplete records.
-- Several additional automatic checks to identify sequences with inconsistent data.
-- Corrections based on secondary data source.
-- Identification and selection of the variables and patterns that provide a wider perspective of the individuals situations at a given time.
-- In total, 239 individuals are considered for the analysis.
+Consider the relationship status: no relationship (NR), in a relationship (R), open relationship (OR), changing relationships (CR).
+
+```{r, out.width = "280px"}
+knitr::include_graphics("../Input/sequence_example1.png")
+```
+*Current age
+
+- Manual and automatic checks to identify inconsistent and incomplete records. Corrections based on secondary data source.
+- Identification and selection of the variables that provide a wider perspective of the relationship situation at a given time.
+- Sequence data available for 239 individuals.
 
 
 ## Considered states
@@ -161,7 +147,7 @@ knitr::include_graphics("../Input/personality2.png")
 
 ## Research question
 
-```{r, out.width = "300px", fig.align = "center", results = "hide"}
+```{r, out.width = "280px", fig.align = "center", results = "hide"}
 seqplot.tentrop(res, group = temp$Neuroticism_level, ylim = c(0, 1))
 ```
 
@@ -340,7 +326,7 @@ Let $d(X,Y)$ be the distance between the sequences $X$ and $Y$, $t_{max}$ the le
 - `maxdist`: $d(X,Y)/d_{max}$
 
 
-## Application: cost matrix
+## Cost matrix
 
 Base setup: `TRATE` and `maxlenght`
 
@@ -357,7 +343,9 @@ plot(cluster_ward, labels = FALSE, hang = -1, xlab = "", ylab = "", sub = "")
 abline(h = 5.5, col = "red")
 ```
 
-## Application: clustering
+## Clustering 
+
+### State distribution by cluster
 
 ```{r plot-seqdplot-1, out.width = "300px", fig.align = "center"}
 # Reduce the bottom and right margin of (sub)plots by ~50%.
@@ -375,12 +363,19 @@ invisible(dev.off())
 
 ## Application: clustering
 
-```{r, out.width = "300px", fig.align = "center", results = "hide"}
-seqplot.tentrop(results$sd, group = clusters4_labels, ylim = c(0, 1))
+### Transversal entropy by cluster
+
+```{r, out.width = "280px", fig.align = "center", results = "hide"}
+seqplot.tentrop(results$sd, 
+                group = clusters4_labels, 
+                ylim = c(0, 1),
+                main = "")
 ```
 
 
-## Application: clustering
+## Clustering
+
+### Characterization of the clusters
 
 ```{r}
 knitr::kable(clusters4_counts) %>%
@@ -388,7 +383,6 @@ knitr::kable(clusters4_counts) %>%
 ```
 
 &nbsp;
-Characterization of the clusters:
 
 - Cluster 1: Married young and had children
 - Cluster 2: Often in relationships but not married
@@ -396,7 +390,9 @@ Characterization of the clusters:
 - Cluster 4: Younger, single or in a relationship without children
 
 
-## Application: clustering
+## Clustering
+
+### Personality scores distribution by cluster
 
 ```{r, out.width = "300px", fig.align = "center"}
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density)))
@@ -411,7 +407,9 @@ p +
 ```
 
 
-## Application: clustering
+## Clustering
+
+### State distribution for two clusters
 
 ```{r plot-seqdplot-2, out.width = "300px", fig.align = "center"}
 seqdplot(results$sd,
@@ -425,12 +423,16 @@ seqdplot(results$sd,
 
 ## Application: clustering
 
-```{r, out.width = "300px", fig.align = "center", results = "hide"}
+### Transversal entropy for two clusters
+
+```{r, out.width = "280px", fig.align = "center", results = "hide"}
 seqplot.tentrop(results$sd, group = clusters2_labels, ylim = c(0, 1))
 ```
 
 
 ## Application: clustering
+
+### Personality scores distribution for two clusters
 
 ```{r, fig.width = 7.5, fig.height = 5.25, out.width = "300px", fig.align = "center"}
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density)))
@@ -445,7 +447,7 @@ p +
 ```
 
 
-## Application: Personality scores
+## Descriptive statistics for personality scores
 
 ```{r}
 knitr::kable(pers_descrip, digits = 2) %>%
@@ -478,7 +480,7 @@ $$\text{MSE} = \frac{1}{m} \sum_{i=1}^n (y_i - \hat{y}_i)^2$$
 where $y_i$ is the observed value and $\hat{y}_i$ is the predicted value via $k$NN.
 
 
-## Prediction of personality scores
+## Prediction of personality scores (i)
 
 - Only individuals who have available personality scores
 - New sample size: 200 individuals. 
@@ -486,7 +488,7 @@ where $y_i$ is the observed value and $\hat{y}_i$ is the predicted value via $k$
 - Evaluate the MSE of the predictions in the test set only using the data from the nearest neighbors available in the train set.
 
 
-## Prediction of personality scores
+## Prediction of personality scores (ii)
 
 ```{r, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25),  out.width = "220px", fig.align = "center"}
 base_MSE %>%
@@ -509,7 +511,7 @@ base_MSE %>%
 ```
 
 
-## Prediction of personality scores
+## Prediction of personality scores (iii)
 
 - Method for calculation of cost matrix
 - Constant $c$ for cost matrix obtained from transition rates
@@ -519,6 +521,8 @@ base_MSE %>%
 
 
 ## Prediction of personality scores
+
+### Scenarios considered
 
 ```{r}
 rownames(experiments) <- 1:nrow(experiments)
@@ -530,6 +534,8 @@ knitr::kable(experiments, digits = 2, row.names = TRUE) %>%
 
 
 ## Prediction of personality scores
+
+### Best prediction by scenarios and Trait
 
 ```{r, out.width = "325px", fig.align = "center"}
 my_exp %>%
@@ -695,8 +701,12 @@ eval_experiments %>%
 
 ## Final comments
 
-- ...
-- ...
+- OM provides a way to use categorical sequences for prediction.
+- In most scenarios, the configuration of the clusters remained unchanged.
+- The distance matrix highly sensitive to the definition of the cost matrix.
+- Symmetry of the cost matrix may not be appropriate.
+- The quality of the prediction is affected by the method chosen to handle missing values.
+- The methodology makes it difficult to include additional variables for prediction.
 
 
 ## References
