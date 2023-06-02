@@ -50,4 +50,4 @@ po/*~
 rsconnect/
 
 # .tex files
-.tex
+*.tex

@@ -61,9 +61,9 @@ knitr::include_graphics(c("../Input/logo2.png", "../Input/logo1.png"))
 
 - Data from 250 women (ages 40-75) collected between June 2017 and February 2018.
 - Information about relationship phases starting from the age of 15 years until the current age obtained with a psychometric instrument.
-- Phases defined by the start and end age 
+- Phases defined by the start and end age. 
 - For each phase: civil status, relationship status, living situation, children and quality of the relationship.
-- Additional information collected, in particular, scores for personality traits.
+- Additional information collected, in particular, scores for _personality traits_.
 
 
 ## Obtaining the sequences
@@ -75,7 +75,7 @@ knitr::include_graphics("../Input/sequence_example1.png")
 ```
 *Current age
 
-- Manual and automatic checks to identify inconsistent and incomplete records. Corrections based on secondary data source.
+- Manual and automatic checks to identify inconsistent and incomplete records. Corrections based on a secondary data source.
 - Identification and selection of the variables that provide a wider perspective of the relationship situation at a given time.
 - Sequence data available for 239 individuals.
 
@@ -136,7 +136,7 @@ knitr::include_graphics("../Input/personality1.png")
 ```
 
 Personality refers to the enduring characteristics and behavior that comprise a person’s unique adjustment to life, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns.
-
+<!-- TODO(): add citation/reference. -->
 
 ## The "Big Five" personality traits
 
@@ -164,14 +164,14 @@ seqplot.tentrop(res, group = temp$Neuroticism_level, ylim = c(0, 1))
 
 ## The OM algortihm (i)
 
-- Set of $n$ states: $S = \{s_1, \dots, s_n\}$ 
+- Set of $n$ states: $S = \{s_1, \dots, s_n\}$.
 - Sequence of size $t > 0$: $X = (x_1, \dots, x_t)$, with $x_i \in S$ for $i = 1, \dots, t$. 
 - $\mathbf{S}$ is the set of all possible sequences with states belonging to $S$.
 
-*Objective:* Find the optimal way to align these two sequences
+*Objective:* find the optimal way to align these two sequences.
 
 - Let $X, Y \in \mathbf{S}$ be two sequences of size $t_1$ and $t_2$, respectively. 
-- Define an empty array $F$ of size $(t_1+1) \times (t_2+1)$
+- Define an empty array $F$ of size $(t_1+1) \times (t_2+1)$.
 
 
 ## The OM algortihm (ii)
@@ -374,7 +374,6 @@ seqplot.tentrop(results$sd,
 
 
 ## Clustering
-
 ### Characterization of the clusters
 
 ```{r}
@@ -384,10 +383,10 @@ knitr::kable(clusters4_counts) %>%
 
 &nbsp;
 
-- Cluster 1: Married young and had children
-- Cluster 2: Often in relationships but not married
-- Cluster 3: Older, mostly married or in long relationship without children
-- Cluster 4: Younger, single or in a relationship without children
+- Cluster 1: Married young and had children.
+- Cluster 2: Often in relationships but not married.
+- Cluster 3: Older, mostly married or in long relationship without children.
+- Cluster 4: Younger, single or in a relationship without children.
 
 
 ## Clustering
@@ -482,7 +481,7 @@ where $y_i$ is the observed value and $\hat{y}_i$ is the predicted value via $k$
 
 ## Prediction of personality scores (i)
 
-- Only individuals who have available personality scores
+- Only individuals who have available personality scores.
 - New sample size: 200 individuals. 
 - Data split into two subsets: train (70%) and test (30%). 
 - Evaluate the MSE of the predictions in the test set only using the data from the nearest neighbors available in the train set.
@@ -513,11 +512,11 @@ base_MSE %>%
 
 ## Prediction of personality scores (iii)
 
-- Method for calculation of cost matrix
-- Constant $c$ for cost matrix obtained from transition rates
-- Normalization of distances
-- Cost of transition from/to NA 
-- Limit range of the sequence
+- Method for calculation of cost matrix.
+- Constant $c$ for cost matrix obtained from transition rates.
+- Normalization of distances.
+- Cost of transition from/to NA. 
+- Limit range of the sequence.
 
 
 ## Prediction of personality scores
@@ -711,11 +710,11 @@ eval_experiments %>%
 
 ## References
 
-- Optimal Matching Methods for Historical Sequences - A. Abbott & J. Forrest (1986)
-- A General Method Applicable to the Search for Similarities in the Amino Acid Sequence of Two Proteins - S. Needleman & C. Wunsch (1970)
-- Sequence Analysis: New Methods for Old Ideas - A. Abbott (1995)
-- Optimal Matching Analysis: A Methodological Note on Studying Career Mobility - T. W. Chan (1995)
+- Optimal Matching Methods for Historical Sequences - A. Abbott & J. Forrest (1986).
+- A General Method Applicable to the Search for Similarities in the Amino Acid Sequence of Two Proteins - S. Needleman & C. Wunsch (1970).
+- Sequence Analysis: New Methods for Old Ideas - A. Abbott (1995).
+- Optimal Matching Analysis: A Methodological Note on Studying Career Mobility - T. W. Chan (1995).
 - Analyzing Sequence Data: Optimal Matching in
-Management Research - T. Biemann & D. K. Datta (2013)
+Management Research - T. Biemann & D. K. Datta (2013).
 - Analyzing and Visualizing State Sequences in R
-with TraMineR - A. Gabadinho, G. Ritschard, N. S. Müller, M. Studer (2011)
+with TraMineR - A. Gabadinho, G. Ritschard, N. S. Müller, M. Studer (2011).
