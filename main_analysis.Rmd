@@ -194,3 +194,20 @@ my_exp <- eval_experiments %>%
   ungroup() %>%
   mutate(Improvement = (1 - (MSE / Trivial)) * 100)
 ```
+
+```{r additional-desc, cache = TRUE}
+res <- results$sd[rownames(results$sd) %in% data_all$Id, ]
+
+temp <- data_all %>%
+  filter(Id %in% rownames(res)) %>%
+  arrange(factor(Id, levels = rownames(res)))
+
+qs <- quantile(temp$BFI_neuroticism_mean, probs = c(0.2, 0.8))
+
+temp <- temp %>%
+  mutate(Neuroticism_level = case_when(
+    BFI_neuroticism_mean < qs[1] ~ "Low",
+    BFI_neuroticism_mean < qs[2] ~ "High",
+    TRUE ~ "Medium"
+  ))
+```

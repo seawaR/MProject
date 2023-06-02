@@ -1,13 +1,19 @@
 ---
-title: "Categorical sequence analysis with optimal matching: an application to the relationships history of women over 40"
+title: "Categorical Sequence Analysis with Optimal Matching: An Application with Data from the 'Women 40+ Healthy Aging Study'"
 author: 
-  - Adriana Clavijo Daza 
+  - Adriana Clavijo Daza\newline
+  - \newline
+  - Supervised by:\newline
+  - Prof. Dr. David Ginsbourger\newline
+  - Dr. Serena Lozza-Fiacco
 institute:
   - Statistics and Data Science Master's, Universität Bern
 date: "2022-06-02"
 header-includes:
   - \usepackage{algpseudocode}
-output: beamer_presentation
+output: 
+  beamer_presentation:
+    keep_tex: true
 ---
 
 ```{r setup, include = FALSE}
@@ -79,7 +85,7 @@ knitr::include_graphics("../Input/sequence_example1.png")
 - Changing relationships (CR)
 
 
-## Data pre-processing
+## Obtaining the sequences
 
 - Manual corrections of several inconsistent and incomplete records.
 - Several additional automatic checks to identify sequences with inconsistent data.
@@ -106,7 +112,7 @@ knitr::include_graphics("../Input/sequence_example2.png")
 ```
 
 
-## Distribution of states
+## Overall distribution of states
 
 ```{r, child = "data_prep.Rmd"}
 ```
@@ -119,6 +125,21 @@ plot5 +
   scale_x_discrete(guide = guide_axis(angle = 45)) +
   theme(axis.text = element_text(size = 10)) +
   labs(x = "State", y = "Count")
+```
+
+
+## Distribution of states by year
+
+```{r, child = "main_analysis.Rmd"}
+```
+
+```{r plot-seqdplot-0, out.width = "300px", fig.align = "center"}
+seqdplot(results$sd,
+  sortv = "from.start",
+  ltext = status_labels,
+  border = NA,
+  cex.legend = 0.55
+)
 ```
 
 
@@ -139,6 +160,10 @@ knitr::include_graphics("../Input/personality2.png")
 
 
 ## Research question
+
+```{r, out.width = "300px", fig.align = "center", results = "hide"}
+seqplot.tentrop(res, group = temp$Neuroticism_level, ylim = c(0, 1))
+```
 
 - Can we get a good prediction of personality scores based on the relationship history sequences?
 
@@ -319,9 +344,6 @@ Let $d(X,Y)$ be the distance between the sequences $X$ and $Y$, $t_{max}$ the le
 
 Base setup: `TRATE` and `maxlenght`
 
-```{r, child = "main_analysis.Rmd"}
-```
-
 ```{r cost_matrix}
 knitr::kable(cost_matrix_base, digits = 2, row.names = FALSE) %>%
   ## Default font size is 11; reducing it to easily fit in slide. See:
@@ -329,14 +351,11 @@ knitr::kable(cost_matrix_base, digits = 2, row.names = FALSE) %>%
   kableExtra::kable_styling(font_size = 8)
 ```
 
-
+```{r plot-dendogram, out.width = "300px", fig.align = "center", eval = FALSE}
 ## Application: clustering
-
-```{r plot-dendogram, out.width = "300px", fig.align = "center"}
 plot(cluster_ward, labels = FALSE, hang = -1, xlab = "", ylab = "", sub = "")
 abline(h = 5.5, col = "red")
 ```
-
 
 ## Application: clustering
 
@@ -401,8 +420,6 @@ seqdplot(results$sd,
   ltext = status_labels,
   cex.legend = 0.75
 )
-
-# invisible(dev.off())
 ```
 
 
@@ -527,8 +544,8 @@ my_exp %>%
     low = rgb(1, 0, 0, alpha = 0.7),
     high = rgb(0, 1, 0, alpha = 0.7)
   ) +
-  # A recommended alternative color scale is: 
-  # scale_fill_viridis_c(alpha = 0.7) 
+  # A recommended alternative color scale is:
+  # scale_fill_viridis_c(alpha = 0.7)
   scale_x_continuous(breaks = 1:11) +
   coord_fixed(ratio = 1) +
   labs(y = "Trait") +
@@ -555,7 +572,8 @@ eval_experiments %>%
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
-  )
+  ) +
+  theme_minimal()
 ```
 
 
@@ -577,7 +595,8 @@ eval_experiments %>%
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
-  )
+  ) +
+  theme_minimal()
 ```
 
 
@@ -599,7 +618,8 @@ eval_experiments %>%
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
-  )
+  ) +
+  theme_minimal()
 ```
 
 
@@ -621,7 +641,8 @@ eval_experiments %>%
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
-  )
+  ) +
+  theme_minimal()
 ```
 
 
@@ -643,7 +664,8 @@ eval_experiments %>%
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
-  )
+  ) +
+  theme_minimal()
 ```
 
 
@@ -665,7 +687,8 @@ eval_experiments %>%
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
-  )
+  ) +
+  theme_minimal()
 ```
 
 
@@ -678,6 +701,8 @@ eval_experiments %>%
 
 ## References
 
+- Optimal Matching Methods for Historical Sequences - A. Abbott & J. Forrest (1986)
+- A General Method Applicable to the Search for Similarities in the Amino Acid Sequence of Two Proteins - S. Needleman & C. Wunsch (1970)
 - Sequence Analysis: New Methods for Old Ideas - A. Abbott (1995)
 - Optimal Matching Analysis: A Methodological Note on Studying Career Mobility - T. W. Chan (1995)
 - Analyzing Sequence Data: Optimal Matching in
