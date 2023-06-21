@@ -7,6 +7,7 @@ date: "2023-06-02"
 output: 
   pdf_document:
     extra_dependencies: ["amsmath"]
+documentclass: report
 ---
 
 ```{r setup, include=FALSE}
@@ -33,10 +34,10 @@ source("predict_scores.R")
 source("get_MSE.R")
 ```
 
-```{r, child="data_prep.Rmd"}
+```{r, child = "data_prep.Rmd"}
 ```
 
-```{r, child="main_analysis.Rmd"}
+```{r, child = "main_analysis.Rmd"}
 ```
 
 ## Optimal Matching
@@ -47,7 +48,7 @@ Optimal Matching (OM) is a technique used in social sciences for the comparison 
 
 Consider a set of $n$ categorical states, say, $S = \{s_1, \dots, s_n\}$. A sequence of (discrete) length $t > 0$ can be denoted as $X = (x_1, \dots, x_t)$, where $x_i \in S$ for $i = 1, \dots, t$. Additionally, the set of all possible sequences with states belonging to $S$ is denoted by $\mathbf{S}$.
 
-Now, let $X, Y \in \mathbf{S}$ be two sequences of size $t_X$ and $t_Y$, respectively. We define an empty array, $F$, of size $(t_X+1) \times (t_Y+1)$ in order to assess the similarities between the sequences and obtain a numerical value associated with it.
+Now, let $X, Y \in \mathbf{S}$ be two sequences of size $t_X$ and $t_Y$, respectively. In order to assess the similarities between the sequences $X$ and $Y$, and to obtain a numerical value associated with it, we define an empty array, $F$, of size $(t_X+1) \times (t_Y+1)$. 
 
 The algorithm below shows the initialization and recursion to fill the array $F$.
 \vspace{12pt}
@@ -71,9 +72,9 @@ Here, the value $d$ is the cost of inserting a gap in one of the sequences, and 
 
 Lines 1-7 of the OM algorithm correspond to initialization. Starting with a cost of 0 in $F(1, 1)$, the first row and column of $F$ represent cumulative costs of successively adding gaps. The remaining lines of the algorithm correspond to the row-wise recursion to fill the array $F$ according to the content of the sequences to be compared: at any step of the recursion, the algorithm is looking at a specific pair of indexes (location) and calculating if substitution or insertion/deletion is the cheapest operation. Successively adding the costs of the cheapest operations results in the overall optimal cost for aligning (arrange to detect similarities) the sequences $X$ and $Y$.
 
-In fact, when $F$ is completely filled, the value in the last cell, i.e. $F(t_X+1, t_Y+1)$ corresponds to the optimal cost of aligning the sequences $X$ and $Y$. It is possible to recover the steps that conduced to this a alignment with a traceback from the last cell. However, this is not necessary to perform OM.
+In fact, when $F$ is completely filled, the value in the last cell, i.e. $F(t_X+1, t_Y+1)$ corresponds to the optimal cost of aligning the sequences $X$ and $Y$. It is possible to recover the steps that conduced to this alignment with a traceback from the last cell. However, this is not necessary to obtain the dissimilarities matrix.
 
-The `R` package `TraMineR` provides several functions to analyze and visualize sequential data. In particular, the package implements OM and offers several methods for computing the cost matrix $K$ and the normalization of the dissimilarities matrix.
+The `R` package `TraMineR` provides several functions to analyze and visualize sequential data. In particular, the package implements OM and offers several methods for computing the cost matrix $K$ and the normalization of the dissimilarity matrix.
 
 ### Cost matrix
 
@@ -105,10 +106,12 @@ where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$
 
 \begin{equation}
 \label{eq:indels}
-K(s_i, s_j) = indel_i + indel_j,
+K(s_i, s_j) = g_i + g_j,
 \end{equation}
 
-where $indel_i = 1/f_i$ for method `INDEL`, $indel_i = \log[2/(1+f_i)]$ and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$. 
+where $g_i$ is called the *indel* cost that takes values $g_i = 1/f_i$ for method `INDEL`, $g_i = \log[2/(1+f_i)]$ and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$. 
+
+**Note:** For methods `TRATE` and `FUTURE`, the unique *indel* value is $g = max_{1 \leq i,j \leq n} K(i,j)/2$, so that the cost of any transition is always lower or equal than deleting and inserting an element (or vice versa).
 
 ### Example 
 
