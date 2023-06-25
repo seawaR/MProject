@@ -48,6 +48,7 @@ source("get_MSE.R")
 
 Optimal Matching (OM) is a technique used in social sciences for the comparison of sequences of categorical states indexed by time. this method has applications in different areas of social sciences, for instance, life course or career path analysis. OM uses the Needleman-Wunsch algorithm, that was developed to compare biological sequences. This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve.
 
+
 ## The OM algorithm
 
 Consider a set of $n$ categorical states, say, $S = \{s_1, \dots, s_n\}$. A sequence of (discrete) length $t > 0$ can be denoted as $X = (x_1, \dots, x_t)$, where $x_i \in S$ for $i = 1, \dots, t$. Additionally, the set of all possible sequences with states belonging to $S$ is denoted by $\mathbf{S}$.
@@ -80,11 +81,13 @@ In fact, when $F$ is completely filled, the value in the last cell, i.e. $F(t_X+
 
 The `R` package `TraMineR` provides several functions to analyze and visualize sequential data. In particular, the package implements OM and offers several methods for computing the cost matrix $K$ and the normalization of the dissimilarity matrix.
 
+
 ### Cost matrix
 
 The cost matrix $K$ is a symmetric matrix of size $n \times n$. The value in the $i$-th row and $j$-th column $K(s_i, s_j)$ indicates the cost of moving from state $s_i$ in time $t > 0$ to state $s_j$ in $t+1$.
 
 The following are the methods available in `TraMineR`.
+
 
 #### Transition rates (`TRATE`):
 
@@ -97,6 +100,7 @@ K(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i),
 
 where $P(s_i|s_j)$ is the probability of transition from state $s_j$ in time $t$ to $s_i$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
 
+
 #### Chi-squared distance (`FUTURE`):
 
 \begin{equation}
@@ -105,6 +109,7 @@ K(s_i, s_j) = d_{\chi^2}(\mathbf{P_i}, \mathbf{P_j}),
 \end{equation}
 
 where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$
+
 
 #### Relative frequencies (`INDELS` and `INDELSLOG`):
 
@@ -125,6 +130,7 @@ and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$.
 **Remarks:** 
 - For methods `TRATE` and `FUTURE`, the unique *indel* value is $d = max_{1 \leq i,j \leq n} K(i,j)/2$, so that the cost of any transition is always lower or equal than deleting and inserting an element (or vice versa).
 - The Needleman-Wunsch algorithm with constant costs for mismatch is known as Levenshtein distance.
+
 
 ### Example 
 
@@ -177,6 +183,7 @@ In both cases we have two matches (cost 0), one mismatch (cost 3) and one gap (c
 
 The cost of inserting a gap ($d$) is also known as *indel* (insert or delete) cost. In this example we can observe that, in order to obtain sequence $X$ from $Y$ we have to **insert** a term (i.e. insert a gap and then change its value to a specific state). Equivalently, to obtain sequence $Y$ starting from $X$ we have to **delete** one term.
 
+
 ### Normalization
 
 In cases when the lengths of the sequences differ, it can be useful to account for this differences with a normalization factor. 
@@ -192,7 +199,9 @@ $$1- \frac{d_{max}-d(X,Y)}{\sqrt{t_1*t_2}}$$
 - `maxdist`: 
 $$\frac{d(X,Y)}{d_{max}}$$
 
+
 ## Data from the 40+ Healthy Aging Study
+
 
 ### About the data
 
@@ -227,7 +236,7 @@ Additionally, personality scores for the women included in the study are availab
 Using the `R` package `TraMineR` the cost matrix is calculated with transition rates between states. We consider a base setup with method `TRATE` for the calculation of the cost matrix and `maxlenght` normalization for the dissimilarities matrix. The obtained cost matrix is shown below.
 
 ```{r cost_matrix}
-knitr::kable(cost_matrix_base, digits = 2, row.names = FALSE) %>%
+knitr::kable(cost_matrix_base, digits = 2, row.names = FALSE, caption = "Cost matrix obtained from transition probabilities.") %>%
   kableExtra::kable_styling(font_size = 8)
 ```
 
@@ -235,9 +244,9 @@ As expected, the elements in the diagonal are equal to 0, meaning there is no co
 
 From this cost matrix it is possible to calculate pairwise distances between all the sequences using the algorithm described in section XX. As stated before, a correction of the distances is done to account for the differences in size of the sequences. This is done dividing the obtained distance by the length of the longest sequence. 
 
-Having obtained the distance matrix, we apply a hierarchical agglomerative clustering method in order to explore the data and the differences captured by the distance matrix. In particular, we set the number of clusters to 4 and the following figures show the distribution of the states and entropy by cluster.
+Having obtained the distance matrix, we apply a hierarchical agglomerative clustering method in order to explore the data and the differences captured by the distance matrix. In particular, we set the number of clusters to 4 and the following figure shows the distribution of the states.
 
-```{r plot-seqdplot-1, out.width = "300px", fig.align = "center"}
+```{r plot-seqdplot-1, out.width = "300px", fig.align = "center", fig.cap = "Distribution of states by cluster."}
 # Reduce the bottom and right margin of (sub)plots by ~50%.
 par(mar = par()$mar * c(0.5, 1, 1, 0.5))
 
@@ -250,51 +259,52 @@ seqdplot(results$sd,
 invisible(dev.off())
 ```
 
-```{r, out.width = "280px", fig.align = "center", results = "hide"}
+The figure below shows the transverse entropy by cluster, i.e. the cross-sectional entropy of the states distributions is calculated at each time point as follows:
+
+\begin{equation}
+\label{eq:entropy}
+h(f_1, \dots, f_n) = - \sum_{i = 1}^n f_i \log(f_i).
+\end{equation}
+
+```{r, out.width = "250px", fig.align = "center", results = "hide", fig.cap = "Transversal entropy by cluster."}
 seqplot.tentrop(results$sd, 
                 group = clusters4_labels, 
                 ylim = c(0, 1),
                 main = "")
 ```
+
+The previous visualizations allow us to try to identify common and contrasting features of the clusters that can be useful to describe them. It is important to remember that this description is subjective and incomplete.
+
+- Cluster 1: Married young and had children.
+- Cluster 2: Often in relationships but not married.
+- Cluster 3: Older, mostly married or in long relationship without children.
+- Cluster 4: Younger, single or in a relationship without children.
 
 ```{r, echo=FALSE, message=FALSE, cache=TRUE}
-knitr::kable(clusters4_counts)
+knitr::kable(clusters4_counts, caption = "Number of individuals by cluster.")
 ```
 
-We can visualize the clusters of sequences to and try to identify common features to describe them. It is important to consider that this description is subjective but can be useful to characterize the groups.
+On the other hand, in figure XX we can also appreciate that the conformation of some clusters seems to be highly affected by the length of the sequence and is possible that the normalization method is not achieving the expected result.
 
-- Cluster 1: Married with children then divorced/widowed
-- Cluster 2: Sequences with more changes (unstable)
-- Cluster 3: Younger, mostly not married without children
-- Cluster 4: Older, without children
-- Cluster 5: Married late then divorced/widowed, without children
+We are interested in exploring how the relationships history of the women relate to personality traits.  As a first exploratory step, the following figure shows the distribution of the score for each trait by cluster. 
 
-```{r, out.width = "280px", fig.align = "center", results = "hide"}
-seqplot.tentrop(results$sd, 
-                group = clusters4_labels, 
-                ylim = c(0, 1),
-                main = "")
-```
-
-Now, we are interested in predicting the personality scores based on the relationships history of the women. The following figure shows the distribution of the score for each trait by cluster. 
-
-```{r, fig.width = 7.5, fig.height = 5.25, out.width = "300px", fig.align = "center"}
+```{r, fig.width = 7.5, fig.height = 5.25, out.width = "300px", fig.align = "center", fig.cap = "Distribution of personality scores by cluster."}
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density)))
 p +
   geom_histogram(bins = 10) +
   facet_grid(
-    rows = vars(Cluster_2),
+    rows = vars(Cluster_4),
     cols = vars(Trait),
     scales = "free_x"
   ) +
   labs(x = "Trait Value", y = "Density")
 ```
 
-No difference is obvious at a first glance. However, we can also use the distance matrix to obtain predictions of the personality traits using $k$-nearest neighbors ($k$NN); a non-parametric method used for prediction.
+No difference is obvious at first glance. Also, the number of clusters and the fact that the personality scores are not continuous makes it difficult to appreciate differences. For that reason, we also explore with a lower number of clusters. 
 
-We also explore with a lower number of clusters in order to find better defined groups. As we can observe in the distribution plots of the sequences states, the majority of women in cluster 1 have children, while we mostly find women without children in cluster 2.
+Furthermore, we obtain better defined clusters that are less affected by the length of the sequences as we can observe in the distribution plots of the sequences states: the majority of women in cluster 1 have children, while we mostly find women without children in cluster 2.
 
-```{r plot-seqdplot-2, out.width = "300px", fig.align = "center"}
+```{r plot-seqdplot-2, out.width = "300px", fig.align = "center", fig.cap = "Distribution of states for two clusters."}
 seqdplot(results$sd,
   group = clusters2_labels,
   border = NA,
@@ -303,17 +313,17 @@ seqdplot(results$sd,
 )
 ```
 
-The transversal entropy of the sequences by cluster is displayed in the figure below.
+In addition, the transversal entropy of the sequences for the two clusters is displayed in the figure below.
 
-```{r, out.width = "280px", fig.align = "center", results = "hide"}
+```{r, out.width = "280px", fig.align = "center", results = "hide", fig.cap = "Transversal entropy for two clusters."}
 seqplot.tentrop(results$sd, group = clusters2_labels, ylim = c(0, 1))
 ```
 
-We can observe that the entropy decreases significantly for the cluster of women with children as compared to women without children, which means that the variability of the states for the first group. This can be interpreted as a sign of stability.
+This figure shows that the entropy decreases significantly around mid age for the cluster of women with children as compared to women without children, which means that the variability of the states for the first group is much lower as compared to the second group. This can be interpreted as a sign of stability in the relationship status for women during the time they have children at home.
 
-The following figure shows the distribution of the personality traits for the two clusters.
+As before, we  want to explore possible links between the information from the sequences and personality scores. The following figure shows the distribution of the personality traits for the two clusters.
 
-```{r, fig.width = 7.5, fig.height = 5.25, out.width = "300px", fig.align = "center"}
+```{r, fig.width = 7.5, fig.height = 5.25, out.width = "300px", fig.align = "center", fig.cap = "Distribution of personality scores for two clusters."}
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density)))
 p +
   geom_histogram(bins = 10) +
@@ -325,9 +335,12 @@ p +
   labs(x = "Trait Value", y = "Density")
 ```
 
-There seems to be differences in the distributions of agreeableness, conscientiousness and neuroticism between the clusters. In the following section we explore the predictive capacity of the distance matrix obtained via OM.
+There seems to be differences in the distributions of some personality scores: the scores of agreeableness are concentrated in larger values for women with children; women without children have greater frequency in lower values of conscientiousness than women with children; and women with children exhibit lower scores of neuroticism. 
 
-## k-Nearest Neighbors
+Even though, the distribution of personality scores by cluster does not reveal significant differences, the obtention of a distance matrix also provide us a numerical expression of the categorical sequences that allows us to use it for other purposes. In particular, we explore the predictive capability of this data with a non-parametric prediction method in the next section.
+
+
+## Prediction of personality scores with k-Nearest Neighbors
 
 Given a training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$ (a finite set of class labels for classification or a continuous range of values for regression). $k$-NN provides a way to predict the label or value for a new, data point $x_{n+1}$ (for which $Y$ is unknown) by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression).
 
@@ -353,7 +366,7 @@ For openness, it is not very clear where the minimum MSE is and the prediction w
 
 For conscientiousness, extraversion and neuroticism we observe that the MSE decreases as $k$ increases and takes a minimum value (around $k=15$, $k=10$, $k=5$, respectively) thet is considerably lower than the trivial prediction and then the MSE increases again.
 
-```{r, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25),  out.width = "220px", fig.align = "center"}
+```{r, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25),  out.width = "250px", fig.align = "center", fig.cap = "MSE by cluster for base setup."}
 base_MSE %>%
   filter(k > 3) %>%
   ggplot() +
@@ -377,42 +390,42 @@ base_MSE %>%
 
 - Setting the constant $c$ as the maximum of $2 - P(s_i|s_j) - P(s_j|s_i)$ for the calculation of the cost matrix.
 
-```{r, out.width = "400px", fig.align = "center"}
+```{r, out.width = "350px", fig.align = "center"}
 knitr::include_graphics("../Output/exp1a.pdf")
 ```
 
 - Using `norm = "gmean"` normalization in `TraMineR::seqdist`.
 
-```{r, out.width = "400px", fig.align = "center"}
+```{r, out.width = "350px", fig.align = "center"}
 knitr::include_graphics("../Output/exp2a.pdf")
 ```
 
 - Using `method = "FUTURE"` for the calculation of the cost matrix in `TraMineR::seqcost`.
 
-```{r, out.width = "400px", fig.align = "center"}
+```{r, out.width = "350px", fig.align = "center"}
 knitr::include_graphics("../Output/exp3a.pdf")
 ```
 
 - Using `method = "INDELS"` for the calculation of the cost matrix in `TraMineR::seqcost`.
 
-```{r, out.width = "400px", fig.align = "center"}
+```{r, out.width = "350px", fig.align = "center"}
 knitr::include_graphics("../Output/exp4a.pdf")
 ```
 
 - Using `method = "INDELSLOG"` for the calculation of the cost matrix in `TraMineR::seqcost`.
 
-```{r, out.width = "400px", fig.align = "center"}
+```{r, out.width = "350px", fig.align = "center"}
 knitr::include_graphics("../Output/exp5a.pdf")
 ```
 
 - Using `method = "FUTURE"` for the calculation of the cost matrix in `TraMineR::seqcost` and `norm = "gmean"` normalization in `TraMineR::seqdist`.
 
-```{r, out.width = "400px", fig.align = "center"}
+```{r, out.width = "350px", fig.align = "center"}
 knitr::include_graphics("../Output/exp6a.pdf")
 ```
 
 - Using `method = "FUTURE"` and setting the cost of missing to a fixed value in the cost matrix in `TraMineR::seqcost` and `norm = "gmean"` normalization in `TraMineR::seqdist`.
 
-```{r, out.width = "400px", fig.align = "center"}
+```{r, out.width = "350px", fig.align = "center"}
 knitr::include_graphics("../Output/exp7a.pdf")
 ```
