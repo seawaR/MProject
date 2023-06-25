@@ -46,7 +46,7 @@ source("helpers/get_MSE.R", local = knitr::knit_global())
 ```{r, child = "main_analysis.Rmd"}
 ```
 
-## Optimal Matching
+# Optimal Matching
 
 Optimal Matching (OM) is a technique used in social sciences for the comparison of sequences of categorical states indexed by time. this method has applications in different areas of social sciences, for instance, life course or career path analysis. OM uses the Needleman-Wunsch algorithm, that was developed to compare biological sequences. This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve.
 
@@ -202,10 +202,10 @@ $$1- \frac{d_{max}-d(X,Y)}{\sqrt{t_1*t_2}}$$
 $$\frac{d(X,Y)}{d_{max}}$$
 
 
-## Data from the 40+ Healthy Aging Study
+# Data from the 40+ Healthy Aging Study
 
 
-### About the data
+## About the data
 
 As part of the Women 40+ Healthy Aging Study, a large study that was conducted by the Department of Clinical Psychology and Psychotherapy of the University of Zurich, a psychometric instrument was developed in order to obtain information about the history of romantic relationships of women. The study was conducted between June 2017 and February 2018 with women between 40 and 75 years who (self-)reported good, very good or excellent health condition and the absence of acute or chronic somatic disease or mental disorder. The participants who reported psychotherapy or psychopharmacological treatment in the previous 6 months were excluded as well as habitual drinkers. Other exclusion criteria were pregnancy in the last 6 months, premature menopause, surgical menopause, intake of hormonal treatment (including contraceptives), shift-work and recent long-distance flight. The participants were recruited from the general population using online advertisement and flyers.
 
@@ -233,7 +233,7 @@ Additionally, personality scores for the women included in the study are availab
 - Openness
 
 
-### Application of OM
+## Application of OM
 
 Using the `R` package `TraMineR` the cost matrix is calculated with transition rates between states. We consider a base setup with method `TRATE` for the calculation of the cost matrix and `maxlenght` normalization for the dissimilarities matrix. The obtained cost matrix is shown below.
 
@@ -342,7 +342,7 @@ There seems to be differences in the distributions of some personality scores: t
 Even though, the distribution of personality scores by cluster does not reveal significant differences, the obtention of a distance matrix also provide us a numerical expression of the categorical sequences that allows us to use it for other purposes. In particular, we explore the predictive capability of this data with a non-parametric prediction method in the next section.
 
 
-## Prediction of personality scores with k-Nearest Neighbors
+# Personality Scores Prediction with k-Nearest Neighbors
 
 Given a training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$ (a finite set of class labels for classification or a continuous range of values for regression). $k$-NN provides a way to predict the label or value for a new, data point $x_{n+1}$ (for which $Y$ is unknown) by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression).
 
@@ -388,7 +388,7 @@ base_MSE %>%
   theme(strip.text = element_text(hjust = 0))
 ```
 
-### Other set-ups
+## Other set-ups
 
 - Setting the constant $c$ as the maximum of $2 - P(s_i|s_j) - P(s_j|s_i)$ for the calculation of the cost matrix.
 
