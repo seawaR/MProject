@@ -1,0 +1,154 @@
+# Optimal Matching
+
+Optimal Matching (OM) is a technique used in social sciences for the comparison of sequences of categorical states indexed by time. this method has applications in different areas of social sciences, for instance, life course or career path analysis. OM uses the Needleman-Wunsch algorithm, that was developed to compare biological sequences. This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve.
+
+
+## The OM algorithm
+
+Consider a set of $n$ categorical states, say, $S = \{s_1, \dots, s_n\}$. A sequence of (discrete) length $t > 0$ can be denoted as $X = (x_1, \dots, x_t)$, where $x_i \in S$ for $i = 1, \dots, t$. Additionally, the set of all possible sequences with states belonging to $S$ is denoted by $\mathbf{S}$.
+
+Now, let $X, Y \in \mathbf{S}$ be two sequences of size $t_X$ and $t_Y$, respectively. In order to assess the similarities between the sequences $X$ and $Y$, and to obtain a numerical value associated with it, we define an empty array, $F$, of size $(t_X+1) \times (t_Y+1)$. 
+
+The algorithm below shows the initialization and recursion to fill the array $F$.
+\vspace{12pt}
+
+\begin{algorithmic}[1]
+\State $F(1, 1) \gets 0$
+\For{$j \gets 2,t_Y+1$}
+  \State $F(1,j) \gets F(1, j-1) + d$
+\EndFor
+\For{$i \gets 2,t_X+1$}
+  \State $F(i,1) \gets F(i-1, 1) + d$
+\EndFor
+\For{$i \gets 2,t_X+1$}
+  \For{$j \gets 2,t_Y+1$}
+    \State $F(i,j) \gets min\{F(i-1, j)+d, F(i, j-1)+d, F(i-1, j-1)+k(y_{i-1}, x_{j-1})\}$
+    \EndFor
+\EndFor
+\end{algorithmic}
+
+Here, the value $d$ is the cost of inserting a gap in one of the sequences, also known as *indel* cost, and $k(y_{i-1}, x_{j-1})$ is the cost associated to change from the state $y_{i-1}$ to $x_{j-1}$, which is defined in a matrix $K$ of size $n \times n$, commonly known as the cost matrix.
+
+Lines 1-7 of the OM algorithm correspond to initialization. Starting with a cost of 0 in $F(1, 1)$, the first row and column of $F$ represent cumulative costs of successively adding gaps. The remaining lines of the algorithm correspond to the row-wise recursion to fill the array $F$ according to the content of the sequences to be compared: at any step of the recursion, the algorithm is looking at a specific pair of indexes (location) and calculating if substitution or insertion/deletion is the cheapest operation. Successively adding the costs of the cheapest operations results in the overall optimal cost for aligning (arrange to detect similarities) the sequences $X$ and $Y$.
+
+In fact, when $F$ is completely filled, the value in the last cell, i.e. $F(t_X+1, t_Y+1)$ corresponds to the optimal cost of aligning the sequences $X$ and $Y$. It is possible to recover the steps that conduced to this alignment with a traceback from the last cell. However, this is not necessary to obtain the dissimilarities matrix.
+
+The `R` package `TraMineR` provides several functions to analyze and visualize sequential data. In particular, the package implements OM and offers several methods for computing the cost matrix $K$ and the normalization of the dissimilarity matrix.
+
+
+### Cost matrix
+
+The cost matrix $K$ is a symmetric matrix of size $n \times n$. The value in the $i$-th row and $j$-th column $K(s_i, s_j)$ indicates the cost of moving from state $s_i$ in time $t > 0$ to state $s_j$ in $t+1$.
+
+The following are the methods available in `TraMineR`.
+
+
+#### Transition rates (`TRATE`):
+
+The substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq n$, is calculated as:
+
+\begin{equation}
+\label{eq:transition}
+K(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i),
+\end{equation}
+
+where $P(s_i|s_j)$ is the probability of transition from state $s_j$ in time $t$ to $s_i$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
+
+
+#### Chi-squared distance (`FUTURE`):
+
+\begin{equation}
+\label{eq:chisq}
+K(s_i, s_j) = d_{\chi^2}(\mathbf{P_i}, \mathbf{P_j}),
+\end{equation}
+
+where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$
+
+
+#### Relative frequencies (`INDELS` and `INDELSLOG`):
+
+\begin{equation}
+\label{eq:indels_cost}
+K(s_i, s_j) = d_i + d_j,
+\end{equation}
+
+where the *indel* cost $d_i$ depends on the state and takes values: 
+
+\begin{align}
+g_i &= \frac{1}{f_i}, &\text{for method `INDEL`}, \\
+g_i &= \log({\frac{2}{1+f_i}}), &\text{for method `INDELSLOG`}
+\end{align}
+
+and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$. 
+
+**Remarks:** 
+- For methods `TRATE` and `FUTURE`, the unique *indel* value is $d = max_{1 \leq i,j \leq n} K(i,j)/2$, so that the cost of any transition is always lower or equal than deleting and inserting an element (or vice versa).
+- The Needleman-Wunsch algorithm with constant costs for mismatch is known as Levenshtein distance.
+
+
+### Example 
+
+Let us suppose that $S$ is the alphabet, let $X = \{S,E,N,D\}$ and $Y = \{A,N,D\}$ be two sequences in $\mathbf{S}$. Supposing that $d = 2$ and 
+
+$$
+K(i,j) = 
+\begin{cases}
+0 & \text{if } i=j,\\
+3 & \text{otherwise}
+\end{cases}
+$$
+The array $F$ is initialized as follows:
+
+|   |   | S | E | N | D |
+|---|---|---|---|---|---|
+|   | 0 | 2 | 4 | 6 | 8 |
+| A | 2 |   |   |   |   |
+| N | 4 |   |   |   |   |
+| D | 6 |   |   |   |   |
+
+To fill  the second row of $F$ we proceed as follows:
+
+- $F(2,2) = min\{F(1, 2)+d, F(2, 1)+d, F(1, 1)+k(y_{1}, x_{1})\} = min\{2+2, 2+2, 0+3\} = 3$
+- $F(2,3) = min\{F(1, 3)+d, F(2, 2)+d, F(1, 2)+k(y_{1}, x_{2})\} = min\{4+2, 3+2, 2+3\} = 5$
+- $F(2,4) = min\{F(1, 4)+d, F(2, 3)+d, F(1, 3)+k(y_{1}, x_{3})\} = min\{6+2, 5+2, 4+3\} = 7$
+- $F(2,5) = min\{F(1, 5)+d, F(2, 4)+d, F(1, 4)+k(y_{1}, x_{4})\} = min\{8+2, 7+2, 6+3\} = 9$
+- $F(3,2) = min\{F(2, 2)+d, F(3, 1)+d, F(2, 1)+k(y_{2}, x_{1})\} = min\{3+2, 4+2, 2+3\} = 5$
+- $F(3,3) = min\{F(2, 3)+d, F(3, 2)+d, F(2, 2)+k(y_{2}, x_{2})\} = min\{5+2, 5+2, 3+3\} = 6$
+- $F(3,4) = min\{F(2, 4)+d, F(3, 3)+d, F(2, 3)+k(y_{2}, x_{3})\} = min\{5+2, 5+2, 5+0\} = 5$
+- $F(3,5) = min\{F(2, 4)+d, F(3, 4)+d, F(2, 4)+k(y_{2}, x_{4})\} = min\{7+2, 5+2, 5+3\} = 7$
+- $F(4,2) = min\{F(3, 2)+d, F(4, 1)+d, F(3, 1)+k(y_{3}, x_{1})\} = min\{5+2, 6+2, 4+3\} = 7$
+- $F(4,3) = min\{F(3, 3)+d, F(4, 2)+d, F(3, 2)+k(y_{3}, x_{2})\} = min\{6+2, 7+2, 5+3\} = 8$
+- $F(4,4) = min\{F(3, 4)+d, F(4, 3)+d, F(3, 3)+k(y_{3}, x_{3})\} = min\{5+2, 8+2, 5+3\} = 7$
+- $F(4,5) = min\{F(3, 5)+d, F(4, 4)+d, F(3, 4)+k(y_{3}, x_{4})\} = min\{7+2, 7+2, 5+0\} = 5$
+
+|   |   | S | E | N | D |
+|---|---|---|---|---|---|
+|   | 0 | 2 | 4 | 6 | 8 |
+| A | 2 | 3 | 5 | 7 | 9 |
+| N | 4 | 5 | 6 | 5 | 7 |
+| D | 6 | 7 | 8 | 7 | 5 |
+
+In this simple example, we can easily obtain two optimal (equivalent) alignments:  
+S E N D with  
+A - N D or  
+- A N D  
+
+In both cases we have two matches (cost 0), one mismatch (cost 3) and one gap (cost 2), giving a total cost 5 that is exactly what we obtained in the last cell of $F$.
+
+The cost of inserting a gap ($d$) is also known as *indel* (insert or delete) cost. In this example we can observe that, in order to obtain sequence $X$ from $Y$ we have to **insert** a term (i.e. insert a gap and then change its value to a specific state). Equivalently, to obtain sequence $Y$ starting from $X$ we have to **delete** one term.
+
+
+### Normalization
+
+In cases when the lengths of the sequences differ, it can be useful to account for this differences with a normalization factor. 
+
+Given a set two sequences $X, Y \in \mathbf{S}$ of length $t_1$ and $t_2$, respectively. Let $d(X,Y)$ be the distance between the sequences $X$ and $Y$, $t_{max}$ the length of the longest sequence in $\mathbf{S}$ and $d_{max}$ the maximum distance between any pair of sequences in $\mathbf{S}$.
+
+`TraMineR` offers the following options to normalize the distances between sequences:
+
+- `maxlength`:
+$$\frac{d(X,Y)}{t_{max}}$$
+- `gmean`: 
+$$1- \frac{d_{max}-d(X,Y)}{\sqrt{t_1*t_2}}$$
+- `maxdist`: 
+$$\frac{d(X,Y)}{d_{max}}$$
