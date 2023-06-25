@@ -1,8 +1,3 @@
-library(tidyverse)
-library(FastKNN)
-source("distance_matrix.R")
-source("predict_scores.R")
-
 get_MSE <- function(data,
                     prediction_data,
                     train_names,
@@ -35,7 +30,7 @@ get_MSE <- function(data,
 
     for (i in seq_along(test_names)) {
       idx <- c(test_names[i], train_names)
-      neighbors <- k.nearest.neighbors(
+      neighbors <- FastKNN::k.nearest.neighbors(
         i = 1,
         distance_matrix = dist_matrix[idx, idx],
         k = k
@@ -60,19 +55,19 @@ get_MSE <- function(data,
     predictions_test_df[, "Id"] <- test_names
 
     sq_error_test <- predictions_test_df %>%
-      left_join(prediction_data, by = "Id") %>%
-      mutate(
+      dplyr::left_join(prediction_data, by = "Id") %>%
+      dplyr::mutate(
         sq_diff_Extraversion = (Extraversion - BFI_extraversion_mean)^2,
         sq_diff_Agreeableness = (Agreeableness - BFI_agreeableness_mean)^2,
         sq_diff_Conscientiousness = (Conscientiousness - BFI_conscientiousness_mean)^2,
         sq_diff_Neuroticism = (Neuroticism - BFI_neuroticism_mean)^2,
         sq_diff_Openness = (Openness - BFI_openness_mean)^2
       ) %>%
-      select(Id, Cluster_4, Cluster_2, starts_with("sq_diff")) %>%
-      pivot_longer(starts_with("sq_diff"), names_to = "Score", values_to = "Value") %>%
-      group_by(Score) %>%
-      summarise(MSQ = mean(Value, na.rm = TRUE)) %>%
-      ungroup()
+      dplyr::select(Id, Cluster_4, Cluster_2, starts_with("sq_diff")) %>%
+      tidyr::pivot_longer(starts_with("sq_diff"), names_to = "Score", values_to = "Value") %>%
+      dplyr::group_by(Score) %>%
+      dplyr::summarise(MSQ = mean(Value, na.rm = TRUE)) %>%
+      dplyr::ungroup()
 
     colnames(sq_error_test)[2] <- paste0("MSQ_", k)
 
@@ -85,11 +80,11 @@ get_MSE <- function(data,
   }
 
   data_long <- data_all %>%
-    pivot_longer(
+    tidyr::pivot_longer(
       cols = starts_with("BFI"), names_to = "Trait",
       names_prefix = "BFI_", values_to = "Trait_value"
     ) %>%
-    mutate(
+    dplyr::mutate(
       Trait = case_when(
         Trait == "extraversion_mean" ~ "Extraversion",
         Trait == "agreeableness_mean" ~ "Agreeableness",
@@ -103,29 +98,29 @@ get_MSE <- function(data,
     )
 
   train_means <- data_long %>%
-    filter(Id %in% train_names) %>%
-    rename(Score = Trait) %>%
-    group_by(Score) %>%
-    summarise(Average = mean(Trait_value)) %>%
-    ungroup()
+    dplyr::filter(Id %in% train_names) %>%
+    dplyr::rename(Score = Trait) %>%
+    dplyr::group_by(Score) %>%
+    dplyr::summarise(Average = mean(Trait_value)) %>%
+    dplyr::ungroup()
 
   trivial_MSE <- data_long %>%
-    rename(Score = Trait) %>%
-    filter(Id %in% test_names) %>%
-    left_join(train_means, by = "Score") %>%
-    mutate(sq_difference = (Trait_value - Average)^2) %>%
-    group_by(Score) %>%
-    summarise(Trivial = mean(sq_difference)) %>%
-    ungroup()
+    dplyr::rename(Score = Trait) %>%
+    dplyr::filter(Id %in% test_names) %>%
+    dplyr::left_join(train_means, by = "Score") %>%
+    dplyr::mutate(sq_difference = (Trait_value - Average)^2) %>%
+    dplyr::group_by(Score) %>%
+    dplyr::summarise(Trivial = mean(sq_difference)) %>%
+    dplyr::ungroup()
 
   MSE_df <- results_test %>%
     purrr::reduce(left_join, by = "Score") %>%
-    pivot_longer(starts_with("MSQ_"),
+    tidyr::pivot_longer(starts_with("MSQ_"),
       names_prefix = "MSQ_", names_to = "k",
       values_to = "MSE"
     ) %>%
-    mutate(k = as.numeric(k)) %>%
-    left_join(trivial_MSE, by = "Score")
+    dplyr::mutate(k = as.numeric(k)) %>%
+    dplyr::left_join(trivial_MSE, by = "Score")
 
   return(MSE_df)
 }

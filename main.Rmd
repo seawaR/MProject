@@ -33,9 +33,11 @@ library(ggplot2)
 library(TraMineR)
 library(TraMineRextras)
 library(cluster)
-source("distance_matrix.R")
-source("predict_scores.R")
-source("get_MSE.R")
+
+## Note: this is order dependent.
+source("helpers/distance_matrix.R", local = knitr::knit_global())
+source("helpers/predict_scores.R", local = knitr::knit_global())
+source("helpers/get_MSE.R", local = knitr::knit_global())
 ```
 
 ```{r, child = "data_prep.Rmd"}
