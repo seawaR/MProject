@@ -356,17 +356,11 @@ To compare the performance of different values of $k$, we use the mean squared e
 \text{MSE} = \frac{1}{n} \sum_{i=1}^n (Y_i - \hat{Y}_i)^2
 \end{equation}
 
-where $y_i$ is the observed value and $\hat{Y}_i$ is the predicted valua via $k$NN.
+where $y_i$ is the observed value and $\hat{Y}_i$ is the predicted value via $k$NN.
 
 In this part of the analysis we only consider the individuals who have available personality scores, that leaves us with a sample size of 200 individuals. We also split the data into two subsets: train (70%) and test (30%). We evaluate the MSE of the predictions for the individuals in the test set but only using the data from the nearest neighbors available in the train set.
 
-The following figure shows for every personality score and different values of $k$ the MSE, i.e. for $k = 1, \dots, 80$ we predict values of $Y$ and compare them with the observed values using the MSE. As a reference, a red line for every personality trait is added to indicate the MSE of the trivial prediction, i.e. the prediction considering all the sample points in the train set.
-
-For agreeableness, the MSE is minimum around $k=50$ and increases again. However, this minimum is not considerably lower than the trivial prediction.
-
-For openness, it is not very clear where the minimum MSE is and the prediction with kNN is always worse than the trivial prediction.
-
-For conscientiousness, extraversion and neuroticism we observe that the MSE decreases as $k$ increases and takes a minimum value (around $k=15$, $k=10$, $k=5$, respectively) thet is considerably lower than the trivial prediction and then the MSE increases again.
+The following figure shows for every personality trait and different values of $k$ the MSE, i.e. for $k = 1, \dots, 80$ we predict values of $Y$ and compare them with the observed values using the MSE. As a reference, a red line for every personality trait is added to indicate the MSE of the trivial prediction, i.e. the prediction considering all the sample points in the train set.
 
 ```{r, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25),  out.width = "250px", fig.align = "center", fig.cap = "MSE by cluster for base setup."}
 base_MSE %>%
@@ -388,7 +382,15 @@ base_MSE %>%
   theme(strip.text = element_text(hjust = 0))
 ```
 
-## Other set-ups
+Overall, it seems that using the sequential data for prediction results in little improvement compared to the trivial prediction except for neuroticism where the MSE takes a minimum value around $k = 5$. 
+
+Furthermore, for conscientiousness and openness, the MSE does not seem to increase again as $k$ increases, which is expected when using $k$NN, due to overfitting. Moreover, for openness, the prediction with $k$NN is always worse than the trivial prediction. For conscientiousness, the MSE takes a minimum value around $k = 15$ and after $k = 30$ the MSE curve stays flat.
+
+For agreeableness, the MSE is minimum around $k = 50$ and increases again. However, this minimum is not considerably lower than the trivial prediction. Similarly, for extraversion, the MSE takes a minimum value after $k = 20$, but is not a significant improvement compared to the trivial prediction.
+
+Given that the performance of the predictions is just slightly better than average in most cases, we contemplate other scenarios with different variations of the hyperparameters considered in this section.
+
+## Additional scenarios
 
 - Setting the constant $c$ as the maximum of $2 - P(s_i|s_j) - P(s_j|s_i)$ for the calculation of the cost matrix.
 
