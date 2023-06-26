@@ -91,9 +91,9 @@ library(cluster)
 
 ```{r helpers, include = FALSE}
 ## Note: this is order dependent.
-source("../helpers/distance_matrix.R", local = knitr::knit_global())
-source("../helpers/predict_scores.R", local = knitr::knit_global())
-source("../helpers/get_MSE.R", local = knitr::knit_global())
+source("helpers/distance_matrix.R", local = knitr::knit_global())
+source("helpers/predict_scores.R", local = knitr::knit_global())
+source("helpers/get_MSE.R", local = knitr::knit_global())
 ```
 
 ```{r setup, include=FALSE}
@@ -121,10 +121,10 @@ Alternatively, you can put that content in files like 00--prelim.Rmd and
 ```{r eval = !knitr::is_latex_output(), child = here::here("prelims", "00-abstract.Rmd")}
 ```
 
-```{r, child = "../data_prep.Rmd"}
+```{r, child = "data_prep.Rmd"}
 ```
 
-```{r, child = "../main_analysis.Rmd"}
+```{r, child = "main_analysis.Rmd"}
 ```
 
 <!-- The {.unnumbered} option here means that the introduction will be 
