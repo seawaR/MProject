@@ -33,9 +33,11 @@ library(ggplot2)
 library(TraMineR)
 library(TraMineRextras)
 library(cluster)
-source("distance_matrix.R")
-source("predict_scores.R")
-source("get_MSE.R")
+
+## Note: this is order dependent.
+source("helpers/distance_matrix.R", local = knitr::knit_global())
+source("helpers/predict_scores.R", local = knitr::knit_global())
+source("helpers/get_MSE.R", local = knitr::knit_global())
 ```
 
 ```{r, child = "data_prep.Rmd"}
@@ -44,7 +46,7 @@ source("get_MSE.R")
 ```{r, child = "main_analysis.Rmd"}
 ```
 
-## Optimal Matching
+# Optimal Matching
 
 Optimal Matching (OM) is a technique used in social sciences for the comparison of sequences of categorical states indexed by time. this method has applications in different areas of social sciences, for instance, life course or career path analysis. OM uses the Needleman-Wunsch algorithm, that was developed to compare biological sequences. This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve.
 
@@ -200,10 +202,10 @@ $$1- \frac{d_{max}-d(X,Y)}{\sqrt{t_1*t_2}}$$
 $$\frac{d(X,Y)}{d_{max}}$$
 
 
-## Data from the 40+ Healthy Aging Study
+# Data from the 40+ Healthy Aging Study
 
 
-### About the data
+## About the data
 
 As part of the Women 40+ Healthy Aging Study, a large study that was conducted by the Department of Clinical Psychology and Psychotherapy of the University of Zurich, a psychometric instrument was developed in order to obtain information about the history of romantic relationships of women. The study was conducted between June 2017 and February 2018 with women between 40 and 75 years who (self-)reported good, very good or excellent health condition and the absence of acute or chronic somatic disease or mental disorder. The participants who reported psychotherapy or psychopharmacological treatment in the previous 6 months were excluded as well as habitual drinkers. Other exclusion criteria were pregnancy in the last 6 months, premature menopause, surgical menopause, intake of hormonal treatment (including contraceptives), shift-work and recent long-distance flight. The participants were recruited from the general population using online advertisement and flyers.
 
@@ -231,7 +233,7 @@ Additionally, personality scores for the women included in the study are availab
 - Openness
 
 
-### Application of OM
+## Application of OM
 
 Using the `R` package `TraMineR` the cost matrix is calculated with transition rates between states. We consider a base setup with method `TRATE` for the calculation of the cost matrix and `maxlenght` normalization for the dissimilarities matrix. The obtained cost matrix is shown below.
 
@@ -340,7 +342,7 @@ There seems to be differences in the distributions of some personality scores: t
 Even though, the distribution of personality scores by cluster does not reveal significant differences, the obtention of a distance matrix also provide us a numerical expression of the categorical sequences that allows us to use it for other purposes. In particular, we explore the predictive capability of this data with a non-parametric prediction method in the next section.
 
 
-## Prediction of personality scores with k-Nearest Neighbors
+# Personality Scores Prediction with k-Nearest Neighbors
 
 Given a training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$ (a finite set of class labels for classification or a continuous range of values for regression). $k$-NN provides a way to predict the label or value for a new, data point $x_{n+1}$ (for which $Y$ is unknown) by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression).
 
@@ -354,17 +356,11 @@ To compare the performance of different values of $k$, we use the mean squared e
 \text{MSE} = \frac{1}{n} \sum_{i=1}^n (Y_i - \hat{Y}_i)^2
 \end{equation}
 
-where $y_i$ is the observed value and $\hat{Y}_i$ is the predicted valua via $k$NN.
+where $y_i$ is the observed value and $\hat{Y}_i$ is the predicted value via $k$NN.
 
 In this part of the analysis we only consider the individuals who have available personality scores, that leaves us with a sample size of 200 individuals. We also split the data into two subsets: train (70%) and test (30%). We evaluate the MSE of the predictions for the individuals in the test set but only using the data from the nearest neighbors available in the train set.
 
-The following figure shows for every personality score and different values of $k$ the MSE, i.e. for $k = 1, \dots, 80$ we predict values of $Y$ and compare them with the observed values using the MSE. As a reference, a red line for every personality trait is added to indicate the MSE of the trivial prediction, i.e. the prediction considering all the sample points in the train set.
-
-For agreeableness, the MSE is minimum around $k=50$ and increases again. However, this minimum is not considerably lower than the trivial prediction.
-
-For openness, it is not very clear where the minimum MSE is and the prediction with kNN is always worse than the trivial prediction.
-
-For conscientiousness, extraversion and neuroticism we observe that the MSE decreases as $k$ increases and takes a minimum value (around $k=15$, $k=10$, $k=5$, respectively) thet is considerably lower than the trivial prediction and then the MSE increases again.
+The following figure shows for every personality trait and different values of $k$ the MSE, i.e. for $k = 1, \dots, 80$ we predict values of $Y$ and compare them with the observed values using the MSE. As a reference, a red line for every personality trait is added to indicate the MSE of the trivial prediction, i.e. the prediction considering all the sample points in the train set.
 
 ```{r, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25),  out.width = "250px", fig.align = "center", fig.cap = "MSE by cluster for base setup."}
 base_MSE %>%
@@ -386,7 +382,15 @@ base_MSE %>%
   theme(strip.text = element_text(hjust = 0))
 ```
 
-### Other set-ups
+Overall, it seems that using the sequential data for prediction results in little improvement compared to the trivial prediction except for neuroticism where the MSE takes a minimum value around $k = 5$. 
+
+Furthermore, for conscientiousness and openness, the MSE does not seem to increase again as $k$ increases, which is expected when using $k$NN, due to overfitting. Moreover, for openness, the prediction with $k$NN is always worse than the trivial prediction. For conscientiousness, the MSE takes a minimum value around $k = 15$ and after $k = 30$ the MSE curve stays flat.
+
+For agreeableness, the MSE is minimum around $k = 50$ and increases again. However, this minimum is not considerably lower than the trivial prediction. Similarly, for extraversion, the MSE takes a minimum value after $k = 20$, but is not a significant improvement compared to the trivial prediction.
+
+Given that the performance of the predictions is just slightly better than average in most cases, we contemplate other scenarios with different variations of the hyperparameters considered in this section.
+
+## Additional scenarios
 
 - Setting the constant $c$ as the maximum of $2 - P(s_i|s_j) - P(s_j|s_i)$ for the calculation of the cost matrix.
 

@@ -1,6 +1,3 @@
-library(tidyverse)
-library(TraMineR)
-
 distance_matrix <- function(data,
                             cm_method,
                             dm_norm,
@@ -11,12 +8,12 @@ distance_matrix <- function(data,
                             extras_out = FALSE) {
   if (!is.null(min_age)) {
     data <- data %>%
-      filter(Start_age >= min_age)
+      dplyr::filter(Start_age >= min_age)
   }
 
   if (!is.null(max_age)) {
     data <- data %>%
-      filter(End_age <= max_age)
+      dplyr::filter(End_age <= max_age)
   }
 
   seq_data <- seqformat(data,
@@ -32,13 +29,13 @@ distance_matrix <- function(data,
 
   alphabet <- as.character(1:length(unique(data$Status)))
 
-  sequences <- seqdef(
+  sequences <- TraMineR::seqdef(
     data = seq_data,
     alphabet = alphabet
   )
 
   if (!is.null(missing_cost)) {
-    cost_matrix <- seqcost(
+    cost_matrix <- TraMineR::seqcost(
       seqdata = sequences,
       method = cm_method,
       with.missing = TRUE,
@@ -47,7 +44,7 @@ distance_matrix <- function(data,
       miss.cost = missing_cost
     )
   } else {
-    cost_matrix <- seqcost(
+    cost_matrix <- TraMineR::seqcost(
       seqdata = sequences,
       method = cm_method,
       with.missing = TRUE,
@@ -55,7 +52,7 @@ distance_matrix <- function(data,
     )
   }
 
-  distance_matrix <- seqdist(
+  distance_matrix <- TraMineR::seqdist(
     seqdata = sequences,
     method = "OM",
     sm = cost_matrix$sm,
