@@ -49,6 +49,7 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-# .tex files except preamble
+# .tex files except preamble and template
 *.tex
 !preamble.tex
+!template.tex
