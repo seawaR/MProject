@@ -40,16 +40,16 @@ library(TraMineRextras)
 library(cluster)
 
 ## Note: this is order dependent.
-source("helpers/distance_matrix.R", local = knitr::knit_global())
-source("helpers/predict_scores.R", local = knitr::knit_global())
-source("helpers/get_MSE.R", local = knitr::knit_global())
+source("../helpers/distance_matrix.R", local = knitr::knit_global())
+source("../helpers/predict_scores.R", local = knitr::knit_global())
+source("../helpers/get_MSE.R", local = knitr::knit_global())
 ```
 
 
 ## Motivation
 
 ```{r, out.width = "150px", fig.align = "center"}
-knitr::include_graphics("../Input/couple.png")
+knitr::include_graphics("../../Input/couple.png")
 ```
 
 Understand the similarities and differences in the romantic relationships history of a group of women over 40 years old and explore the use of this information as a predictor for other psychosocial characteristics of interest.
@@ -58,7 +58,7 @@ Understand the similarities and differences in the romantic relationships histor
 ## Women 40+ Healthy Aging Study (i)
 
 ```{r, out.width = "38%", out.height = "15%", fig.show = "hold", fig.align = "center"}
-knitr::include_graphics(c("../Input/logo2.png", "../Input/logo1.png"))
+knitr::include_graphics(c("../../Input/logo2.png", "../Input/logo1.png"))
 ``` 
 
 - Data from 250 women (ages 40-75) collected between June 2017 and February 2018.
@@ -73,7 +73,7 @@ knitr::include_graphics(c("../Input/logo2.png", "../Input/logo1.png"))
 Consider the relationship status: no relationship (NR), in a relationship (R), open relationship (OR), changing relationships (CR).
 
 ```{r, out.width = "280px"}
-knitr::include_graphics("../Input/sequence_example1.png")
+knitr::include_graphics("../../Input/sequence_example1.png")
 ```
 *Current age
 
@@ -96,13 +96,13 @@ knitr::include_graphics("../Input/sequence_example1.png")
 - 10 = Married + children
 
 ```{r, out.width = "280px"}
-knitr::include_graphics("../Input/sequence_example2.png")
+knitr::include_graphics("../../Input/sequence_example2.png")
 ```
 
 
 ## Overall distribution of states
 
-```{r, child = "data_prep.Rmd"}
+```{r, child = "../data_prep.Rmd"}
 ```
 
 ```{r final-states, fig.align = "center", out.width = "300px"}
@@ -118,7 +118,7 @@ plot5 +
 
 ## Distribution of states by year
 
-```{r, child = "main_analysis.Rmd"}
+```{r, child = "../main_analysis.Rmd"}
 ```
 
 ```{r plot-seqdplot-0, out.width = "300px", fig.align = "center"}
@@ -134,7 +134,7 @@ seqdplot(results$sd,
 ## What is personality?
 
 ```{r, out.width = "200px", fig.align = "center"}
-knitr::include_graphics("../Input/personality1.png")
+knitr::include_graphics("../../Input/personality1.png")
 ```
 
 Personality refers to the enduring characteristics and behavior that comprise a person’s unique adjustment to life, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns.
@@ -143,7 +143,7 @@ Personality refers to the enduring characteristics and behavior that comprise a 
 ## The "Big Five" personality traits
 
 ```{r, out.width = "300px", fig.align = "center"}
-knitr::include_graphics("../Input/personality2.png")
+knitr::include_graphics("../../Input/personality2.png")
 ```
 
 
