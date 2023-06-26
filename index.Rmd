@@ -3,11 +3,11 @@ title: "Categorical Sequence Analysis with Optimal Matching: An Application with
 author: 'Adriana Clavijo Daza'
 date: 'June 2023'
 institution: 'University of Bern'
-# division: ''
-# advisor: ''
-altadvisor: 'Serena'
-department: 'Statistics'
-degree: 'Master in Statistics and Data Science'
+division: 'Faculty of Science'
+advisor: 'Prof. Dr. David Ginsbourger'
+altadvisor: 'Dr. Serena Lozza-Fiacco'
+department: 'Institute of Mathematical Statistics and Actuarial Science'
+degree: 'Master of Science in Statistics and Data Science'
 knit: bookdown::render_book
 # site: bookdown::bookdown_site
 
