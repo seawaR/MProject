@@ -5,9 +5,9 @@ Optimal Matching (OM) is a technique used in social sciences for the comparison 
 
 ## The OM algorithm
 
-Consider a set of $n$ categorical states, say, $S = \{s_1, \dots, s_n\}$. A sequence of (discrete) length $t > 0$ can be denoted as $X = (x_1, \dots, x_t)$, where $x_i \in S$ for $i = 1, \dots, t$. Additionally, the set of all possible sequences with states belonging to $S$ is denoted by $\mathbf{S}$.
+Consider a set of $n$ categorical states, say, $S = \{s_1, \dots, s_n\}$. We define $X = (x_1, \dots, x_t)$, a sequence of (discrete) length $t$, where $x_i \in S$ for $i = 1, \dots, t$. Further, let $\mathbf{S}$ be the set of all possible sequences with states belonging to $S$.
 
-Now, let $X, Y \in \mathbf{S}$ be two sequences of size $t_X$ and $t_Y$, respectively. In order to assess the similarities between the sequences $X$ and $Y$, and to obtain a numerical value associated with it, we define an empty array, $F$, of size $(t_X+1) \times (t_Y+1)$. 
+Now, let $X, Y \in \mathbf{S}$ be two sequences of size $t_X$ and $t_Y$, respectively. In order to numerically assess the similarities between the sequences $X$ and $Y$, we define an empty array $F$ of size $(t_X+1) \times (t_Y+1)$. 
 
 The algorithm below shows the initialization and recursion to fill the array $F$.
 \vspace{12pt}
@@ -22,12 +22,12 @@ The algorithm below shows the initialization and recursion to fill the array $F$
 \EndFor
 \For{$i \gets 2,t_X+1$}
   \For{$j \gets 2,t_Y+1$}
-    \State $F(i,j) \gets min\{F(i-1, j)+d, F(i, j-1)+d, F(i-1, j-1)+k(y_{i-1}, x_{j-1})\}$
+    \State $F(i,j) \gets min\{F(i-1, j)+d, F(i, j-1)+d, F(i-1, j-1)+K(y_{i-1}, x_{j-1})\}$
     \EndFor
 \EndFor
 \end{algorithmic}
 
-Here, the value $d$ is the cost of inserting a gap in one of the sequences, also known as *indel* cost, and $k(y_{i-1}, x_{j-1})$ is the cost associated to change from the state $y_{i-1}$ to $x_{j-1}$, which is defined in a matrix $K$ of size $n \times n$, commonly known as the cost matrix.
+Here, the value $d$ is the cost of inserting a gap in one of the sequences, also known as *indel* cost, and $K(y_{i-1}, x_{j-1})$ is the cost associated to change from the state $y_{i-1}$ to $x_{j-1}$, which is defined in a matrix $K$ of size $n \times n$, commonly known as the cost matrix.
 
 Lines 1-7 of the OM algorithm correspond to initialization. Starting with a cost of 0 in $F(1, 1)$, the first row and column of $F$ represent cumulative costs of successively adding gaps. The remaining lines of the algorithm correspond to the row-wise recursion to fill the array $F$ according to the content of the sequences to be compared: at any step of the recursion, the algorithm is looking at a specific pair of indexes (location) and calculating if substitution or insertion/deletion is the cheapest operation. Successively adding the costs of the cheapest operations results in the overall optimal cost for aligning (arrange to detect similarities) the sequences $X$ and $Y$.
 
@@ -36,14 +36,14 @@ In fact, when $F$ is completely filled, the value in the last cell, i.e. $F(t_X+
 The `R` package `TraMineR` provides several functions to analyze and visualize sequential data. In particular, the package implements OM and offers several methods for computing the cost matrix $K$ and the normalization of the dissimilarity matrix.
 
 
-### Cost matrix
+## Cost matrix
 
 The cost matrix $K$ is a symmetric matrix of size $n \times n$. The value in the $i$-th row and $j$-th column $K(s_i, s_j)$ indicates the cost of moving from state $s_i$ in time $t > 0$ to state $s_j$ in $t+1$.
 
 The following are the methods available in `TraMineR`.
 
 
-#### Transition rates (`TRATE`):
+### Transition rates (`TRATE`):
 
 The substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq n$, is calculated as:
 
@@ -55,7 +55,7 @@ K(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i),
 where $P(s_i|s_j)$ is the probability of transition from state $s_j$ in time $t$ to $s_i$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
 
 
-#### Chi-squared distance (`FUTURE`):
+### Chi-squared distance (`FUTURE`):
 
 \begin{equation}
 \label{eq:chisq}
@@ -65,7 +65,7 @@ K(s_i, s_j) = d_{\chi^2}(\mathbf{P_i}, \mathbf{P_j}),
 where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$
 
 
-#### Relative frequencies (`INDELS` and `INDELSLOG`):
+### Relative frequencies (`INDELS` and `INDELSLOG`):
 
 \begin{equation}
 \label{eq:indels_cost}
@@ -81,7 +81,7 @@ g_i &= \log({\frac{2}{1+f_i}}), &\text{for method `INDELSLOG`}
 
 and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$. 
 
-**Remarks:** 
+#### Remarks: 
 - For methods `TRATE` and `FUTURE`, the unique *indel* value is $d = max_{1 \leq i,j \leq n} K(i,j)/2$, so that the cost of any transition is always lower or equal than deleting and inserting an element (or vice versa).
 - The Needleman-Wunsch algorithm with constant costs for mismatch is known as Levenshtein distance.
 
@@ -138,7 +138,7 @@ In both cases we have two matches (cost 0), one mismatch (cost 3) and one gap (c
 The cost of inserting a gap ($d$) is also known as *indel* (insert or delete) cost. In this example we can observe that, in order to obtain sequence $X$ from $Y$ we have to **insert** a term (i.e. insert a gap and then change its value to a specific state). Equivalently, to obtain sequence $Y$ starting from $X$ we have to **delete** one term.
 
 
-### Normalization
+## Normalization
 
 In cases when the lengths of the sequences differ, it can be useful to account for this differences with a normalization factor. 
 
