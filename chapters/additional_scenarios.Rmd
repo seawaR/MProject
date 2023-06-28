@@ -1,0 +1,200 @@
+# Additional scenarios considered for prediction
+
+In order to find better prediction for the personality scores, we considered different configurations for the obtention of the cost matrix. For instance:
+
+- Take the constant $c$ in \ref{eq:transition} as $2 * max_{1 \leq i,j \leq n} P(i,j)$ so that $0 \leq K(s_i, s_j) \leq 2 * max_{1 \leq i,j \leq n} P(i,j) \leq 2$).
+
+- Consider the methods `FUTURE`, `INDELS` and `INDELSLOG` for the calculation of the cost matrix.
+
+- Try `gmean` and `maxdist` as the normalization factor for the distance matrix.
+
+- Consider several values from 0 to 2 for the transition from/to missing value, given that this has a significant effect when comparing sequences with large differences in length. Also, we can appreciate this effect in the conformation of the clusters (see \@ref(fig:plot-seqdplot-1)).
+
+- Given that the previous consideration resulted in better prediction performance, and with the aim of obtaining more homogeneous sequences in length, we limit the start and end age of the sequences.
+
+The following table shows some of the scenarios considered.
+
+```{r experiments}
+rownames(experiments) <- 1:nrow(experiments)
+colnames(experiments) <- c("Cost matrix",
+                           "Normalization",
+                           "Transition constant",
+                           "NA cost",
+                           "Min age",
+                           "Max age")
+
+knitr::kable(experiments, 
+             digits = 2, 
+             row.names = TRUE,
+             caption = "Summary of the additional scenarios considered") %>%
+  kableExtra::kable_styling(font_size = 10)
+```
+
+With the purpose of comparing the predictions obtained with the different scenarios, we calculate the relative improvement ($p$) compared to the trivial prediction for each value of $k$ and each scenario.
+
+\begin{equation}
+\label{eq:improvement}
+p = (1 - (MSE_k / MSE_{trivial})) * 100
+\end{equation}
+
+The following figure shows the best relative improvement achieved for each personality trait and under all the scenarios in \@ref(tab:experiments) and the corresponding value of $k$ at which the best performance was obtained.
+
+```{r exp-results, out.width = "450px", fig.align = "center", fig.cap = "Relative MSE improvement in the prediction of personality traits."}
+my_exp %>%
+  ggplot() +
+  aes(Scenario, Score) +
+  geom_tile(aes(fill = Improvement)) +
+  geom_text(
+    aes(label = paste(round(Improvement, 2), paste0("k = ", k), sep = "\n")),
+    size = 2.25, # default is GeomLabel$default_aes$size (3.88)
+  ) +
+  scale_fill_gradient(
+    low = rgb(1, 0, 0, alpha = 0.7),
+    high = rgb(0, 1, 0, alpha = 0.7)
+  ) +
+  # A recommended alternative color scale is:
+  # scale_fill_viridis_c(alpha = 0.7)
+  scale_x_continuous(breaks = 1:13) +
+  coord_fixed(ratio = 1) +
+  labs(y = "Trait") +
+  theme_minimal() +
+  theme(panel.grid = element_blank())
+```
+
+We can observe that there is not a single scenario that produces the best prediction improvement for every trait. Although, the method `FUTURE` seems to produce better results for all of the traits except neuroticism.
+
+The following figure shows the MSE for neuroticism in scenario 3 in which the cost matrix is calculated with transition rates and the normalization method for the distances is `gmean`.
+
+```{r neuro3, out.width = "250px", fig.align = "center"}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:13) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(
+    Scenario == 3,
+    Score == "Neuroticism",
+    k > 1
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  ) +
+  theme_minimal()
+```
+
+We can observe that the best prediction is achieved at $k=4$. However, the MSE at this point is much lower than the rest of the curve. It might be the case that this is a random occurrence. However, in \@ref(fig:exp-results) we observe the minimum MSE at the same point for other scenarios, for instance, in scenario 7 (see \@ref(fig:exp-results)), where we observe a similar drop in MSE at the same value of $k$.
+
+```{r neuro7, out.width = "250px", fig.align = "center"}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:13) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(
+    Scenario == 7,
+    Score == "Neuroticism",
+    k > 1
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  ) +
+  theme_minimal()
+```
+
+For openness, the best predictions are obtained with scenarios 12 and 13. Both scenarios consider  $\chi^2$ distances for the calculation of the cost matrix (method `FUTURE`), normalization with the method `gmean` and the sequences are restricted between 20 and 55 years of age. This scenarios differ in the cost assigned to changes involving missing values. Hence, we might infer that the prediction of openness is highly affected by the way missing values are handled. The following figure shows the MSE for openness in scenario 13.
+
+```{r open, out.width = "250px", fig.align = "center"}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:13) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(
+    Scenario == 13,
+    Score == "Openness",
+    k > 1
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  ) +
+  theme_minimal()
+```
+
+In this case, we observe that the curve is lower around the values near to where the minimum is obtained at $k=13$ and it increases to values where the performance is worst than the trivial prediction from $k>25$.
+
+The scenario that produces the best prediction for extraversion is number 9. In the figure below the MSE for this scenario is shown.
+
+```{r extra, out.width = "250px", fig.align = "center"}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:13) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(
+    Scenario == 9,
+    Score == "Extraversion",
+    k > 4
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  ) +
+  theme_minimal()
+```
+
+In this case, the minimum MSE is obtained when $k=18$ which is a high number of neighbors compared to the two previous traits. As expected, the MSE decreases until this value and then starts to increase again, a sign of overfitting for bigger values of $k$.
+
+For conscientiousness none of the predictions achieved a relative improvement of at least 10\%. Furthermore, the best prediction is obtained for $k=15$ in the base scenario and also in scenario 2 (see following figure) where the $c = 2 * max_{1 \leq i,j \leq n} P(i,j)$, which is consistent with the fact that changing the value of $c$ implies a translation of the distances but does not affect their ordering of the neighbors.
+
+```{r cons, out.width = "250px", fig.align = "center"}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:13) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(
+    Scenario == 2,
+    Score == "Conscientiousness",
+    k > 4
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  ) +
+  theme_minimal()
+```
+
+Likewise, for agreeableness, all of the scenarios showed improvements relative to the trivial prediction and the minimum MSE in every case is obtained for large values of $k$. This could be an indication of poor predictive power of the relationships history of women for this particular trait. However, as expected for this prediction technique, we observe in the following figure that the MSE is large and even greater than the MSE of the trivial prediction for values of $k$ below 25 and after achieving the minimum it starts increasing again.
+
+```{r agree, fig.width = 7.5, fig.height = 5.25, out.width = "250px", fig.align = "center"}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:13) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(
+    Scenario == 13,
+    Score == "Agreeableness",
+    k > 4
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  ) +
+  theme_minimal()
+```
