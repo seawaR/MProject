@@ -158,6 +158,7 @@ experiments <- tibble::tribble(
   "INDELS", "maxlength", NULL, NULL, NULL, NULL,
   "INDELSLOG", "maxlength", NULL, NULL, NULL, NULL,
   "FUTURE", "gmean", NULL, NULL, NULL, NULL,
+  "FUTURE", "maxdist", NULL, NULL, NULL, NULL,
   "FUTURE", "gmean", NULL, 1, NULL, NULL,
   "FUTURE", "gmean", NULL, NULL, 20, 55,
   "FUTURE", "gmean", NULL, NULL, 20, 40,
@@ -186,7 +187,7 @@ eval_experiments <- experiments %>%
 
 ```{r experiments_results, cache = TRUE}
 my_exp <- eval_experiments %>%
-  tibble::add_column(Scenario = 1:12) %>%
+  tibble::add_column(Scenario = 1:13) %>%
   select(Scenario, result) %>%
   tidyr::unnest(result) %>%
   group_by(Scenario, Score) %>%
