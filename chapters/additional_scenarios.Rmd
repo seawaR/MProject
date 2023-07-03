@@ -205,3 +205,26 @@ eval_experiments %>%
   ) +
   theme_minimal()
 ```
+
+Finally, we perform clustering again with the distance matrix obtained in Scenario 13. The following table shows the cost matrix for this setup of parameters.
+
+```{r cost-matrix-fin}
+knitr::kable(
+  cost_matrix_final,
+  digits = 2,
+  row.names = FALSE,
+  caption = 'Cost matrix for scenario 13.')
+```
+
+We can appreciate that in this case the range of the values of the cost matrix is larger than those observe in \@ref(tab:cost-matrix). The figure below show the distribution of states by cluster for this scenario.
+
+```{r plot-seqdplot-fin, out.width = "400px", fig.align = "center", fig.cap = "Distribution of states for two clusters in Scenario 13."}
+seqdplot(final$sd,
+  group = clusters_fin_labels,
+  border = NA,
+  ltext = status_labels,
+  cex.legend = 0.75
+)
+```
+
+Even tough the cost matrix presented large variations compared to the base scenario and the predictions improved, we obtain similar clusters: In cluster 1, we find women with different relationship situations but without children. Similarly, in cluster 2 we find women with different trajectories that eventually had children.
