@@ -16,17 +16,20 @@ The following table shows some of the scenarios considered.
 
 ```{r experiments}
 rownames(experiments) <- 1:nrow(experiments)
-colnames(experiments) <- c("Cost matrix",
-                           "Normalization",
-                           "Transition constant",
-                           "NA cost",
-                           "Min age",
-                           "Max age")
+colnames(experiments) <- c(
+  "Cost matrix",
+  "Normalization",
+  "Transition constant",
+  "NA cost",
+  "Min age",
+  "Max age"
+)
 
-knitr::kable(experiments, 
-             digits = 2, 
-             row.names = TRUE,
-             caption = "Summary of the additional scenarios considered") %>%
+knitr::kable(experiments,
+  digits = 2,
+  row.names = TRUE,
+  caption = "Summary of the additional scenarios considered"
+) %>%
   kableExtra::kable_styling(font_size = 10)
 ```
 
@@ -40,11 +43,6 @@ p = (1 - (MSE_k / MSE_{trivial})) * 100
 The following figure shows the best relative improvement achieved for each personality trait and under all the scenarios in \@ref(tab:experiments) and the corresponding value of $k$ at which the best performance was obtained.
 
 ```{r exp-results, out.width = "450px", fig.align = "center", fig.cap = "Relative MSE improvement in the prediction of personality traits."}
-## To do Danielito:
-## - Make legend title smaller
-## - Decrease sapce between y-axis marks and plot(?)
-## - Change color scale from white to some blue
-
 my_exp %>%
   ggplot() +
   aes(Scenario, Score) +
@@ -53,26 +51,27 @@ my_exp %>%
     aes(label = paste(round(Improvement, 2), paste0("k = ", k), sep = "\n")),
     size = 2.25, # default is GeomLabel$default_aes$size (3.88)
   ) +
-  scale_fill_gradient(
-    low = rgb(1, 0, 0, alpha = 0.7),
-    high = rgb(0, 1, 0, alpha = 0.7)
-  ) +
-  # A recommended alternative color scale is:
-  # scale_fill_viridis_c(alpha = 0.7)
-  scale_x_continuous(breaks = 1:13) +
+  # Using the "mako" scale `option = "G"` predefined in viridisLite::.
+  # See alternatives at:
+  # https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html#comparison
+  # Note: using some alpha and end `start` limit to make text more legible.
+  scale_fill_viridis_c(alpha = 0.7, begin = 0.3, option = "G", direction = -1) +
+  # The `expand` argument here removes the margins to the labels:
+  # https://ggplot2.tidyverse.org/articles/faq-axes.html?q=labels#how-can-i-remove-the-space-between-the-plot-and-the-axis
+  scale_x_continuous(breaks = 1:13, expand = c(0, 0)) +
   coord_fixed(ratio = 1) +
   labs(y = "Trait") +
-  theme_minimal() +
-  theme(panel.grid = element_blank())
+  theme(
+    panel.grid = element_blank(),
+    legend.title = element_text(size = 9)
+  )
 ```
 
 We can observe that there is not a single scenario that produces the best prediction improvement for every trait. Although, the method `FUTURE` seems to produce better results for all of the traits except neuroticism.
 
 The following figure shows the MSE for neuroticism in scenario 3 in which the cost matrix is calculated with transition rates and the normalization method for the distances is `gmean`.
 
-```{r neuro3, out.width = "280px", fig.align = "center", fig.cap = "MSE of neuroticism prediction in scenario 3."}
-## To do Danielito:
-## - Increase size of axis marks
+```{r neuro3, out.width = "300px", fig.align = "center", fig.cap = "MSE of neuroticism prediction in scenario 3."}
 eval_experiments %>%
   tibble::add_column(Scenario = 1:13) %>%
   select(Scenario, result) %>%
@@ -88,8 +87,7 @@ eval_experiments %>%
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
-  ) +
-  theme_minimal()
+  )
 ```
 
 We can observe that the best prediction is achieved at $k=4$. However, the MSE at this point is much lower than the rest of the curve. It might be the case that this is a random occurrence. However, in \@ref(fig:exp-results) we observe the minimum MSE at the same point for other scenarios, for instance, in scenario 7 (see \@ref(fig:exp-results)), where we observe a similar drop in MSE at the same value of $k$.
@@ -110,8 +108,7 @@ eval_experiments %>%
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
-  ) +
-  theme_minimal()
+  )
 ```
 
 For openness, the best predictions are obtained with scenarios 12 and 13. Both scenarios consider  $\chi^2$ distances for the calculation of the cost matrix (method `FUTURE`), normalization with the method `gmean` and the sequences are restricted between 20 and 55 years of age. This scenarios differ in the cost assigned to changes involving missing values. Hence, we might infer that the prediction of openness is highly affected by the way missing values are handled. The following figure shows the MSE for openness in scenario 13.
@@ -132,8 +129,7 @@ eval_experiments %>%
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
-  ) +
-  theme_minimal()
+  )
 ```
 
 In this case, we observe that the curve is lower around the values near to where the minimum is obtained at $k=13$ and it increases to values where the performance is worst than the trivial prediction from $k>25$.
@@ -156,8 +152,7 @@ eval_experiments %>%
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
-  ) +
-  theme_minimal()
+  )
 ```
 
 In this case, the minimum MSE is obtained when $k=18$ which is a high number of neighbors compared to the two previous traits. As expected, the MSE decreases until this value and then starts to increase again, a sign of overfitting for bigger values of $k$.
@@ -180,8 +175,7 @@ eval_experiments %>%
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
-  ) +
-  theme_minimal()
+  )
 ```
 
 Likewise, for agreeableness, all of the scenarios showed improvements relative to the trivial prediction and the minimum MSE in every case is obtained for large values of $k$. This could be an indication of poor predictive power of the relationships history of women for this particular trait. However, as expected for this prediction technique, we observe in the following figure that the MSE is large and even greater than the MSE of the trivial prediction for values of $k$ below 25 and after achieving the minimum it starts increasing again.
@@ -202,8 +196,7 @@ eval_experiments %>%
     aes(x = k, y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
-  ) +
-  theme_minimal()
+  )
 ```
 
 Finally, we perform clustering again with the distance matrix obtained in Scenario 13. The following table shows the cost matrix for this setup of parameters.
@@ -213,7 +206,8 @@ knitr::kable(
   cost_matrix_final,
   digits = 2,
   row.names = FALSE,
-  caption = 'Cost matrix for scenario 13.')
+  caption = "Cost matrix for scenario 13."
+)
 ```
 
 We can appreciate that in this case the range of the values of the cost matrix is larger than those observe in \@ref(tab:cost-matrix). The figure below show the distribution of states by cluster for this scenario.
