@@ -212,3 +212,28 @@ temp <- temp %>%
     TRUE ~ "Medium"
   ))
 ```
+
+```{r final, cache = TRUE}
+final <- distance_matrix(
+  data = rh_data,
+  cm_method = "FUTURE",
+  dm_norm = "gmean",
+  missing_cost = 0.5,
+  min_age = 20,
+  max_age = 55,
+  extras_out = TRUE
+)
+
+cost_matrix_final <- cbind(cm_names, data.frame(final$cm))
+
+colnames(cost_matrix_final) <- c("State", cm_names)
+```
+
+```{r clustering-final, cache = TRUE}
+cluster_final <- hclust(d = as.dist(final$dm), method = "ward.D2")
+
+clusters_fin <- cutree(cluster_final, k = 2)
+
+clusters_fin_labels <- factor(clusters_fin, 
+                              labels = paste("Cluster", 1:2))
+```
