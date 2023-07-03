@@ -50,7 +50,7 @@ From this cost matrix it is possible to calculate pairwise distances between all
 
 Having obtained the distance matrix, we apply a hierarchical agglomerative clustering method in order to explore the data and the differences captured by the distance matrix. In particular, we set the number of clusters to 4 and the following figure shows the distribution of the states.
 
-```{r plot-seqdplot-1, out.width = "300px", fig.align = "center", fig.cap = "Distribution of states by cluster."}
+```{r plot-seqdplot-1, out.width = "400px", fig.align = "center", fig.cap = "Distribution of states by cluster."}
 # Reduce the bottom and right margin of (sub)plots by ~50%.
 par(mar = par()$mar * c(0.5, 1, 1, 0.5))
 
@@ -70,7 +70,7 @@ The figure below shows the transverse entropy by cluster, i.e. the cross-section
 h(f_1, \dots, f_n) = - \sum_{i = 1}^n f_i \log(f_i).
 \end{equation}
 
-```{r, out.width = "250px", fig.align = "center", results = "hide", fig.cap = "Transversal entropy by cluster."}
+```{r, out.width = "350px", fig.align = "center", results = "hide", fig.cap = "Transversal entropy by cluster."}
 seqplot.tentrop(results$sd, 
                 group = clusters4_labels, 
                 ylim = c(0, 1),
@@ -108,7 +108,7 @@ No difference is obvious at first glance. Also, the number of clusters and the f
 
 Furthermore, we obtain better defined clusters that are less affected by the length of the sequences as we can observe in the distribution plots of the sequences states: the majority of women in cluster 1 have children, while we mostly find women without children in cluster 2.
 
-```{r plot-seqdplot-2, out.width = "300px", fig.align = "center", fig.cap = "Distribution of states for two clusters."}
+```{r plot-seqdplot-2, out.width = "400px", fig.align = "center", fig.cap = "Distribution of states for two clusters."}
 seqdplot(results$sd,
   group = clusters2_labels,
   border = NA,
@@ -119,7 +119,7 @@ seqdplot(results$sd,
 
 In addition, the transversal entropy of the sequences for the two clusters is displayed in the figure below.
 
-```{r, out.width = "280px", fig.align = "center", results = "hide", fig.cap = "Transversal entropy for two clusters."}
+```{r, out.width = "350px", fig.align = "center", results = "hide", fig.cap = "Transversal entropy for two clusters."}
 seqplot.tentrop(results$sd, group = clusters2_labels, ylim = c(0, 1))
 ```
 

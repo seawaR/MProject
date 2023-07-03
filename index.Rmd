@@ -16,6 +16,7 @@ knit: bookdown::render_book
 header-includes:
     - \usepackage{setspace}\onehalfspacing
     - \usepackage{algpseudocode}
+    - \usepackage{algorithm}
 
 # Remove the hashtag to specify which version of output you would like.
 # Can only choose one at a time.
@@ -132,3 +133,8 @@ Alternatively, you can put that content in files like 00--prelim.Rmd and
 -->
 
 # Introduction {.unnumbered}
+
+<!-- To do Danielito:
+- Use same font for document text and figures text.
+- Can we merge list of figures and tables?
+-->

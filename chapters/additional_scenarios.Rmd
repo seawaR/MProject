@@ -40,6 +40,11 @@ p = (1 - (MSE_k / MSE_{trivial})) * 100
 The following figure shows the best relative improvement achieved for each personality trait and under all the scenarios in \@ref(tab:experiments) and the corresponding value of $k$ at which the best performance was obtained.
 
 ```{r exp-results, out.width = "450px", fig.align = "center", fig.cap = "Relative MSE improvement in the prediction of personality traits."}
+## To do Danielito:
+## - Make legend title smaller
+## - Decrease sapce between y-axis marks and plot(?)
+## - Change color scale from white to some blue
+
 my_exp %>%
   ggplot() +
   aes(Scenario, Score) +
@@ -65,7 +70,9 @@ We can observe that there is not a single scenario that produces the best predic
 
 The following figure shows the MSE for neuroticism in scenario 3 in which the cost matrix is calculated with transition rates and the normalization method for the distances is `gmean`.
 
-```{r neuro3, out.width = "250px", fig.align = "center"}
+```{r neuro3, out.width = "280px", fig.align = "center", fig.cap = "MSE of neuroticism prediction in scenario 3."}
+## To do Danielito:
+## - Increase size of axis marks
 eval_experiments %>%
   tibble::add_column(Scenario = 1:13) %>%
   select(Scenario, result) %>%
@@ -87,7 +94,7 @@ eval_experiments %>%
 
 We can observe that the best prediction is achieved at $k=4$. However, the MSE at this point is much lower than the rest of the curve. It might be the case that this is a random occurrence. However, in \@ref(fig:exp-results) we observe the minimum MSE at the same point for other scenarios, for instance, in scenario 7 (see \@ref(fig:exp-results)), where we observe a similar drop in MSE at the same value of $k$.
 
-```{r neuro7, out.width = "250px", fig.align = "center"}
+```{r neuro7, out.width = "280px", fig.align = "center", fig.cap = "MSE of neuroticism prediction in scenario 7."}
 eval_experiments %>%
   tibble::add_column(Scenario = 1:13) %>%
   select(Scenario, result) %>%
@@ -109,7 +116,7 @@ eval_experiments %>%
 
 For openness, the best predictions are obtained with scenarios 12 and 13. Both scenarios consider  $\chi^2$ distances for the calculation of the cost matrix (method `FUTURE`), normalization with the method `gmean` and the sequences are restricted between 20 and 55 years of age. This scenarios differ in the cost assigned to changes involving missing values. Hence, we might infer that the prediction of openness is highly affected by the way missing values are handled. The following figure shows the MSE for openness in scenario 13.
 
-```{r open, out.width = "250px", fig.align = "center"}
+```{r open, out.width = "280px", fig.align = "center", fig.cap = "MSE of openness prediction in scenario 13."}
 eval_experiments %>%
   tibble::add_column(Scenario = 1:13) %>%
   select(Scenario, result) %>%
@@ -133,7 +140,7 @@ In this case, we observe that the curve is lower around the values near to where
 
 The scenario that produces the best prediction for extraversion is number 9. In the figure below the MSE for this scenario is shown.
 
-```{r extra, out.width = "250px", fig.align = "center"}
+```{r extra, out.width = "280px", fig.align = "center", fig.cap = "MSE of extraversion prediction in scenario 9."}
 eval_experiments %>%
   tibble::add_column(Scenario = 1:13) %>%
   select(Scenario, result) %>%
@@ -157,7 +164,7 @@ In this case, the minimum MSE is obtained when $k=18$ which is a high number of 
 
 For conscientiousness none of the predictions achieved a relative improvement of at least 10\%. Furthermore, the best prediction is obtained for $k=15$ in the base scenario and also in scenario 2 (see following figure) where the $c = 2 * max_{1 \leq i,j \leq n} P(i,j)$, which is consistent with the fact that changing the value of $c$ implies a translation of the distances but does not affect their ordering of the neighbors.
 
-```{r cons, out.width = "250px", fig.align = "center"}
+```{r cons, out.width = "280px", fig.align = "center", fig.cap = "MSE of conscientiousness prediction in scenario 2."}
 eval_experiments %>%
   tibble::add_column(Scenario = 1:13) %>%
   select(Scenario, result) %>%
@@ -179,7 +186,7 @@ eval_experiments %>%
 
 Likewise, for agreeableness, all of the scenarios showed improvements relative to the trivial prediction and the minimum MSE in every case is obtained for large values of $k$. This could be an indication of poor predictive power of the relationships history of women for this particular trait. However, as expected for this prediction technique, we observe in the following figure that the MSE is large and even greater than the MSE of the trivial prediction for values of $k$ below 25 and after achieving the minimum it starts increasing again.
 
-```{r agree, fig.width = 7.5, fig.height = 5.25, out.width = "250px", fig.align = "center"}
+```{r agree, out.width = "280px", fig.align = "center", fig.cap = "MSE of agreeableness prediction in scenario 13."}
 eval_experiments %>%
   tibble::add_column(Scenario = 1:13) %>%
   select(Scenario, result) %>%
