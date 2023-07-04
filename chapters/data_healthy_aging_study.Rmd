@@ -59,8 +59,6 @@ seqdplot(results$sd,
   border = NA,
   ltext = status_labels
 )
-
-invisible(dev.off())
 ```
 
 The figure below shows the transverse entropy by cluster, i.e. the cross-sectional entropy of the states distributions is calculated at each time point as follows:
@@ -70,11 +68,12 @@ The figure below shows the transverse entropy by cluster, i.e. the cross-section
 h(f_1, \dots, f_n) = - \sum_{i = 1}^n f_i \log(f_i).
 \end{equation}
 
-```{r, out.width = "350px", fig.align = "center", results = "hide", fig.cap = "Transversal entropy by cluster."}
-seqplot.tentrop(results$sd, 
-                group = clusters4_labels, 
-                ylim = c(0, 1),
-                main = "")
+```{r, out.width = "350px", results = "hide", fig.cap = "Transversal entropy by cluster."}
+seqplot.tentrop(results$sd,
+  group = clusters4_labels,
+  ylim = c(0, 1),
+  main = ""
+)
 ```
 
 The previous visualizations allow us to try to identify common and contrasting features of the clusters that can be useful to describe them. It is important to remember that this description is subjective and incomplete.
@@ -84,7 +83,7 @@ The previous visualizations allow us to try to identify common and contrasting f
 - Cluster 3: Older, mostly married or in long relationship without children.
 - Cluster 4: Younger, single or in a relationship without children.
 
-```{r, echo=FALSE, message=FALSE, cache=TRUE}
+```{r, echo = FALSE, message = FALSE, cache = TRUE}
 knitr::kable(clusters4_counts, caption = "Number of individuals by cluster.")
 ```
 
@@ -92,7 +91,7 @@ On the other hand, in figure \@ref(fig:plot-seqdplot-1) we can also appreciate t
 
 We are interested in exploring how the relationships history of the women relate to personality traits.  As a first exploratory step, the following figure shows the distribution of the score for each trait by cluster. 
 
-```{r, fig.width = 7.5, fig.height = 5.25, out.width = "300px", fig.align = "center", fig.cap = "Distribution of personality scores by cluster."}
+```{r, out.width = "300px", fig.cap = "Distribution of personality scores by cluster."}
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density)))
 p +
   geom_histogram(bins = 10) +
@@ -108,7 +107,7 @@ No difference is obvious at first glance. Also, the number of clusters and the f
 
 Furthermore, we obtain better defined clusters that are less affected by the length of the sequences as we can observe in the distribution plots of the sequences states: the majority of women in cluster 1 have children, while we mostly find women without children in cluster 2.
 
-```{r plot-seqdplot-2, out.width = "400px", fig.align = "center", fig.cap = "Distribution of states for two clusters."}
+```{r plot-seqdplot-2, out.width = "400px", fig.cap = "Distribution of states for two clusters."}
 seqdplot(results$sd,
   group = clusters2_labels,
   border = NA,
@@ -119,7 +118,7 @@ seqdplot(results$sd,
 
 In addition, the transversal entropy of the sequences for the two clusters is displayed in the figure below.
 
-```{r, out.width = "350px", fig.align = "center", results = "hide", fig.cap = "Transversal entropy for two clusters."}
+```{r, out.width = "350px", results = "hide", fig.cap = "Transversal entropy for two clusters."}
 seqplot.tentrop(results$sd, group = clusters2_labels, ylim = c(0, 1))
 ```
 
@@ -127,7 +126,7 @@ This figure shows that the entropy decreases significantly around mid age for th
 
 As before, we  want to explore possible links between the information from the sequences and personality scores. The following figure shows the distribution of the personality traits for the two clusters.
 
-```{r, fig.width = 7.5, fig.height = 5.25, out.width = "300px", fig.align = "center", fig.cap = "Distribution of personality scores for two clusters."}
+```{r, out.width = "300px", fig.cap = "Distribution of personality scores for two clusters."}
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density)))
 p +
   geom_histogram(bins = 10) +

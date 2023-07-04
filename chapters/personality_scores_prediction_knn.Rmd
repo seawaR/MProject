@@ -18,7 +18,7 @@ In this part of the analysis we only consider the individuals who have available
 
 The following figure shows for every personality trait and different values of $k$ the MSE, i.e. for $k = 1, \dots, 80$ we predict values of $Y$ and compare them with the observed values using the MSE. As a reference, a red line for every personality trait is added to indicate the MSE of the trivial prediction, i.e. the prediction considering all the sample points in the train set.
 
-```{r, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25),  out.width = "300px", fig.align = "center", fig.cap = "MSE by personality trait for base setup prediction."}
+```{r, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25), out.width = "300px",  fig.cap = "MSE by personality trait for base setup prediction."}
 base_MSE %>%
   filter(k > 3) %>%
   ggplot() +
@@ -34,7 +34,6 @@ base_MSE %>%
     scales = "free",
     strip.position = "top"
   ) +
-  theme_minimal() +
   theme(strip.text = element_text(hjust = 0))
 ```
 

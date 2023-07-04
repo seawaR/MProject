@@ -236,6 +236,7 @@ cluster_final <- hclust(d = as.dist(final$dm), method = "ward.D2")
 
 clusters_fin <- cutree(cluster_final, k = 2)
 
-clusters_fin_labels <- factor(clusters_fin, 
-                              labels = paste("Cluster", 1:2))
+clusters_fin_labels <- factor(clusters_fin,
+  labels = paste("Cluster", 1:2)
+)
 ```

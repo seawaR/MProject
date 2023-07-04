@@ -88,6 +88,7 @@ library(ggplot2)
 library(TraMineR)
 library(TraMineRextras)
 library(cluster)
+library(extrafont)
 ```
 
 ```{r helpers, include = FALSE}
@@ -97,21 +98,34 @@ source("helpers/predict_scores.R", local = knitr::knit_global())
 source("helpers/get_MSE.R", local = knitr::knit_global())
 ```
 
-```{r setup, include=FALSE}
+```{r setup, include = FALSE}
 # Global knitr chunk options
 ## Note: updating global chunk options propagates, invalidate existing cache.
 knitr::opts_chunk$set(
   echo = FALSE,
   message = FALSE,
   warning = FALSE,
+  # Graphics settings
+  fig.align = "center",
   fig.width = 7.5,
-  fig.height = 5.25
+  fig.height = 5.25,
+  ## Use cairo_pdf to embed fonts in the plots (and preserve it when rendering):
+  ## https://stackoverflow.com/a/36663975
+  dev = "cairo_pdf",
+  ## Font family for base plots. Requires it available via extrafont::
+  dev.args = list(family = "Latin Modern Math") ## For base plots.
 )
 
+extrafont::loadfonts(device = "all")
 # GGplot theme.
 ggplot2::theme_set(ggplot2::theme_minimal(base_size = 12))
-## Default axis labels size is 80% of plot font size. Increasing to 100%.
-ggplot2::theme_update(axis.text = ggplot2::element_text(size = ggplot2::rel(1)))
+
+ggplot2::theme_update(
+  ## Default axis labels size is 80% of plot font size. Increasing to 100%.
+  axis.text = ggplot2::element_text(size = ggplot2::rel(1)),
+  ## Font family. Requires it available via extrafont::
+  text = ggplot2::element_text(family = "Latin Modern Math")
+)
 
 options(width = 80)
 ```
@@ -142,6 +156,5 @@ Alternatively, you can put that content in files like 00--prelim.Rmd and
 # Introduction {.unnumbered}
 
 <!-- To do Danielito:
-- Use same font for document text and figures text.
 - Can we merge list of figures and tables?
 -->
