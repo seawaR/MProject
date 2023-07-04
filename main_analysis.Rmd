@@ -147,13 +147,15 @@ trivial_MSE <- data_all_long %>%
 ```
 
 ```{r additional_experiments, cache = TRUE}
-c_mod <- max(results$cm[results$cm < 2])
+transition_values <- (cost_matrix_base[1:10, 2:11] * -1) + 2
+
+c_mod <- max(transition_values[transition_values < 2])
 
 experiments <- tibble::tribble(
   ~cm_method, ~dm_norm, ~constant, ~missing_cost, ~min_age, ~max_age,
   "TRATE", "maxlength", NULL, NULL, NULL, NULL,
   "TRATE", "maxlength", c_mod, NULL, NULL, NULL,
-  "TRATE", "gmean", NULL, NULL, NULL, NULL,
+  "TRATE", "gmean", c_mod, NULL, NULL, NULL,
   "FUTURE", "maxlength", NULL, NULL, NULL, NULL,
   "INDELS", "maxlength", NULL, NULL, NULL, NULL,
   "INDELSLOG", "maxlength", NULL, NULL, NULL, NULL,

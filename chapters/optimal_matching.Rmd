@@ -1,6 +1,10 @@
 # Optimal Matching
 
-Optimal Matching (OM) is a technique used in social sciences for the comparison of sequences of categorical states indexed by time. this method has applications in different areas of social sciences, for instance, life course or career path analysis. OM uses the Needleman-Wunsch algorithm, that was developed to compare biological sequences. This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve.
+Optimal Matching (OM) is a technique widely applied in social sciences for the comparison of sequences indexed by time that take values in a finite set of categories or states. For instance, in sociology, OM has been used for life course or career path analysis. 
+
+OM uses the Needleman-Wunsch algorithm, that was developed to compare biological sequences. This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve.
+
+The goal of OM is to find the best possible matching or alignment between two sequences by considering the differences and similarities between their elements and minimizing the total cost or dissimilarity between the sequences. The cost of comparing different states of the sequences can be defined in different ways including data-based methods or values supplied by experts in the particular field.
 
 
 ## The OM algorithm
