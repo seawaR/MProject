@@ -155,7 +155,7 @@ Alternatively, you can put that content in files like 00--prelim.Rmd and
 
 # Introduction {.unnumbered}
 
-Optimal matching, introduced by Andrew Abbott \cite{Abbot-1986} and since then has been extensively used in social studies to answer questions about processes that take values in a categorical space and occur along a period of time. Particularly, in sociology there have been several studies following the professional career of groups of people (e.g. graduates from a specific college or professionals in a certain area).
+Optimal matching, introduced by Andrew Abbott @Abbott-1986 and since then has been extensively used in social studies to answer questions about processes that take values in a categorical space and occur along a period of time. Particularly, in sociology there have been several studies following the professional career of groups of people (e.g. graduates from a specific college or professionals in a certain area).
 
 The main objective of these studies is to find similarities and differences between the sequences and obtain groups of trajectories that have common elements to them by means of a clustering method applied to the matrix distance obtained by optimal matching.
 
