@@ -69,15 +69,15 @@ my_exp %>%
 
 We can observe that there is not a single scenario that produces the best prediction improvement for every trait. Although, the method `FUTURE` seems to produce better results for all of the traits except neuroticism.
 
-The following figure shows the MSE for neuroticism in scenario 3 in which the cost matrix is calculated with transition rates and the normalization method for the distances is `gmean`.
+The following figure shows the MSE for neuroticism in scenario 2 in which the cost matrix is calculated with transition rates, the normalization method for the distances is `maxlength` and the constant $c$ was modified.
 
-```{r neuro3, out.width = "300px", fig.cap = "MSE of neuroticism prediction in scenario 3."}
+```{r neuro2, out.width = "300px", fig.cap = "MSE of neuroticism prediction in scenario 2."}
 eval_experiments %>%
   tibble::add_column(Scenario = 1:13) %>%
   select(Scenario, result) %>%
   tidyr::unnest(result) %>%
   filter(
-    Scenario == 3,
+    Scenario == 2,
     Score == "Neuroticism",
     k > 1
   ) %>%
@@ -90,15 +90,15 @@ eval_experiments %>%
   )
 ```
 
-We can observe that the best prediction is achieved at $k=4$. However, the MSE at this point is much lower than the rest of the curve. It might be the case that this is a random occurrence. However, in \@ref(fig:exp-results) we observe the minimum MSE at the same point for other scenarios, for instance, in scenario 7 (see \@ref(fig:exp-results)), where we observe a similar drop in MSE at the same value of $k$.
+We can observe that the best prediction is achieved at $k=6$. However, the MSE at this point is much lower than the rest of the curve. It might be the case that this is a random occurrence. However, in \@ref(fig:exp-results) we observe the minimum MSE with similar number of neighbors for other scenarios, for instance, in scenario 3.
 
-```{r neuro7, out.width = "280px", fig.cap = "MSE of neuroticism prediction in scenario 7."}
+```{r neuro3, out.width = "280px", fig.cap = "MSE of neuroticism prediction in scenario 3."}
 eval_experiments %>%
   tibble::add_column(Scenario = 1:13) %>%
   select(Scenario, result) %>%
   tidyr::unnest(result) %>%
   filter(
-    Scenario == 7,
+    Scenario == 3,
     Score == "Neuroticism",
     k > 1
   ) %>%
