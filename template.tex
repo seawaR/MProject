@@ -181,6 +181,17 @@ $for(header-includes)$
 $endfor$
 % End of CII addition
 %%
+
+% To merge list of tables and figures.
+% https://tex.stackexchange.com/a/120651 
+% Maybe safer than the other answer.
+\makeatletter
+\renewcommand*{\ext@figure}{lot}
+\let\c@figure\c@table
+\let\ftype@figure\ftype@table
+\let\listoftableandfigures\listoftables
+\renewcommand*\listtablename{List of Tables and Figures}
+\makeatother
 %% End Preamble
 %%
 %
@@ -230,9 +241,9 @@ $if(lot)$
   \listoftables
 $endif$
 
-$if(lof)$
-  \listoffigures
-$endif$
+% $if(lof)$
+%  \listoffigures
+% $endif$
 
 $if(abstract)$
   \begin{abstract}

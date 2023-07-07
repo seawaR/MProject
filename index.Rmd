@@ -164,6 +164,4 @@ In this work, we explore the possibility to obtain predictions of a secondary va
 We describe the optimal matching algorithm, normalization options and the methods for obtaining the cost matrix in Section 1. In Section 2, we introduce the data used in this work and perform optimal matching to obtain groups of sequences. In Section 3, we describe the method used for prediction with the data from the previous section. Finally, in section 4, we show some other scenarios that produce better predictions.
 
 
-<!-- To do Danielito:
-- Can we merge list of figures and tables?
 -->
