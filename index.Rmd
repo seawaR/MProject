@@ -159,11 +159,10 @@ Optimal matching, introduced by @Abbott-1986, has been extensively used in socia
 
 The main objective of studies where optimal matching is used, is to find similarities and differences between the categorical sequences and obtain groups of trajectories that have common elements to them by means of a clustering method applied to the matrix distance obtained from the optimal matching algorithm.
 
-In this work, we explore the possibility to obtain predictions of a secondary variable based on the information obtained from the sequential data via optimal matching
-<!-- Consider rephrasing, briefly mentioning what that package offers.
-e.g. To archive this we leverage Y implemented in the R package Z. -->
-using the `R` package `TraMineR`.
+In this work, we explore the possibility to obtain predictions of a secondary variable based on the information obtained from the sequential data via optimal matching using the implementation in the `R` package
+<!-- TODO: add proper @ citation for TraMineR --> 
+`TraMineR`.
 
-<!-- TODO(daniel): use section labels: 
+<!-- TODO: use section labels: 
        bookdown.org/yihui/bookdown/cross-references.html -->
 We describe the optimal matching algorithm, normalization options and the methods for obtaining the cost matrix in Section 1. In Section 2, we introduce the data from the 'Women 40+ Healthy Aging Study' and perform optimal matching to obtain groups of sequences. In Section 3, we describe the method used for prediction with the data from the previous section. Finally, in section 4, we show other scenarios that produce better predictions.
