@@ -155,13 +155,13 @@ Alternatively, you can put that content in files like 00--prelim.Rmd and
 
 # Introduction {.unnumbered}
 
-Optimal matching, introduced by Andrew Abbott @Abbott-1986 and since then has been extensively used in social studies to answer questions about processes that take values in a categorical space and occur along a period of time. Particularly, in sociology there have been several studies following the professional career of groups of people (e.g. graduates from a specific college or professionals in a certain area).
+Since optimal matching was introduced by @Abbott-1986, it has been extensively used in social studies to answer questions about processes that take values in a categorical space and occur along a period of time. Particularly, in sociology there have been several studies following the professional career of groups of people (see, for instance, @Chan-1995, @Torsten-2014, @Gubler-2015).
 
-The main objective of these studies is to find similarities and differences between the sequences and obtain groups of trajectories that have common elements to them by means of a clustering method applied to the matrix distance obtained by optimal matching.
+The common objective of many of these studies is to find similarities and differences between the sequences and obtain groups of trajectories that are similar by means of a clustering method applied to the matrix distance obtained from optimal matching.
 
 In this work, we explore the possibility to obtain predictions of a secondary variable based on the information obtained from the sequential data via optimal matching using the `R` package `TraMineR`.
 
-We describe the optimal matching algorithm, normalization options and the methods for obtaining the cost matrix in Section 1. In Section 2, we introduce the data used in this work and perform optimal matching to obtain groups of sequences. In Section 3, we describe the method used for prediction with the data from the previous section. Finally, in section 4, we show some other scenarios that produce better predictions.
+In Section 1, we describe the optimal matching algorithm, normalization options and the methods for obtaining the cost matrix. In Section 2, we introduce the data used in this work and perform optimal matching to obtain groups of sequences. In Section 3, we describe the method used for prediction with the data from the previous section. Finally, in section 4, we show some other scenarios that produce better predictions.
 
 
 <!-- To do Danielito:
