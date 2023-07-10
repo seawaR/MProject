@@ -33,5 +33,5 @@ This is just for testing with more citations for the bibliography at the end.  A
 
 ---
 nocite: | 
-  @Needleman-Wunsch-1970, @Levenshtein-1966
+  @Abbott-2000, @Torsten-2014, @ESLII, @R-project
 ...
