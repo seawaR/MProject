@@ -4,7 +4,7 @@
 
 As part of the Women 40+ Healthy Aging Study, a large study that was conducted by the Department of Clinical Psychology and Psychotherapy of the University of Zurich, a psychometric instrument was developed in order to obtain information about the history of romantic relationships of women. The study was conducted between June 2017 and February 2018 with women between 40 and 75 years who (self-)reported good, very good or excellent health condition and the absence of acute or chronic somatic disease or mental disorder. The participants who reported psychotherapy or psychopharmacological treatment in the previous 6 months were excluded as well as habitual drinkers. Other exclusion criteria were pregnancy in the last 6 months, premature menopause, surgical menopause, intake of hormonal treatment (including contraceptives), shift-work and recent long-distance flight. The participants were recruited from the general population using online advertisement and flyers.
 
-The questionnaire asked the participants to provide information about relationship phases starting from the age of 15 years until the current age at the time of the data collection. The phases were defined by the start and end age and for each phase and information about civil status, relationship status, living situation, children and quality of the relationship was collected. Before including the data corresponding to their own history, the participants were prompted to answer some of the questions based on an example. Some of the participants were excluded when the example entries were not correctly filled. After data cleaning and revisions for consistency the total number of individuals considered is 239.
+The questionnaire asked the participants to provide information about relationship phases starting from the age of 15 years until the current age at the time of the data collection. The phases were defined by the start and end age and for each phase and information about civil status, relationship status, living situation, children and quality of the relationship was collected. Before including the data corresponding to their own history, the participants were prompted to answer some of the questions based on an example. Some of the participants were excluded when the example entries were not correctly filled. After data cleaning and revisions for consistency the total number of individuals considered in this work is 239.
 
 In order to create a sequence for each participant the information about civil status, relationship status, living situation and the maternity is taken into account. A yearly sequence is created and the states considered are the following:
 
@@ -19,7 +19,9 @@ In order to create a sequence for each participant the information about civil s
 - 9 = Married + no children
 - 10 = Married + children
 
-Additionally, personality scores for the women included in the study are available. Personality refers to the enduring characteristics and behavior that comprise the unique adjustment to life of a person, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns. These scores are obtained via psychometric instruments and evaluate the main personality traits:
+Additionally, personality scores for the women included in the study are available. 
+<!-- Maybe this is worth to label as a sub-section; and if feasible expand on each with some reference. -->
+Personality refers to the enduring characteristics and behavior that comprise the unique adjustment to life of a person, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns. These scores are obtained via psychometric instruments and evaluate the main personality traits:
 
 - Agreeableness
 - Conscientiousness 
@@ -30,7 +32,7 @@ Additionally, personality scores for the women included in the study are availab
 
 ## Application of OM
 
-Using the `R` package `TraMineR` the cost matrix is calculated with transition rates between states. We consider a base setup with method `TRATE` for the calculation of the cost matrix and `maxlenght` normalization for the dissimilarities matrix. The obtained cost matrix is shown below.
+Using the `R` package `TraMineR` the cost matrix is calculated with transition rates between states. We consider a base setup with method `TRATE` for the calculation of the cost matrix and `maxlenght` normalization for the dissimilarities matrix. The cost matrix obtained this way is shown in table \@ref(tab:cost-matrix).
 
 ```{r cost-matrix}
 knitr::kable(
@@ -43,54 +45,72 @@ knitr::kable(
   # kableExtra::kable_styling(font_size = 8)
 ```
 
-As expected, the elements in the diagonal are equal to 0, meaning there is no cost associated to staying in the same state. By default, the constant $c$ in \ref{eq:transition} is set to 2. This, and the fact that the duration of the states is often longer that the time unit (one year), makes that all of the values outside the diagonal are close to 2 and even equal in cases where no transition between the states were observed in the data (e.g. from single without children to single with children and vice versa). Finally, we observe that missing value (`NA`) is considered as a separate state and, by default, the cost of changing from or to a missing value is 2, which might be too high in cases where the individuals made a mistake in the beginning or end age of a phase leaving a gap in the sequence.
+As expected, the elements in the diagonal are equal to 0, meaning there is no cost associated to staying in the same state. By default, the constant $c$ in \ref{eq:transition} is set to 2. This, and the fact that the duration of the states is often longer than the time unit (one year), makes that all of the values outside the diagonal are close to 2 and even equal in cases where no transition between the states were observed in the data (e.g. from single without children to single with children and vice versa). Finally, we observe that missing value (`NA`) is considered as a separate state and, by default, the cost of changing from or to a missing value is 2, which might be too high in cases where the individuals made a mistake in the beginning or end age of a phase leaving a gap in the sequence.
 
-From this cost matrix it is possible to calculate pairwise distances between all the sequences using the algorithm described in the previous section. As stated before, a correction of the distances is done to account for the differences in size of the sequences. This is done dividing the obtained distance by the length of the longest sequence. 
+From this cost matrix it is possible to calculate pairwise distances between all the sequences using the optimal matching algorithm as described in the previous section. As stated before, a correction of the distances is done to account for the differences in size of the sequences. This is done dividing the obtained distance by the length of the longest sequence. 
 
-Having obtained the distance matrix, we apply a hierarchical agglomerative clustering method in order to explore the data and the differences captured by the distance matrix. In particular, we set the number of clusters to 4 and the following figure shows the distribution of the states.
+Having obtained the distance matrix, we apply a hierarchical agglomerative clustering method in order to explore the data and the differences captured by the distance matrix. In particular, we set the number of clusters to 4.
+<!-- TODO: Can the 4 be explained? e.g. "After preliminary explorations we identified that the data clusters well in 4 meaningful groups."-->
+Figure \@ref(fig:plot-seqdplot-1) shows the distribution of the states for each of the identified clusters.
 
 ```{r plot-seqdplot-1, out.width = "400px", fig.align = "center", fig.cap = "Distribution of states by cluster."}
 # Reduce the bottom and right margin of (sub)plots by ~50%.
 par(mar = par()$mar * c(0.5, 1, 1, 0.5))
 
-seqdplot(results$sd,
+TraMineR::seqdplot(results$sd,
   group = clusters4_labels,
   border = NA,
   ltext = status_labels
 )
 ```
 
-The figure below shows the transverse entropy by cluster, i.e. the cross-sectional entropy of the states distributions is calculated at each time point as follows:
+\par <!-- Latex was not getting the paragraph break automatically -->
+And figure \@ref(fig:seqplot-cluster-entropy) shows the transverse entropy by cluster, i.e. the cross-sectional entropy of the states distributions is calculated at each time point as follows:
+
 
 \begin{equation}
 \label{eq:entropy}
 h(f_1, \dots, f_n) = - \sum_{i = 1}^n f_i \log(f_i).
 \end{equation}
 
-```{r, out.width = "350px", results = "hide", fig.cap = "Transversal entropy by cluster."}
-seqplot.tentrop(results$sd,
+```{r seqplot-cluster-entropy, out.width = "350px", results = "hide", fig.cap = "Transversal entropy by cluster."}
+TraMineRextras::seqplot.tentrop(results$sd,
   group = clusters4_labels,
   ylim = c(0, 1),
   main = ""
 )
 ```
 
-The previous visualizations allow us to try to identify common and contrasting features of the clusters that can be useful to describe them. It is important to remember that this description is subjective and incomplete.
+These visualizations allow us to identify common and contrasting features of the clusters that can be useful to describe them concisely. In table \@ref(tab:cluster-size-description) we present a summary of the clusters with our descriptive interpretation of the clusters. 
 
+```{r cluster-size-description, echo = FALSE, message = FALSE, cache = TRUE}
+clusters4_counts %>%
+  mutate(Share = scales::percent(n / sum(n), accuracy = 0.1),
+         Description = case_match(
+           Cluster,
+           1 ~ "Married young and had children.",
+           2 ~ "Often in relationships but not married.",
+           3 ~ "Older, mostly married or in long relationship without children.",
+           4 ~ "Younger, single or in a relationship without children.")
+         ) %>%
+  knitr::kable(caption = "Number of individuals by cluster.")
+```
+
+
+<!--
 - Cluster 1: Married young and had children.
 - Cluster 2: Often in relationships but not married.
 - Cluster 3: Older, mostly married or in long relationship without children.
 - Cluster 4: Younger, single or in a relationship without children.
+-->
 
-```{r, echo = FALSE, message = FALSE, cache = TRUE}
-knitr::kable(clusters4_counts, caption = "Number of individuals by cluster.")
-```
+It is important to remember that this descriptions are subjective and not exhaustive.
 
-On the other hand, in figure \@ref(fig:plot-seqdplot-1) we can also appreciate that the conformation of some clusters seems to be highly affected by the length of the sequence and is possible that the normalization method is not achieving the expected result.
+On the other hand, in figure \@ref(fig:plot-seqdplot-1) we can also appreciate that the conformation of some clusters seems to be highly affected by the length of the sequence and is possible that the normalization method is not achieving the ideal result.
 
-We are interested in exploring how the relationships history of the women relate to personality traits.  As a first exploratory step, the following figure shows the distribution of the score for each trait by cluster. 
+Now, we are interested in exploring how the relationships history of the women relate to personality traits. As a first exploratory step, figure \@ref(fig:cluster-traits-dist) shows the distribution of the score for each trait by cluster.
 
-```{r, out.width = "300px", fig.cap = "Distribution of personality scores by cluster."}
+```{r cluster-traits-dist, out.width = "300px", fig.cap = "Distribution of personality scores by cluster."}
 p <- ggplot(data_all_long, aes(x = Trait_value, after_stat(density)))
 p +
   geom_histogram(bins = 10) +
@@ -107,7 +127,7 @@ No difference is obvious at first glance. Also, the number of clusters and the f
 Furthermore, we obtain better defined clusters that are less affected by the length of the sequences as we can observe in the distribution plots of the sequences states: the majority of women in cluster 1 have children, while we mostly find women without children in cluster 2.
 
 ```{r plot-seqdplot-2, out.width = "400px", fig.cap = "Distribution of states for two clusters."}
-seqdplot(results$sd,
+TraMineR::seqdplot(results$sd,
   group = clusters2_labels,
   border = NA,
   ltext = status_labels,
