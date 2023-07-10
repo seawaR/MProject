@@ -1,5 +1,4 @@
-# Data from the 40+ Healthy Aging Study
-
+# Data from the 40+ Healthy Aging Study {#data}
 
 ## About the data
 

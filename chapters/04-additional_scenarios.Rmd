@@ -1,4 +1,4 @@
-# Additional scenarios considered for prediction
+# Additional scenarios considered for prediction {#scenarios}
 
 In order to find better prediction for the personality scores, we considered different configurations for the obtention of the cost matrix. For instance:
 
