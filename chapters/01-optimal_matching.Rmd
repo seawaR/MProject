@@ -1,19 +1,22 @@
 # Optimal Matching
 
-Optimal Matching (OM) is a technique widely applied in social sciences for the comparison of sequences indexed by time that take values in a finite set of categories or states. For instance, in sociology, OM has been used for life course or career path analysis. 
+Optimal Matching (OM) is a technique widely applied in social sciences for the comparison of sequences that take values in a finite set of categories or states and are indexed by time. For instance, in sociology, OM has been used for life course or career path analysis. 
+
+<!-- Any citation @ for Needleman-Wunsch? -->
 
 OM uses the Needleman-Wunsch algorithm, that was developed to compare biological sequences. This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve.
 
 The goal of OM is to find the best possible matching or alignment between two sequences by considering the differences and similarities between their elements and minimizing the total cost or dissimilarity between the sequences. The cost of comparing different states of the sequences can be defined in different ways including data-based methods or values supplied by experts in the particular field.
 
-
 ## The OM algorithm
 
-Consider a set of $n$ categorical states $S = \{s_1, \dots, s_n\}$, we define $X = (x_1, \dots, x_t)$, a sequence of (discrete) length $t$, where $x_i \in S$ for $i = 1, \dots, t$. Further, let $\mathbf{S}$ be the set of all possible sequences with states belonging to $S$.
+Consider a set of $n$ categorical states $S = \{s_1, \dots, s_n\}$, we define $X = (x_1, \dots, x_t)$, a sequence of discrete length $t$, where $x_i \in S$ for $i = 1, \dots, t$. Further, let $\mathbf{S}$ be the set of all possible sequences with states belonging to $S$.
+<!-- For completeness/clarity? Otherwise could be infinite? Also used at the end
+of up to length $t_{max}$, with  $t$ \leq $t_{max}$.
+-->
 
-Now, let $X, Y \in \mathbf{S}$ be two sequences of size $t_X$ and $t_Y$, respectively. In order to numerically assess the similarities between the sequences $X$ and $Y$, we define an empty array $F$ of size $(t_X+1) \times (t_Y+1)$. 
+Now, let $X, Y \in \mathbf{S}$ be two sequences of size $t_X$ and $t_Y$, respectively. In order to numerically assess the similarities between the sequences $X$ and $Y$, we define an empty array $F$ of size $(t_X+1) \times (t_Y+1)$. Algorithm 1 below shows the initialization and recursion to fill the array $F$.
 
-The algorithm below shows the initialization and recursion to fill the array $F$.
 \vspace{12pt}
 
 \begin{algorithm}
@@ -34,21 +37,20 @@ The algorithm below shows the initialization and recursion to fill the array $F$
 \end{algorithmic}
 \end{algorithm}
 
-Here, the value $d$ is the cost of inserting a gap in one of the sequences, also known as *indel* cost, and $K(y_{i-1}, x_{j-1})$ is the cost associated to change from the state $y_{i-1}$ to $x_{j-1}$, which is defined in a matrix $K$ of size $n \times n$, commonly known as the cost matrix.
+The value $d$ is the cost of inserting a gap in one of the sequences, also known as *indel* cost, and $K(y_{i-1}, x_{j-1})$ is the cost associated to change from the state $y_{i-1}$ to $x_{j-1}$, which is defined in a matrix $K$ of size $n \times n$, commonly known as the cost matrix.
 
 Lines 1-7 of the OM algorithm correspond to initialization. Starting with a cost of 0 in $F(1, 1)$, the first row and column of $F$ represent cumulative costs of successively adding gaps. The remaining lines of the algorithm correspond to the row-wise recursion to fill the array $F$ according to the content of the sequences to be compared: at any step of the recursion, the algorithm is looking at a specific pair of indexes (location) and calculating if substitution or insertion/deletion is the cheapest operation. Successively adding the costs of the cheapest operations results in the overall optimal cost for aligning (arrange to detect similarities) the sequences $X$ and $Y$.
 
 In fact, when $F$ is completely filled, the value in the last cell, i.e. $F(t_X+1, t_Y+1)$ corresponds to the optimal cost of aligning the sequences $X$ and $Y$. It is possible to recover the steps that conduced to this alignment with a traceback from the last cell. However, this is not necessary to obtain the dissimilarities matrix.
 
+<!-- TODO: add proper @ citation for TraMineR -->
 The `R` package `TraMineR` provides several functions to analyze and visualize sequential data. In particular, the package implements OM and offers several methods for computing the cost matrix $K$ and the normalization of the dissimilarity matrix.
-
 
 ## Cost matrix
 
 The cost matrix $K$ is a symmetric matrix of size $n \times n$. The value in the $i$-th row and $j$-th column $K(s_i, s_j)$ indicates the cost of moving from state $s_i$ in time $t > 0$ to state $s_j$ in $t+1$.
 
-The following are the methods available in `TraMineR`.
-
+The following are the methods available in `TraMineR` to obtain the cost matrix.
 
 ### Transition rates (`TRATE`):
 
@@ -95,7 +97,7 @@ and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$.
 
 ### Example 
 
-Let us suppose that $S$ is the alphabet, let $X = \{S,E,N,D\}$ and $Y = \{A,N,D\}$ be two sequences in $\mathbf{S}$. Supposing that $d = 2$ and 
+Suppose that $S$ is the alphabet and let $X = \{S,E,N,D\}$ and $Y = \{A,N,D\}$ be two sequences in $\mathbf{S}$. With $d = 2$ and
 
 $$
 K(i,j) = 
@@ -113,7 +115,7 @@ The array $F$ is initialized as follows:
 | N | 4 |   |   |   |   |
 | D | 6 |   |   |   |   |
 
-To fill  the second row of $F$ we proceed as follows:
+Then, to fill the second row of $F$ we proceed as follows:
 
 - $F(2,2) = min\{F(1, 2)+d, F(2, 1)+d, F(1, 1)+k(y_{1}, x_{1})\} = min\{2+2, 2+2, 0+3\} = 3$
 - $F(2,3) = min\{F(1, 3)+d, F(2, 2)+d, F(1, 2)+k(y_{1}, x_{2})\} = min\{4+2, 3+2, 2+3\} = 5$
@@ -136,7 +138,7 @@ Finally, we obtain the following $F$ array:
 | N | 4 | 5 | 6 | 5 | 7 |
 | D | 6 | 7 | 8 | 7 | 5 |
 
-In this simple example, we can easily obtain two optimal (equivalent) alignments without using the algorithm.  
+In this simple example, we can easily obtain two optimal (equivalent) alignments without using the algorithm:
 
 S E N D with  
 
@@ -153,13 +155,13 @@ The cost of inserting a gap ($d$) is also known as *indel* (insert or delete) co
 
 In cases when the lengths of the sequences differ, it can be useful to account for this differences with a normalization factor. 
 
-Given a set two sequences $X, Y \in \mathbf{S}$ of length $t_1$ and $t_2$, respectively. Let $d(X,Y)$ be the distance between the sequences $X$ and $Y$, $t_{max}$ the length of the longest sequence in $\mathbf{S}$ and $d_{max}$ the maximum distance between any pair of sequences in $\mathbf{S}$.
+Given a set two sequences $X, Y \in \mathbf{S}$ of length $t_X$ and $t_Y$, respectively. Let $d(X,Y)$ be the distance between the sequences $X$ and $Y$, $t_{max}$ the length of the longest sequence in $\mathbf{S}$ and $d_{max}$ the maximum distance between any pair of sequences in $\mathbf{S}$.
 
 `TraMineR` offers the following options to normalize the distances between sequences:
 
 - `maxlength`:
 $$\frac{d(X,Y)}{t_{max}}$$
 - `gmean`: 
-$$1- \frac{d_{max}-d(X,Y)}{\sqrt{t_1*t_2}}$$
+$$1- \frac{d_{max}-d(X,Y)}{\sqrt{t_X*t_Y}}$$
 - `maxdist`: 
 $$\frac{d(X,Y)}{d_{max}}$$
