@@ -1,3 +1,1 @@
-The preface pretty much says it all.  \par
-
-Second paragraph of abstract starts here.
+In this work, we describe and use Optimal Matching (a method widely used in sociological studies) to obtain pairwise distances between categorical sequences that represent the relationship and family history of a group of women over 40 years old. We then use the distances to predict five personality traits. For prediction, we use $k$-nearest neighbors and compare the performance of different approaches for the calculation of the cost matrix, normalization and handling of missing values in the sequences. We find that the quality of the prediction varies with several considerations and this results in a different best scenario for each trait.
