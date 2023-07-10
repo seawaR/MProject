@@ -11,8 +11,8 @@ The goal of OM is to find the best possible matching or alignment between two se
 ## The OM algorithm
 
 Consider a set of $n$ categorical states $S = \{s_1, \dots, s_n\}$, we define $X = (x_1, \dots, x_t)$, a sequence of discrete length $t$, where $x_i \in S$ for $i = 1, \dots, t$. Further, let $\mathbf{S}$ be the set of all possible sequences with states belonging to $S$.
-<!-- For completeness/clarity? Otherwise could be infinite? Also used at the end
-of up to length $t_{max}$, with  $t$ \leq $t_{max}$.
+<!-- ... of up to length $t_{max}$, with  $t$ \leq $t_{max}$ 
+For completeness/clarity? Otherwise could be infinite? Also used at the end.
 -->
 
 Now, let $X, Y \in \mathbf{S}$ be two sequences of size $t_X$ and $t_Y$, respectively. In order to numerically assess the similarities between the sequences $X$ and $Y$, we define an empty array $F$ of size $(t_X+1) \times (t_Y+1)$. Algorithm 1 below shows the initialization and recursion to fill the array $F$.
@@ -43,7 +43,6 @@ Lines 1-7 of the OM algorithm correspond to initialization. Starting with a cost
 
 In fact, when $F$ is completely filled, the value in the last cell, i.e. $F(t_X+1, t_Y+1)$ corresponds to the optimal cost of aligning the sequences $X$ and $Y$. It is possible to recover the steps that conduced to this alignment with a traceback from the last cell. However, this is not necessary to obtain the dissimilarities matrix.
 
-<!-- TODO: add proper @ citation for TraMineR -->
 The `R` package `TraMineR` (@TraMineR) provides several functions to analyze and visualize sequential data. In particular, the package implements OM and offers several methods for computing the cost matrix $K$ and the normalization of the dissimilarity matrix.
 
 ## Cost matrix
