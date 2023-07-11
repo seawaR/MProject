@@ -1,0 +1,9 @@
+# Conclusion {.unnumbered}
+
+The use of optimal matching to describe sequential data in the context of social studies has been extensively documented. We explored the potential to use this technique for prediction. Despite the lack of a measure to directly compare cost or distance matrices produced by optimal matching, we decided to use MSE to evaluate different scenarios as our main goal was to obtain good performance with the predictions.
+
+Based on the analysis of the distance matrix obtained through optimal matching, we have determined that there is not a single specific combination of cost matrix generation method, normalization method, and treatment of missing values that consistently yields the best prediction for personality scores. However, when it comes to most personality traits, it is preferable to use the cost matrix calculated with the $\chi^2$ distance of the states frequencies. It is worth noting that critics of this technique have pointed out that the results heavily rely on how the cost matrix is defined and we have confirmed this with our results.
+
+We also noted that the difference in sequence lengths affected the performance of the prediction as this produced a large amount of missing values, showing the limitation of any normalization method used.
+
+We also observed that, given the resulting states distributions when dividing the individuals into two clusters, the main differentiating factor is the presence or absence of children (see Figure \@ref(fig:plot-seqdplot-2) and Figure \@ref(fig:plot-seqdplot-fin)).
