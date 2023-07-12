@@ -6,4 +6,4 @@ Based on the analysis of the distance matrix obtained through optimal matching, 
 
 We also noted that the difference in sequence lengths affected the performance of the prediction as this produced a large amount of missing values, showing the limitation of any normalization method used.
 
-We also observed that, given the resulting states distributions when dividing the individuals into two clusters, the main differentiating factor is the presence or absence of children (see Figure \@ref(fig:plot-seqdplot-2) and Figure \@ref(fig:plot-seqdplot-fin)).
+We also observed that, given the resulting states distributions when dividing the individuals into two clusters, the main differentiating factor is the presence or absence of children (see Figure \@ref(fig:seqdplot-cluster-b) and Figure \@ref(fig:plot-seqdplot-fin)).

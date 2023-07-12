@@ -8,7 +8,7 @@ In order to find better prediction for the personality scores, we considered dif
 
 - Try `gmean` and `maxdist` as the normalization factor for the distance matrix.
 
-- Consider several values from 0 to 2 for the transition from/to missing value, given that this has a significant effect when comparing sequences with large differences in length. Also, we can appreciate this effect in the conformation of the clusters (see \@ref(fig:plot-seqdplot-1)).
+- Consider several values from 0 to 2 for the transition from/to missing value, given that this has a significant effect when comparing sequences with large differences in length. Also, we can appreciate this effect in the conformation of the clusters (see \@ref(fig:seqdplot-cluster-a)).
 
 - Given that the previous consideration resulted in better prediction performance, and with the aim of obtaining more homogeneous sequences in length, we limit the start and end age of the sequences.
 
