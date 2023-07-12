@@ -40,7 +40,7 @@ With the purpose of comparing the predictions obtained with the different scenar
 p = (1 - (MSE_k / MSE_{trivial})) * 100
 \end{equation}
 
-The following figure shows the best relative improvement achieved for each personality trait and under all the scenarios in \@ref(tab:experiments) and the corresponding value of $k$ at which the best performance was obtained.
+Figure \@ref(fig:exp-results) shows the best relative improvement achieved for each personality trait and under all the scenarios in \@ref(tab:experiments) and the corresponding value of $k$ at which the best performance was obtained.
 
 ```{r exp-results, out.width = "450px", fig.cap = "Relative MSE improvement in the prediction of personality traits."}
 my_exp %>%
@@ -69,7 +69,7 @@ my_exp %>%
 
 We can observe that there is not a single scenario that produces the best prediction improvement for every trait. Although, the method `FUTURE` seems to produce better results for all of the traits except neuroticism.
 
-The following figure shows the MSE for neuroticism in scenario 2 in which the cost matrix is calculated with transition rates, the normalization method for the distances is `maxlength` and the constant $c$ was modified.
+Figure \@ref(fig:neuro2) shows the MSE for neuroticism in scenario 2 in which the cost matrix is calculated with transition rates, the normalization method for the distances is `maxlength` and the constant $c$ was modified.
 
 ```{r neuro2, out.width = "300px", fig.cap = "MSE of neuroticism prediction in scenario 2."}
 eval_experiments %>%
@@ -90,7 +90,7 @@ eval_experiments %>%
   )
 ```
 
-We can observe that the best prediction is achieved at $k=6$. However, the MSE at this point is much lower than the rest of the curve. It might be the case that this is a random occurrence. However, in \@ref(fig:exp-results) we observe the minimum MSE with similar number of neighbors for other scenarios, for instance, in scenario 3.
+We can observe that the best prediction is achieved at $k=6$. However, the MSE at this point is much lower than the rest of the curve. It might be the case that this is a random occurrence. However, in \@ref(fig:exp-results) we observe the minimum MSE is found with a similar number of neighbors for other scenarios, for instance, in scenario 3 (see Figure \@ref(fig:neuro3)). 
 
 ```{r neuro3, out.width = "280px", fig.cap = "MSE of neuroticism prediction in scenario 3."}
 eval_experiments %>%
@@ -111,7 +111,7 @@ eval_experiments %>%
   )
 ```
 
-For openness, the best predictions are obtained with scenarios 12 and 13. Both scenarios consider  $\chi^2$ distances for the calculation of the cost matrix (method `FUTURE`), normalization with the method `gmean` and the sequences are restricted between 20 and 55 years of age. This scenarios differ in the cost assigned to changes involving missing values. Hence, we might infer that the prediction of openness is highly affected by the way missing values are handled. The following figure shows the MSE for openness in scenario 13.
+For openness, the best predictions are obtained with scenarios 12 and 13. In both scenarios the cost matrix is calculated with $\chi^2$ distance of the states frequencies (method `FUTURE`), normalization with the method `gmean` and the sequences are restricted between 20 and 55 years of age. This scenarios differ in the cost assigned to changes involving missing values. Hence, we might infer that the prediction of openness is highly affected by the way missing values are handled. Figure \@ref(fig:open) shows the MSE for openness in scenario 13.
 
 ```{r open, out.width = "280px", fig.cap = "MSE of openness prediction in scenario 13."}
 eval_experiments %>%
@@ -134,7 +134,7 @@ eval_experiments %>%
 
 In this case, we observe that the curve is lower around the values near to where the minimum is obtained at $k=13$ and it increases to values where the performance is worst than the trivial prediction from $k>25$.
 
-The scenario that produces the best prediction for extraversion is number 9. In the figure below the MSE for this scenario is shown.
+The scenario that produces the best prediction for extraversion is number 9. In Figure \@ref(fig:extra), the MSE for this scenario is shown.
 
 ```{r extra, out.width = "280px", fig.cap = "MSE of extraversion prediction in scenario 9."}
 eval_experiments %>%
@@ -157,7 +157,7 @@ eval_experiments %>%
 
 In this case, the minimum MSE is obtained when $k=18$ which is a high number of neighbors compared to the two previous traits. As expected, the MSE decreases until this value and then starts to increase again, a sign of overfitting for bigger values of $k$.
 
-For conscientiousness none of the predictions achieved a relative improvement of at least 10\%. Furthermore, the best prediction is obtained for $k=15$ in the base scenario and also in scenario 2 (see following figure) where the $c = 2 * max_{1 \leq i,j \leq n} P(i,j)$, which is consistent with the fact that changing the value of $c$ implies a translation of the distances but does not affect their ordering of the neighbors.
+For conscientiousness none of the predictions achieved a relative improvement of at least 10\%. Furthermore, the best prediction is obtained for $k=15$ in the base scenario. Scenario 12 produces a similar result in terms of improvement, but with $k=51$ which is an undesirable high number of neighbors for prediction with $k$NN. Figure \@ref(fig:cons) shows in detail the MSE for conscientiousness in the base scenario.
 
 ```{r cons, out.width = "280px", fig.cap = "MSE of conscientiousness prediction in scenario 2."}
 eval_experiments %>%
@@ -178,7 +178,7 @@ eval_experiments %>%
   )
 ```
 
-Likewise, for agreeableness, all of the scenarios showed improvements relative to the trivial prediction and the minimum MSE in every case is obtained for large values of $k$. This could be an indication of poor predictive power of the relationships history of women for this particular trait. However, as expected for this prediction technique, we observe in the following figure that the MSE is large and even greater than the MSE of the trivial prediction for values of $k$ below 25 and after achieving the minimum it starts increasing again.
+Likewise, for agreeableness, all of the scenarios showed improvements relative to the trivial prediction that are below 10\% and the minimum MSE in every case is obtained for rather large values of $k$. This could be an indication of poor predictive power of the relationships history of women for this particular trait. However, as expected for this prediction technique, we observe in Figure \@ref(fig:agree) that the MSE is large and even greater than the MSE of the trivial prediction for values of $k$ below 25 and after achieving the minimum it starts increasing again.
 
 ```{r agree, out.width = "280px", fig.cap = "MSE of agreeableness prediction in scenario 13."}
 eval_experiments %>%
@@ -199,7 +199,7 @@ eval_experiments %>%
   )
 ```
 
-Finally, we perform clustering again with the distance matrix obtained in Scenario 13. The following table shows the cost matrix for this setup of parameters.
+Finally, we perform clustering again with the distance matrix obtained in Scenario 13. Table \@ref(tab:cost-matrix-fin) shows the cost matrix for this setup of parameters.
 
 ```{r cost-matrix-fin}
 knitr::kable(
@@ -210,7 +210,7 @@ knitr::kable(
 )
 ```
 
-We can appreciate that in this case the range of the values of the cost matrix is larger than those observe in \@ref(tab:cost-matrix). The figure below show the distribution of states by cluster for this scenario.
+We can appreciate that in this case the range of the values of the cost matrix (excluding the diagonal elements and the missing value cost) is larger than those observe in \@ref(tab:cost-matrix). Figure \@ref(fig:plot-seqdplot-fin) shows the distribution of states by cluster for this scenario.
 
 ```{r plot-seqdplot-fin, out.width = "400px", fig.cap = "Distribution of states for two clusters in Scenario 13."}
 seqdplot(final$sd,
@@ -221,4 +221,4 @@ seqdplot(final$sd,
 )
 ```
 
-Even tough the cost matrix presented large variations compared to the base scenario and the predictions improved, we obtain similar clusters: In cluster 1, we find women with different relationship situations but without children. Similarly, in cluster 2 we find women with different trajectories that eventually had children.
+Even tough the cost matrix presented large variations compared to the base scenario and the predictions improved, we obtain clusters that exhibit similar main characteristics: In cluster 1, we find women with different relationship situations but without children. Similarly, in cluster 2 we find women with different relationship trajectories, but mostly married, that eventually had children. The clusters seem to be better defined in this case but that can be also due to the age restriction imposed, which implies that some sequences without enough data in the specified age range were excluded.

@@ -6,19 +6,19 @@ There are different ways of calculating the distance between the new data point 
 
 The choice of $k$ is a hyperparameter that can be tuned to optimize the performance of the $k$-NN algorithm. A larger $k$ reduces the effect of noise and outliers, but can also lead to overfitting. A smaller $k$ is more sensitive to noise and outliers, but can better capture local structure.
 
-To compare the performance of different values of $k$, we use the mean squared error (MSE).
+To compare the performance of different values of $k$, we use the mean squared error (MSE). For a testing set of $m$ labeled data points, the MSE is given by:
 
 \begin{equation}
-\text{MSE} = \frac{1}{n} \sum_{i=1}^n (Y_i - \hat{Y}_i)^2
+\text{MSE} = \frac{1}{m} \sum_{i=1}^n (Y_i - \hat{Y}_i)^2
 \end{equation}
 
 where $y_i$ is the observed value and $\hat{Y}_i$ is the predicted value via $k$NN.
 
 In this part of the analysis we only consider the individuals who have available personality scores, that leaves us with a sample size of 200 individuals. We also split the data into two subsets: train (70%) and test (30%). We evaluate the MSE of the predictions for the individuals in the test set but only using the data from the nearest neighbors available in the train set.
 
-The following figure shows for every personality trait and different values of $k$ the MSE, i.e. for $k = 1, \dots, 80$ we predict values of $Y$ and compare them with the observed values using the MSE. As a reference, a red line for every personality trait is added to indicate the MSE of the trivial prediction, i.e. the prediction considering all the sample points in the train set.
+Figure \@ref(fig:knn-base) shows for every personality trait and different values of $k$ the MSE, i.e. for $k = 1, \dots, 80$ we predict values of $Y$ and compare them with the observed values using the MSE. As a reference, a red line for every personality trait is added to indicate the MSE of the trivial prediction, i.e. the prediction considering all the sample points in the train set.
 
-```{r, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25), out.width = "300px",  fig.cap = "MSE by personality trait for base setup prediction."}
+```{r knn-base, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25), out.width = "300px",  fig.cap = "MSE by personality trait for base setup prediction."}
 base_MSE %>%
   filter(k > 3) %>%
   ggplot() +
