@@ -153,7 +153,7 @@ Alternatively, you can put that content in files like 00--prelim.Rmd and
 
 # Introduction {.unnumbered}
 
-Optimal matching (OM) is an adaptation of the Needleman-Wunsch algorithm (Needleman-Wunsch-1970) and since its introduction by @Abbott-1986 in social sciences, it has been extensively used to answer questions involving processes that take values in a categorical set of states and occur along a specific period of time. For instance, in sociology, optimal matching has been employed in several studies tracking the professional development of specific groups of people, see @Chan-1995, @Torsten-2014 or @Gubler-2015, and to analyze life course data, for example, @Widmer-2009 or @Bastin-2015.
+Optimal matching (OM) is an adaptation of the Needleman-Wunsch algorithm (@Needleman-Wunsch-1970) and since its introduction in social sciences by @Abbott-1986, it has been extensively used to answer questions involving processes that take values in a categorical set of states and occur along a specific period of time. For instance, in sociology, optimal matching has been employed in several studies tracking the professional development of specific groups of people, see @Chan-1995, @Torsten-2014 or @Gubler-2015, and to analyze life course data, for example, @Widmer-2009 or @Bastin-2015.
 
 The common result of several studies employing optimal matching is to find similarities and dissimilarities among categorical sequences and identify groups of trajectories that exhibit similar patterns. This is achieved through the application of clustering techniques to the distance matrix generated with help of the algorithm. 
 

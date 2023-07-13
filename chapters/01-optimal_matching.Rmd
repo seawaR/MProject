@@ -8,7 +8,7 @@ The goal of OM is to find the best possible alignment between two sequences by c
 
 ## The OM algorithm
 
-Consider a set of $n$ categorical states $S = \{s_1, \dots, s_n\}$, we define $X = (x_1, \dots, x_t)$, a sequence of discrete length $t < \infty$, where $x_i \in S$ for $i = 1, \dots, t$. Further, let $\mathbf{S}$ be the set of all possible sequences with states belonging to $S$.
+Consider a set of $n$ categorical states $S = \{s_1, \dots, s_n\}$, we define $X = (x_1, \dots, x_t)$, a sequence of length $t < \infty$, where $x_i \in S$ for $i = 1, \dots, t$. Further, let $\mathbf{S}$ be the set of all possible sequences with states belonging to $S$.
 
 Now, let $X, Y \in \mathbf{S}$ be two sequences of size $t_X$ and $t_Y$, respectively. In order to numerically assess the disimilarity between the sequences $X$ and $Y$, we define an empty array $F$ of size $(t_X+1) \times (t_Y+1)$. Algorithm \@ref(OMalg) below shows the initialization and recursion to fill the array $F$.
 
@@ -86,9 +86,9 @@ g_i &= \log\left({\frac{2}{1+f_i}}\right), &\text{for method `INDELSLOG`}
 and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$. 
 
 #### Remarks: 
-- For methods `TRATE` and `FUTURE`, the unique *indel* value is $d = max_{1 \leq i,j \leq n} K(i,j)/2$, so that the cost of any transition is always lower or equal than deleting and inserting an element (or vice versa).
-- The Needleman-Wunsch algorithm with constant costs for mismatch is known as Levenshtein distance (@Levenshtein-1966).
-
+- For methods `TRATE` and `FUTURE`, the unique *indel* value is $d = max_{1 \leq i,j \leq n} K(i,j)/2$, so that the cost of any change of state is always lower or equal than deleting and inserting an element (or vice versa).
+- The Needleman-Wunsch algorithm with constant costs for mismatch is known as Levenshtein distance (@Levenshtein-1966), a string metric widely used in computer science.
+- In general, the resulting measure of the algorithm is a dissimilarity. However, if the cost matrix fulfills the triangle inequality, we obtain a distance measure.
 
 ### Example 
 
