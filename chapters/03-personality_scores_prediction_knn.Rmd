@@ -1,10 +1,26 @@
 # Personality Scores Prediction with k-Nearest Neighbors {#knn}
 
-Given a training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$ (a finite set of class labels for classification or a continuous range of values for regression). $k$-NN provides a way to predict the label or value for a new, data point $x_{n+1}$ (for which $Y$ is unknown) by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression).
+<!-- Suggestion: this can be split into two subsections 1. k-nn, 2. base scenario prediction and then Section 4 could be incorporated as subsection 3 instead.-->
 
-There are different ways of calculating the distance between the new data point $x_{n+1}$ and the points in $\mathcal{D}$. For instance, the Euclidean o Mahalanobis distances are usually used. In our case we already count with a matrix distance obtained with OM.
+<!-- TODO: make sure that the notation being used is cosistent with the one used in the previous sections: e.g. dealing with elements in a general space \mathbf{S} not in \mathbb{R}^d, etc.-->
 
-The choice of $k$ is a hyperparameter that can be tuned to optimize the performance of the $k$-NN algorithm. A larger $k$ reduces the effect of noise and outliers, but can also lead to overfitting. A smaller $k$ is more sensitive to noise and outliers, but can better capture local structure.
+Given a training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$, a finite set of class labels for classification or a continuous range of values for regression, $k$-NN provides a way to predict the label or value for a new, data point $x_{n+1}$ (for which $y_{n+1}$ is unknown) by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression). That is, for a given distance function or norm $d(\cdot, \cdot)$ we predict $y_{n+1}$ as:
+
+\begin{equation}
+  \hat{y}_{n+1} = \frac{1}{k} \sum_{j=1}^k y_{(j)}
+\end{equation}
+
+where $j = {(1), \dots, (k)}$ index the nearest $k$ neighbors of $x_{n+1}$:
+
+\begin{equation}
+  d(x_{(1)} , x_{n+1}) < \dots < d(x_{(k)} , x_{n+1}) <         
+  d(x_{(k+1)} , x_{n+1}) < \dots < d(x_{(n)} , x_{n+1})
+\end{equation}
+
+<!-- TODO: use C as symbol for cost matrix to avoid ambiguity/confusion. Here and in previous sections. -->
+There are different choices for the distance function $d(\cdot, \cdot)$. For instance, the Euclidean o Mahalanobis distances are common choices. In our case we already count with a matrix distance obtained with OM. Note that in this setup, $d(\cdot, \cdot)$ is one of the multiple normalized distances $d(\cdot, \cdot) = d^{'}(\cdot, \cdot  | K)$ and it is dependent or parametrized by the cost matrix $K$.
+
+$k$ is also a hyperparameter that can be tuned to optimize the performance of the $k$-NN algorithm. A larger $k$ reduces the effect of noise and outliers but can also lead to overfitting. A smaller $k$ is more sensitive to noise and outliers but can capture better the local structure.
 
 To compare the performance of different values of $k$, we use the mean squared error (MSE). For a testing set of $m$ labeled data points, the MSE is given by:
 
@@ -14,17 +30,43 @@ To compare the performance of different values of $k$, we use the mean squared e
 
 where $y_i$ is the observed value and $\hat{Y}_i$ is the predicted value via $k$NN.
 
-In this part of the analysis we only consider the individuals who have available personality scores, that leaves us with a sample size of 200 individuals. We also split the data into two subsets: train (70%) and test (30%). We evaluate the MSE of the predictions for the individuals in the test set but only using the data from the nearest neighbors available in the train set.
+In this part of the analysis we only consider the individuals who have available personality scores, that leaves us with a sample size of 200 individuals. We also split the data into two <!-- randomly selected (?) Or how? Ideally use a more robust cross-validation method. --> subsets: train (70%) and test (30%) and we evaluate the MSE of the predictions for the individuals in the test set only using the data from the nearest neighbors available in the train set.
 
-Figure \@ref(fig:knn-base) shows for every personality trait and different values of $k$ the MSE, i.e. for $k = 1, \dots, 80$ we predict values of $Y$ and compare them with the observed values using the MSE. As a reference, a red line for every personality trait is added to indicate the MSE of the trivial prediction, i.e. the prediction considering all the sample points in the train set.
+For each trait we predict the personality score values $Y$ and compare them with the observed values using the MSE. Table \@ref(tab:knn-base-summary) summarizes the results of the optimal prediction and figure \@ref(fig:knn-base) shows the MSE for the different values of $k$, i.e. for $k = 1, \dots, 80$. As a reference, a red line for every personality trait is added to indicate the MSE of the trivial prediction, i.e. the mean of all the sample points in the train set. Recall that we are using the cost matrix $K$ shown in \@ref(tab:cost-matrix) and normalized distance defined by the `maxlength` method as described in section \@ref(om-application). 
+
+```{r base_knn_optimal}
+base_knn_optimal <- base_MSE %>%
+  dplyr::group_by(Score) %>%
+  dplyr::filter(MSE == min(MSE))
+
+k_0 <- base_knn_optimal %>%
+  magrittr::use_series("k") %>%
+  magrittr::set_names(base_knn_optimal$Score)
+```
+
+```{r knn-base-summary}
+base_knn_optimal %>%
+  dplyr::select(
+    Trait = Score,
+    `$min(\\text{MSE})$` = MSE,
+    k,
+    `Trivial MSE` = Trivial
+  ) %>%
+  knitr::kable(
+    digits = 2,
+    caption = "$k$-nn prediction summary.",
+    escape = FALSE
+  )
+```
 
 ```{r knn-base, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25), out.width = "300px",  fig.cap = "MSE by personality trait for base setup prediction."}
 base_MSE %>%
   filter(k > 3) %>%
   ggplot() +
-  geom_line(aes(x = k, y = MSE)) +
+  geom_line() +
+  aes(x = k, y = MSE) +
   geom_line(
-    aes(x = k, y = Trivial, col = "red"),
+    aes(y = Trivial, col = "red"),
     alpha = 0.5,
     show.legend = FALSE
   ) +
@@ -37,10 +79,12 @@ base_MSE %>%
   theme(strip.text = element_text(hjust = 0))
 ```
 
-Overall, it seems that using the sequential data for prediction results in little improvement compared to the trivial prediction except for neuroticism where the MSE takes a minimum value around $k = 5$. 
+\par
+<!-- TODO: review consistency of conclusions. Suggestion: include a relative measure to compare against trivial to make clear the initial point -->
+Overall, it seems that using the sequential data for prediction results in little improvement compared to the trivial prediction except for neuroticism.
 
-Furthermore, for conscientiousness and openness, the MSE does not seem to increase again as $k$ increases, which is expected when using $k$NN, due to overfitting. Moreover, for openness, the prediction with $k$NN is always worse than the trivial prediction. For conscientiousness, the MSE takes a minimum value around $k = 15$ and after $k = 30$ the MSE curve stays flat.
+Furthermore, for conscientiousness and openness, the MSE does not seem to increase again as $k$ increases, which is expected when using $k$NN, due to overfitting. Moreover, for openness, the prediction with $k$NN is always worse than the trivial prediction. For conscientiousness, the MSE takes a minimum value for $k = `r k_0["Conscientiousness"]`$ and after $k = 30$ the MSE curve stays flat.
 
-For agreeableness, the MSE is minimum around $k = 50$ and increases again. However, this minimum is not considerably lower than the trivial prediction. Similarly, for extraversion, the MSE takes a minimum value after $k = 20$, but is not a significant improvement compared to the trivial prediction.
+For agreeableness, the MSE increases again after the optimal $k$. However, note that this minimum is not considerably lower than the trivial prediction. Similarly, for extraversion, the MSE takes a minimum value with $k = `r k_0["Extraversion"]`$, but is not a significant improvement compared to the trivial prediction.
 
-Given that the performance of the predictions is just slightly better than average in most cases, we contemplate other scenarios with different variations of the hyperparameters considered in this section.
+Given that the performance of the predictions is just slightly better than average in most cases, we contemplate other scenarios with different variations of the hyperparameters considered in this section, namely the cost matrix and choice of normalized distance.
