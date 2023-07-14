@@ -30,7 +30,7 @@ Personality refers to the enduring characteristics and behavior that comprise th
 - Openness
 
 
-## Application of OM
+## OM Application {#om-application}
 
 Using the `R` package `TraMineR` the cost matrix is calculated with transition rates between states. We consider a base setup with method `TRATE` for the calculation of the cost matrix and `maxlenght` normalization for the dissimilarities matrix. The cost matrix obtained this way is shown in table \@ref(tab:cost-matrix).
 
