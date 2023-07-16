@@ -164,4 +164,4 @@ data_all_long %>%
 
 There seems to be differences in the distributions of some personality scores: the scores of agreeableness are concentrated in larger values for women with children; women without children have greater frequency in lower values of conscientiousness than women with children; and women with children exhibit lower scores of neuroticism. 
 
-Even though, the distribution of personality scores by cluster does not reveal clearly significant differences, having a distance matrix provides us a numerical expression of the categorical sequences that is useful for other purposes. In particular, we explore the predictive capability of this data with a non-parametric prediction method in the next section.
+Even though, the distribution of personality scores by cluster does not reveal significant differences, having a dissimilarity matrix provides a numerical expression of the categorical sequences that is useful for other purposes. In particular, in the next section, we explore the predictive capability of this dataset using a non-parametric prediction method.

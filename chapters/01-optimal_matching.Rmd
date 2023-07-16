@@ -166,9 +166,9 @@ The cost of inserting a gap ($d$) is also known as *indel* (insert or delete) co
 
 In cases when the lengths of the sequences differ, it can be useful to account for this differences with a normalization factor. 
 
-Given a set two sequences $X, Y \in \mathbf{S}$ of length $t_X$ and $t_Y$, respectively. Let $d(X,Y)$ be the distance between the sequences $X$ and $Y$, $t_{max}$ the length of the longest sequence in $\mathbf{S}$ and $d_{max}$ the maximum distance between any pair of sequences in $\mathbf{S}$.
+Given a set two sequences $X, Y \in \mathbf{S}$ of length $t_X$ and $t_Y$, respectively. Let $d(X,Y)$ be the dissimilarity between the sequences $X$ and $Y$, $t_{max}$ the length of the longest sequence in $\mathbf{S}$ and $d_{max}$ the maximum dissimilarity between any pair of sequences in $\mathbf{S}$.
 
-`TraMineR` offers the following options to normalize the distances between sequences:
+`TraMineR` offers the following options to normalize the dissimilarities between sequences:
 
 - `maxlength`:
 $$\frac{d(X,Y)}{t_{max}}$$
