@@ -32,14 +32,14 @@ Personality refers to the enduring characteristics and behavior that comprise th
 
 ## OM Application {#om-application}
 
-Using the `R` package `TraMineR` the cost matrix is calculated with transition rates between states. We consider a base setup with method `TRATE` for the calculation of the cost matrix and `maxlenght` normalization for the dissimilarities matrix. The cost matrix obtained this way is shown in table \@ref(tab:cost-matrix).
+Using the `R` package `TraMineR` the cost matrix is calculated with transition rates between states. We consider a base setup with method `TRATE` for the calculation of the cost matrix and `maxlenght` normalization for the dissimilarities matrix, we name this the *base scenario*. The cost matrix obtained this way is shown in table \@ref(tab:cost-matrix).
 
 ```{r cost-matrix}
 knitr::kable(
   cost_matrix_base,
   digits = 2,
   row.names = FALSE,
-  caption = "Cost matrix obtained from transition probabilities."
+  caption = "Cost matrix obtained from transition probabilities (method `TRATE`) of the relationship data of women over 40 years old."
 )
 # kableExtra has issues with multi-format bookdown, see:
 # https://haozhu233.github.io/kableExtra/bookdown/index.html
@@ -52,7 +52,7 @@ From this cost matrix it is possible to calculate pairwise dissimilarities betwe
 
 Having obtained the dissimilarities matrix, we perform a hierarchical agglomerative clustering analysis using Ward's method to minimize the dispersion within the clusters (@Murtagh-2014). Our aim is to explore the data and the differences captured by the dissimilarities matrix. In particular, we set the number of clusters to four, given that this is the maximum number of clusters that produces groups with meaningful differences in the distribution of states. Figure \@ref(fig:seqdplot-cluster-a) shows the distribution of the states for each of the four identified clusters.
 
-```{r seqdplot-cluster-a, out.width = "400px", fig.align = "center", fig.cap = "Distribution of states by cluster."}
+```{r seqdplot-cluster-a, out.width = "400px", fig.align = "center", fig.cap = "Cross-sectional distribution of relationship states by cluster for the base scenario."}
 # Reduce the bottom and right margin of (sub)plots by ~50%.
 par(mar = par()$mar * c(0.5, 1, 1, 0.5))
 
@@ -71,7 +71,7 @@ In figure \@ref(fig:seqplot-cluster-a-entropy) we show the transverse entropy by
 h(f_1, \dots, f_n) = - \sum_{i = 1}^n f_i \log(f_i).
 \end{equation}
 
-```{r seqplot-cluster-a-entropy, out.width = "350px", results = "hide", fig.cap = "Transversal entropy by cluster."}
+```{r seqplot-cluster-a-entropy, out.width = "350px", results = "hide", fig.cap = "Transversal entropy by cluster for the base scenario."}
 par(mar = par()$mar * c(0.5, 1, 0.5, 1)) # Reduce bottom and top margin by 50%.
 
 TraMineRextras::seqplot.tentrop(results$sd,
@@ -95,7 +95,7 @@ clusters4_counts %>%
       4 ~ "Younger, single or in a relationship without children."
     )
   ) %>%
-  knitr::kable(caption = "Inital cluster summary.")
+  knitr::kable(caption = "Summary of the four clusters obtained in the base scenario.")
 ```
 
 It is important to remember that this descriptions are subjective and not exhaustive.
@@ -104,7 +104,7 @@ On the other hand, in figure \@ref(fig:seqdplot-cluster-a) we can also appreciat
 
 Now, we are interested in exploring how the relationships history of the women relate to personality traits. As a first exploratory step, figure \@ref(fig:cluster-a-traits-dist) shows the distribution of the score for each trait by cluster.
 
-```{r cluster-a-traits-dist, out.width = "400px", fig.cap = "Distribution of personality scores by cluster."}
+```{r cluster-a-traits-dist, out.width = "400px", fig.cap = "Histogram of the five personality scores by cluster in the base scenario."}
 data_all_long %>%
   ggplot() +
   aes(x = Trait_value, y = after_stat(density)) +
@@ -121,7 +121,7 @@ No difference is obvious at first glance. Also, the number of clusters and the f
 
 By setting the number of groups to only two, we obtain better defined clusters that are less affected by the length of the sequences as we can observe in the distribution plots of the sequences states (figure \@ref(fig:seqdplot-cluster-b)): the majority of women in cluster 1 have children, while we mostly find women without children in cluster 2.
 
-```{r seqdplot-cluster-b, out.width = "400px", fig.cap = "Distribution of states for two clusters."}
+```{r seqdplot-cluster-b, out.width = "400px", fig.cap = "Cross-sectional distribution of states for two clusters in the base scenario."}
 TraMineR::seqdplot(results$sd,
   group = clusters2_labels,
   border = NA,
@@ -133,7 +133,7 @@ TraMineR::seqdplot(results$sd,
 
 In addition, the transversal entropy of the sequences for the two clusters is displayed in figure \@ref(fig:seqplot-cluster-b-entropy), where it is shown that the entropy decreases significantly around mid age for the cluster of women with children as compared to women without children, which means that the variability of the states for the first group is much lower as compared to the second group. This can be interpreted as a sign of stability in the relationship status for women during the time they have children at home.
 
-```{r seqplot-cluster-b-entropy, out.width = "300px", results = "hide", fig.cap = "Transversal entropy for two clusters."}
+```{r seqplot-cluster-b-entropy, out.width = "300px", results = "hide", fig.cap = "Transversal entropy for two clusters in the base scenario."}
 par(mar = par()$mar * c(0.5, 1, 0.5, 1)) # Reduce bottom and top margin by 50%.
 
 TraMineRextras::seqplot.tentrop(
@@ -147,7 +147,7 @@ TraMineRextras::seqplot.tentrop(
 As before, we  want to explore possible links between the information from the sequences and personality scores. Figure \@ref(fig:cluster-a-traits-dist) shows the distribution of the personality traits for the two clusters.
 
 
-```{r cluster-b-traits-dist, fig.height = 4, out.width = "400px", fig.cap = "Distribution of personality scores for two clusters."}
+```{r cluster-b-traits-dist, fig.height = 4, out.width = "400px", fig.cap = "Histogram of the five personality scores for two clusters in the base scenario."}
 data_all_long %>%
   ggplot() +
   aes(x = Trait_value, y = after_stat(density)) +

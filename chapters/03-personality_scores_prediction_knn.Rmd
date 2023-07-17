@@ -56,12 +56,12 @@ base_knn_optimal %>%
   ) %>%
   knitr::kable(
     digits = 2,
-    caption = "$k$-nn prediction summary.",
+    caption = "Summary of $k$-nn prediction of personality scores in the base scenario.",
     escape = FALSE
   )
 ```
 
-```{r knn-base, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25), out.width = "300px",  fig.cap = "MSE by personality trait for base setup prediction."}
+```{r knn-base, fig.width = (7.5 * 0.8), fig.height = (5.25 * 1.25), out.width = "300px",  fig.cap = "Prediction MSE by personality trait in the base scenario with trivial prediction reference (red line)."}
 base_MSE %>%
   filter(k > 3) %>%
   ggplot() +
@@ -90,3 +90,4 @@ Furthermore, for conscientiousness and openness, the MSE does not seem to increa
 For agreeableness, the MSE increases again after the optimal $k$. However, note that this minimum is not considerably lower than the trivial prediction. Similarly, for extraversion, the MSE takes a minimum value with $k = `r k_0["Extraversion"]`$, but is not a significant improvement compared to the trivial prediction.
 
 Given that the performance of the predictions is just slightly better than average in most cases, we contemplate other scenarios with different variations of the hyperparameters considered in this section, namely the cost matrix and choice of normalized dissimilarity.
+
