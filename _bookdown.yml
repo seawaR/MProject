@@ -6,7 +6,6 @@ rmd_files: [
     "chapters/01-optimal_matching.Rmd",
     "chapters/02-data_healthy_aging_study.Rmd",
     "chapters/03-personality_scores_prediction_knn.Rmd",
-    "chapters/04-additional_scenarios.Rmd",
     "chapters/05-conclusion.Rmd",
     "99-references.Rmd"
   ]
