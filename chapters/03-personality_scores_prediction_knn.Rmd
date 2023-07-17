@@ -91,3 +91,227 @@ For agreeableness, the MSE increases again after the optimal $k$. However, note 
 
 Given that the performance of the predictions is just slightly better than average in most cases, we contemplate other scenarios with different variations of the hyperparameters considered in this section, namely the cost matrix and choice of normalized dissimilarity.
 
+## Additional scenarios considered for prediction {#scenarios}
+
+In order to find better prediction for the personality scores, we considered different configurations for the obtention of the cost matrix. For instance:
+
+- Take the constant $c$ in \ref{eq:transition} as $2 * max_{1 \leq i,j \leq n} P(i,j)$ so that $0 \leq K(s_i, s_j) \leq 2 * max_{1 \leq i,j \leq n} P(i,j) \leq 2$).
+
+- Consider the methods `FUTURE`, `INDELS` and `INDELSLOG` for the calculation of the cost matrix.
+
+- Try `gmean` and `maxdist` as the normalization factor for the distance matrix.
+
+- Consider several values from 0 to 2 for the transition from/to missing value, given that this has a significant effect when comparing sequences with large differences in length. Also, we can appreciate this effect in the conformation of the clusters (see Figure \@ref(fig:seqdplot-cluster-a)).
+
+- Given that the previous consideration resulted in better prediction performance, and with the aim of obtaining more homogeneous sequences in length, we limit the start and end age of the sequences.
+
+The following table shows some of the scenarios considered.
+
+```{r experiments}
+rownames(experiments) <- 1:nrow(experiments)
+colnames(experiments) <- c(
+  "Cost matrix",
+  "Normalization",
+  "Transition constant",
+  "NA cost",
+  "Min age",
+  "Max age"
+)
+
+knitr::kable(experiments,
+  digits = 2,
+  row.names = TRUE,
+  caption = "Summary of additional scenarios considered for obtaining dissimilarity matrix."
+) %>%
+  kableExtra::kable_styling(font_size = 10)
+```
+
+With the purpose of comparing the predictions obtained with the different scenarios, we calculate the relative improvement ($p$) compared to the trivial prediction for each value of $k$ and each scenario.
+
+\begin{equation}
+\label{eq:improvement}
+p = (1 - (MSE_k / MSE_{trivial})) * 100
+\end{equation}
+
+Figure \@ref(fig:exp-results) shows the best relative improvement achieved for each personality trait and under all the scenarios in \@ref(tab:experiments) and the corresponding value of $k$ at which the best performance was obtained.
+
+```{r exp-results, out.width = "450px", fig.cap = "Improvement of MSE  in the prediction of personality scores relative to the trivial prediction and respective value of $k$ for each scenario."}
+my_exp %>%
+  ggplot() +
+  aes(Scenario, Score) +
+  geom_tile(aes(fill = Improvement)) +
+  geom_text(
+    aes(label = paste(round(Improvement, 2), paste0("k = ", k), sep = "\n")),
+    size = 2.25, # default is GeomLabel$default_aes$size (3.88)
+  ) +
+  # Using the "mako" scale `option = "G"` predefined in viridisLite::.
+  # See alternatives at:
+  # https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html#comparison
+  # Note: using some alpha and end `start` limit to make text more legible.
+  scale_fill_viridis_c(alpha = 0.7, begin = 0.3, option = "G", direction = -1) +
+  # The `expand` argument here removes the margins to the labels:
+  # https://ggplot2.tidyverse.org/articles/faq-axes.html?q=labels#how-can-i-remove-the-space-between-the-plot-and-the-axis
+  scale_x_continuous(breaks = 1:13, expand = c(0, 0)) +
+  coord_fixed(ratio = 1) +
+  labs(y = "Trait") +
+  theme(
+    panel.grid = element_blank(),
+    legend.title = element_text(size = 9)
+  )
+```
+
+We can observe that there is not a single scenario that produces the best prediction improvement for every trait. Although, the method `FUTURE` seems to produce better results for all of the traits except neuroticism.
+
+Figure \@ref(fig:neuro2) shows the MSE for neuroticism in scenario 2 in which the cost matrix is calculated with transition rates, the normalization method for the distances is `maxlength` and the constant $c$ was modified.
+
+```{r neuro2, out.width = "300px", fig.cap = "MSE of neuroticism prediction with trivial prediction MSE as reference (red line) in scenario 2."}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:13) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(
+    Scenario == 2,
+    Score == "Neuroticism",
+    k > 1
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  )
+```
+
+We can observe that the best prediction is achieved at $k=6$. However, the MSE at this point is much lower than the rest of the curve. It might be the case that this is a random occurrence. However, in \@ref(fig:exp-results) we observe the minimum MSE is found with a similar number of neighbors for other scenarios, for instance, in scenario 3 (see Figure \@ref(fig:neuro3)). 
+
+```{r neuro3, out.width = "280px", fig.cap = "MSE of neuroticism prediction with trivial prediction MSE as reference (red line) in scenario 3."}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:13) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(
+    Scenario == 3,
+    Score == "Neuroticism",
+    k > 1
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  )
+```
+
+For openness, the best predictions are obtained with scenarios 12 and 13. In both scenarios the cost matrix is calculated with $\chi^2$ distance of the states frequencies (method `FUTURE`), normalization with the method `gmean` and the sequences are restricted between 20 and 55 years of age. This scenarios differ in the cost assigned to changes involving missing values. Hence, we might infer that the prediction of openness is highly affected by the way missing values are handled. Figure \@ref(fig:open) shows the MSE for openness in scenario 13.
+
+```{r open, out.width = "280px", fig.cap = "MSE of openness prediction with trivial prediction MSE as reference (red line) in scenario 13."}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:13) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(
+    Scenario == 13,
+    Score == "Openness",
+    k > 1
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  )
+```
+
+In this case, we observe that the curve is lower around the values near to where the minimum is obtained at $k=13$ and it increases to values where the performance is worst than the trivial prediction from $k>25$.
+
+The scenario that produces the best prediction for extraversion is number 9. In Figure \@ref(fig:extra), the MSE for this scenario is shown.
+
+```{r extra, out.width = "280px", fig.cap = "MSE of extraversion prediction with trivial prediction MSE as reference (red line) in scenario 9."}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:13) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(
+    Scenario == 9,
+    Score == "Extraversion",
+    k > 4
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  )
+```
+
+In this case, the minimum MSE is obtained when $k=18$ which is a high number of neighbors compared to the two previous traits. As expected, the MSE decreases until this value and then starts to increase again, a sign of overfitting for bigger values of $k$.
+
+For conscientiousness none of the predictions achieved a relative improvement of at least 10\%. Furthermore, the best prediction is obtained for $k=15$ in the base scenario. Scenario 12 produces a similar result in terms of improvement, but with $k=51$ which is an undesirable high number of neighbors for prediction with $k$NN. Figure \@ref(fig:cons) shows in detail the MSE for conscientiousness in the base scenario.
+
+```{r cons, out.width = "280px", fig.cap = "MSE of conscientiousness prediction with trivial prediction MSE as reference (red line) in scenario 2."}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:13) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(
+    Scenario == 2,
+    Score == "Conscientiousness",
+    k > 4
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  )
+```
+
+Likewise, for agreeableness, all of the scenarios showed improvements relative to the trivial prediction that are below 10\% and the minimum MSE in every case is obtained for rather large values of $k$. This could be an indication of poor predictive power of the relationships history of women for this particular trait. However, as expected for this prediction technique, we observe in Figure \@ref(fig:agree) that the MSE is large and even greater than the MSE of the trivial prediction for values of $k$ below 25 and after achieving the minimum it starts increasing again.
+
+```{r agree, out.width = "280px", fig.cap = "MSE of agreeableness prediction with trivial prediction MSE as reference (red line) in scenario 13."}
+eval_experiments %>%
+  tibble::add_column(Scenario = 1:13) %>%
+  select(Scenario, result) %>%
+  tidyr::unnest(result) %>%
+  filter(
+    Scenario == 13,
+    Score == "Agreeableness",
+    k > 4
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = MSE)) +
+  geom_line(
+    aes(x = k, y = Trivial, col = "red"),
+    alpha = 0.5,
+    show.legend = FALSE
+  )
+```
+
+Finally, we perform clustering again with the distance matrix obtained in Scenario 13. Table \@ref(tab:cost-matrix-fin) shows the cost matrix for this setup of parameters.
+
+```{r cost-matrix-fin}
+knitr::kable(
+  cost_matrix_final,
+  digits = 2,
+  row.names = FALSE,
+  caption = "Cost matrix for scenario 13: sequences restricted to ages from 20 to 55, cost from/to missing value of 0.5, method for calculation of cost matrix `FUTURE` and dissimilarity normalization `gmean`."
+)
+```
+
+We can appreciate that in this case the range of the values of the cost matrix (excluding the diagonal elements and the missing value cost) is larger than those observe in \@ref(tab:cost-matrix). Figure \@ref(fig:plot-seqdplot-fin) shows the distribution of states by cluster for this scenario.
+
+```{r plot-seqdplot-fin, out.width = "400px", fig.cap = "Cross-sectional distribution of states for two clusters in Scenario 13."}
+seqdplot(final$sd,
+  group = clusters_fin_labels,
+  border = NA,
+  ltext = status_labels,
+  cex.legend = 0.75
+)
+```
+
+Even tough the cost matrix presented large variations compared to the base scenario and the predictions improved, we obtain clusters that exhibit similar main characteristics: In cluster 1, we find women with different relationship situations but without children. Similarly, in cluster 2 we find women with different relationship trajectories, but mostly married, that eventually had children. The clusters seem to be better defined in this case but that can be also due to the age restriction imposed, which implies that some sequences without enough data in the specified age range were excluded.
