@@ -91,7 +91,7 @@ Given that the performance of the predictions is just slightly better than avera
 
 ## Additional scenarios considered for prediction {#scenarios}
 
-In order to find better prediction for the personality scores, we considered different configurations for the obtention of the cost matrix. For instance:
+In order to find better prediction for the personality scores, we considered different configurations for obtaining the cost matrix. For instance:
 
 - Take the constant $c$ in \ref{eq:transition} as $2 * max_{1 \leq i,j \leq n} P(i,j)$ so that $0 \leq K(s_i, s_j) \leq 2 * max_{1 \leq i,j \leq n} P(i,j) \leq 2$).
 

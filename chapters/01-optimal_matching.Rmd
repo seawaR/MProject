@@ -39,56 +39,6 @@ Lines 1-7 of the OM algorithm correspond to initialization. Starting with a cost
 
 In fact, when $F$ is completely filled, the value in the last cell, i.e. $F(t_X+1, t_Y+1)$ corresponds to the optimal cost of aligning the sequences $X$ and $Y$. It is possible to recover the steps that conduced to this alignment with a traceback from the last cell. However, this is not necessary to obtain the dissimilarities matrix for a set of sequences.
 
-The `R` packages `TraMineR` (@TraMineR) and `TraMineRextras` provide several functions to define, analyze and visualize sequential data. In particular, `TraMineR` implements the OM algorithm and offers several methods for computing the cost matrix $K$ and the normalization of the dissimilarity matrix.
-
-## Cost matrix
-
-The cost matrix $K$ is a symmetric matrix of size $n \times n$. The value in the $i$-th row and $j$-th column $K(s_i, s_j)$ indicates the cost of moving from state $s_i$ in time $t > 0$ to state $s_j$ in $t+1$.
-
-The following are the methods available in `TraMineR` to obtain the cost matrix.
-
-### Transition rates (`TRATE`):
-
-The substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq n$, is calculated as:
-
-\begin{equation}
-\label{eq:transition}
-K(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i),
-\end{equation}
-
-where $P(s_i|s_j)$ is the probability of transition from state $s_j$ in time $t$ to $s_i$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
-
-
-### Chi-squared distance (`FUTURE`):
-
-\begin{equation}
-\label{eq:chisq}
-K(s_i, s_j) = d_{\chi^2}(\mathbf{P_i}, \mathbf{P_j}),
-\end{equation}
-
-where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$
-
-
-### Relative frequencies (`INDELS` and `INDELSLOG`):
-
-\begin{equation}
-\label{eq:indels_cost}
-K(s_i, s_j) = d_i + d_j,
-\end{equation}
-
-where the *indel* cost $d_i$ depends on the state and takes values: 
-
-\begin{align}
-g_i &= \frac{1}{f_i}, &\text{for method `INDEL`}, \\
-g_i &= \log\left({\frac{2}{1+f_i}}\right), &\text{for method `INDELSLOG`}
-\end{align}
-
-and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$. 
-
-#### Remarks: 
-- For methods `TRATE` and `FUTURE`, the unique *indel* value is $d = max_{1 \leq i,j \leq n} K(i,j)/2$, so that the cost of any change of state is always lower or equal than deleting and inserting an element (or vice versa).
-- The Needleman-Wunsch algorithm with constant costs for mismatch is known as Levenshtein distance (@Levenshtein-1966), a string metric widely used in computer science.
-- In general, the resulting measure of the algorithm is a dissimilarity. However, if the cost matrix fulfills the triangle inequality, we obtain a distance measure.
 
 ### Example 
 
@@ -160,6 +110,58 @@ A &ndash; N D or
 In both cases we have two matches (cost 0), one mismatch (cost 3) and one gap (cost 2), giving a total cost 5 that is exactly what we obtained in the last cell of $F$.
 
 The cost of inserting a gap ($d$) is also known as *indel* (insert or delete) cost. In this example we can observe that, in order to obtain sequence $X$ from $Y$ we have to **insert** a term (i.e. insert a gap and then change its value to a specific state). Equivalently, to obtain sequence $Y$ starting from $X$ we have to **delete** one term.
+
+The `R` packages `TraMineR` (@TraMineR) and `TraMineRextras` provide several functions to define, analyze and visualize sequential data. In particular, `TraMineR` implements the OM algorithm and offers several methods for computing the cost matrix $K$ and the normalization of the dissimilarity matrix.
+
+
+## Cost matrix
+
+The cost matrix $K$ is a symmetric matrix of size $n \times n$. The value in the $i$-th row and $j$-th column $K(s_i, s_j)$ indicates the cost of moving from state $s_i$ in time $t > 0$ to state $s_j$ in $t+1$.
+
+The following are the methods available in `TraMineR` to obtain the cost matrix.
+
+### Transition rates (`TRATE`):
+
+The substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq n$, is calculated as:
+
+\begin{equation}
+\label{eq:transition}
+K(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i),
+\end{equation}
+
+where $P(s_i|s_j)$ is the probability of transition from state $s_j$ in time $t$ to $s_i$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
+
+
+### Chi-squared distance (`FUTURE`):
+
+\begin{equation}
+\label{eq:chisq}
+K(s_i, s_j) = d_{\chi^2}(\mathbf{P_i}, \mathbf{P_j}),
+\end{equation}
+
+where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$
+
+
+### Relative frequencies (`INDELS` and `INDELSLOG`):
+
+\begin{equation}
+\label{eq:indels_cost}
+K(s_i, s_j) = d_i + d_j,
+\end{equation}
+
+where the *indel* cost $d_i$ depends on the state and takes values: 
+
+\begin{align}
+g_i &= \frac{1}{f_i}, &\text{for method `INDEL`}, \\
+g_i &= \log\left({\frac{2}{1+f_i}}\right), &\text{for method `INDELSLOG`}
+\end{align}
+
+and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$. 
+
+#### Remarks: 
+- For methods `TRATE` and `FUTURE`, the unique *indel* value is $d = max_{1 \leq i,j \leq n} K(i,j)/2$, so that the cost of any change of state is always lower or equal than deleting and inserting an element (or vice versa).
+- The Needleman-Wunsch algorithm with constant costs for mismatch is known as Levenshtein distance (@Levenshtein-1966), a string metric widely used in computer science.
+- In general, the resulting measure of the algorithm is a dissimilarity. However, if the cost matrix fulfills the triangle inequality, we obtain a distance measure.
 
 
 ## Normalization
