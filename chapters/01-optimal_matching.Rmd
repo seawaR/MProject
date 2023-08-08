@@ -1,4 +1,14 @@
-# Optimal Matching {#om}
+# Distance-based methods for categorical sequences
+
+Distance-based methods are statistical approaches that, instead of using raw data, use the similarity or dissimilarity between data points based on a distance metric. The main idea behind these methods is to obtain a distance matrix that allows the application of an unsupervised or supervised learning technique, such as different variations of clustering, dimensionality reduction, multidimensional scaling, and $k$-nearest neighbors ($k$NN) in case we are interested in using the sequential data to predict other variable. Distance-based methods allow application with a variety of data types, in particular, categorical sequences, i.e. sequences that take values in a finite set of categories or states and are indexed by time.
+
+Several ways to compute distances between categorical sequences have been proposed in the context of natural language processing and bioinformatics. 
+
+
+
+
+
+## Optimal Matching {#om}
 
 Optimal Matching is a technique widely applied in social sciences for the comparison of sequences that take values in a finite set of categories or states and are indexed by time. For instance, in sociology, OM has been used for life course or career path analysis. 
 
