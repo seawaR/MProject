@@ -177,7 +177,7 @@ The implementation of this method uses a default value of $c=2$ which results in
 
 ### Chi-squared distance (`FUTURE`):
 
-The $\chi^2$-distance is a weighted sum of the squared differences of distribution vector frequencies. The weight is given by the inverse of the proportion of the total time spent in the state, meaning that the differences on rare states have higher weights.
+The $\chi^2$-distance is a weighted sum of the squared differences of distribution vector frequencies. The weight is given by the inverse of the proportion of the total time spent in the state, meaning that the differences on rare states have higher weights. 
 
 \begin{align}
 \label{eq:chisq}
@@ -185,7 +185,7 @@ K(s_i, s_j) &= d_{\chi^2}(\mathbf{P_i}, \mathbf{P_j}) \\
             &= \left[ \sum_{l = 1}^n \alpha_l^{-1} \left( P(s_l|s_i) - P(s_l|s_i) \right)^2 \right]^{1/2}
 \end{align}
 
-where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$ and $\alpha_l = \sum_{h=1}^n P(s_l|s_n)$.
+where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$, $\alpha_l = \sum_{h=1}^n P(s_l|s_n)$ and $i \neq j$.
 
 It has been shown via simulation, that this distance is particularly sensitive to the time spent in each state but not so much to the order of the states in a sequence (see @Studer-2016).
 
