@@ -1,22 +1,52 @@
 # Distance-based methods for categorical sequences
 
-Distance-based methods are statistical approaches that, instead of using raw data, use the similarity or dissimilarity between data points based on a distance metric. The main idea behind these methods is to obtain a distance matrix that allows the application of an unsupervised or supervised learning technique, such as different variations of clustering, dimensionality reduction, multidimensional scaling, and $k$-nearest neighbors ($k$NN) in case we are interested in using the sequential data to predict other variable. Distance-based methods allow application with a variety of data types, in particular, categorical sequences, i.e. sequences that take values in a finite set of categories or states and are indexed by time.
+Distance-based methods are statistical approaches that, instead of using raw data, use the similarity or dissimilarity between data points based on a distance metric. The main idea behind these methods is to obtain a distance matrix that allows the application of an unsupervised or supervised learning technique, such as different variations of clustering, dimensionality reduction, multidimensional scaling, and $k$-nearest neighbors ($k$-NN) in case we are interested in using the  data to predict other variable. Distance-based methods allow application with a variety of data types, in particular, categorical sequences, i.e. sequences that take values in a finite set of categories or states and are indexed by time.
 
-Several ways to compute distances between categorical sequences have been proposed in the context of natural language processing and bioinformatics. 
+Several ways to compute distances between categorical sequences have been proposed in the context of natural language processing and bioinformatics. Particularly, a class of measures, known as edit distances, provide a quantification of the dissimilarity of a pair of sequences by counting the minimum number of operations required to obtain a sequence from the other. For instance, @Hamming-1950 proposed a distance for sequences of the same length that counts the number of positions with different states. @Levenshtein-1966 generalized the Hamming distance to sequences of different lengths by considering the minimum number of single character edits required, namely insertion, deletion and substitution. The Damerau-Levenshtein distance allows for an additional operation known as transposition or swaping of characters (@Damerau-1964). The Jaro-Winkler similarity measure counts the number of matches and transpositions but does not fullfill the triangle inequality (@Winkler-1990). Additionally, there are several algorithms to find the longest common subsequence from a pair of subsequences (see @Bergroth-2000), this could be seen as a measure that allows for insertion and deletion but not substitution nor transposition. On the other hand, considering the distribution of the states in a sequence, for a pair of sequences, the euclidean or $\chi^2$ distance can be obtained. 
+
+One generalization of the Levenshtein distance that allows for different substitution penalties for every pair of states is the Needleman-Wunsh algorithm that was developed by @Needleman-Wunsch-1970 with the aim of comparing biological sequences (for example, DNA or protein sequences). This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve. By choosing the optimal operation at each step, it is guaranteed that the overall solution is optimal as well. An adaptation of this algorithm, known as optimal matching was introduced in social sciences by @Abbott-1986 and has been widely applied in sociology for life course or career path analysis. For instance, optimal matching has been employed in several studies tracking the professional development of specific groups of people, see @Chan-1995, @Torsten-2014 or @Gubler-2015, and to analyze life course data, for example, @Widmer-2009 or @Bastin-2015.
+
+Critics of optimal matching point out has limitations. A notable flaw raised by @Wu-2000 lies in the definition of the cost matrix and the strong assumption about its symmetry as initially, the method considered substitution costs that were provided by an expert in the context. However, data-based aproaches for the calculation of the cost matrix have been proposed since then, see @Studer-2016.
+
+Once a distance matrix has been obtained via optimal matching or any other technique that is applicable to categorical sequences, a distance-based method can be used depending on the specific interest of the research. Usually, clusters are obtained in order to identify common trajectories through visual inspection, @Abbott-1983 highlighted the possibility to use the distance matrix for multidimensional scaling, @Gabadinho-2013 proposed a way to identify typical patterns based on the coverage neighborhood of the sequences applied to childbirth histories, @Massoni-2009 combined optimal matching and self-organizing maps in the study of career path and employability. In addition, @Studer-2011 propose a methodology to analyze how covariates can explain the discrepancy between sequences based on their dissimilarities. However, to our knowledge, there has been no attempt at using categorical sequences for the prediction of other variables. 
+
+We are interested in studying the effect of different hyperparameters  when using optimal matching to obtain pairwise distances of a group of sequences. Particularly, we consider the effects on both unsupervised and supervised learning techniques, namely clustering  and in the prediction of other variables of interest with $k$-NN. For this purpose we use a dataset that includes sequences with information about the romantic relationship of women and their scores in personality traits.
+
+As part of the Women 40+ Healthy Aging Study, a large study that was conducted by the Department of Clinical Psychology and Psychotherapy of the University of Zurich, a psychometric instrument was developed in order to obtain information about the history of romantic relationships of women. The study was conducted between June 2017 and February 2018 with women between 40 and 75 years who (self-)reported good, very good or excellent health condition and the absence of acute or chronic somatic disease or mental disorder. The participants who reported psychotherapy or psychopharmacological treatment in the previous 6 months, as well as habitual drinkers, were excluded. Other exclusion criteria were pregnancy in the last 6 months, premature menopause, surgical menopause, intake of hormonal treatment (including contraceptives), shift-work and recent long-distance flight. The participants were recruited from the general population using online advertisement and flyers.
+
+The questionnaire asked the participants to provide information about relationship phases starting from the age of 15 years until the current age at the time of the data collection. The phases were defined by the start and end age and for each phase and information about civil status, relationship status, living situation, children and quality of the relationship was collected. Before including the data corresponding to their own history, the participants were prompted to answer some of the questions based on an example. Some of the participants were excluded when the example entries were not correctly filled. After data cleaning and revisions for consistency the total number of individuals considered in this work is 239.
+
+Additionally, personality scores for the women included in the study are available. Personality refers to the enduring characteristics and behavior that comprise the unique adjustment to life of a person, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns. These scores are obtained via psychometric instruments and evaluate the main personality traits:
+
+- Agreeableness
+- Conscientiousness 
+- Extraversion
+- Neuroticism
+- Openness
+
+In order to obtain groups of similar sequences, we apply a hierarchical agglomerative clustering analysis using Ward's method to minimize the dispersion within the clusters (@Murtagh-2014), for this purpose we use the method `"ward.D2"` of the `hclust` function in `R`. 
+
+On the other hand, for prediction we use the function `k.nearest.neighbors` from the `R` package `FastKNN`. Given a training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$, a finite set of class labels for classification or a continuous range of values for regression. $k$-NN provides a way to predict the label or value for a new, data point $x_{n+1}$ (for which $y_{n+1}$ is unknown) by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression). That is, for a given distance function $d(\cdot, \cdot)$ we predict $y_{n+1}$ as:
+
+\begin{equation}
+  \hat{y}_{n+1} = \frac{1}{k} \sum_{j=1}^k y_{(j)}
+\end{equation}
+
+where $j = {(1), \dots, (k)}$ index the nearest $k$ neighbors of $x_{n+1}$:
+
+\begin{equation}
+  d(x_{(1)} , x_{n+1}) < \dots < d(x_{(k)} , x_{n+1}) <         
+  d(x_{(k+1)} , x_{n+1}) < \dots < d(x_{(n)} , x_{n+1})
+\end{equation}
+
+There are different choices for the distance function $d(\cdot, \cdot)$. For instance, the Euclidean o Mahalanobis distances are common choices but in our case we can obtain a dissimilarity matrix with OM.
 
 
+## The OM algorithm {#om}
 
-
-
-## Optimal Matching {#om}
-
-Optimal Matching is a technique widely applied in social sciences for the comparison of sequences that take values in a finite set of categories or states and are indexed by time. For instance, in sociology, OM has been used for life course or career path analysis. 
-
-OM uses the Needleman-Wunsch algorithm, developed by @Needleman-Wunsch-1970 to identify similarities between sequences (for instance, DNA or protein sequences) that are usually represented as strings of characters. This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve. By choosing the optimal operation at each step, it is guaranteed that the overall solution is optimal as well.
+Optimal Matching is a technique widely applied in social sciences for the comparison of categorical sequences. For instance, in sociology, OM has been used for life course or career path analysis. OM uses the Needleman-Wunsch algorithm to identify similarities between biological sequences that are usually represented as strings of characters. 
 
 The goal of OM is to find the best possible alignment between two sequences by considering the differences and equivalences between their elements and minimizing the total cost associated. The cost of changing between states of the sequences we are interested in aligning, can be defined in several ways including data-based methods or values supplied by experts in the particular field.
-
-## The OM algorithm
 
 Consider a set of $n$ categorical states $S = \{s_1, \dots, s_n\}$, we define $X = (x_1, \dots, x_t)$, a sequence of length $t < \infty$, where $x_i \in S$ for $i = 1, \dots, t$. Further, let $\mathbf{S}$ be the set of all possible sequences with states belonging to $S$.
 
@@ -132,7 +162,8 @@ The following are the methods available in `TraMineR` to obtain the cost matrix.
 
 ### Transition rates (`TRATE`):
 
-The substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq n$, is calculated as:
+
+The substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq n$ is based on the observed frequencies of the transitions between the states and is calculated as:
 
 \begin{equation}
 \label{eq:transition}
@@ -141,15 +172,22 @@ K(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i),
 
 where $P(s_i|s_j)$ is the probability of transition from state $s_j$ in time $t$ to $s_i$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
 
+The implementation of this method uses a default value of $c=2$ which results in substitution costs that are close to 2. Additionally, as pointed out by @Studer-2016, the calculation of substitution costs can lead to violations of the triangle inequality, meaning that we obtain a dissimilarity instead of a distance measure.
+
 
 ### Chi-squared distance (`FUTURE`):
 
-\begin{equation}
-\label{eq:chisq}
-K(s_i, s_j) = d_{\chi^2}(\mathbf{P_i}, \mathbf{P_j}),
-\end{equation}
+The $\chi^2$-distance is a weighted sum of the squared differences of distribution vector frequencies. The weight is given by the inverse of the proportion of the total time spent in the state, meaning that the differences on rare states have higher weights.
 
-where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$
+\begin{align}
+\label{eq:chisq}
+K(s_i, s_j) &= d_{\chi^2}(\mathbf{P_i}, \mathbf{P_j}) \\
+            &= \left[ \sum_{l = 1}^n \alpha_l^{-1} \left( P(s_l|s_i) - P(s_l|s_i) \right)^2 \right]^{1/2}
+\end{align}
+
+where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$ and $\alpha_l = \sum_{h=1}^n P(s_l|s_n)$.
+
+It has been shown via simulation, that this distance is particularly sensitive to the time spent in each state but not so much to the order of the states in a sequence (see @Studer-2016).
 
 
 ### Relative frequencies (`INDELS` and `INDELSLOG`):
@@ -169,14 +207,14 @@ g_i &= \log\left({\frac{2}{1+f_i}}\right), &\text{for method `INDELSLOG`}
 and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$. 
 
 #### Remarks: 
-- For methods `TRATE` and `FUTURE`, the unique *indel* value is $d = max_{1 \leq i,j \leq n} K(i,j)/2$, so that the cost of any change of state is always lower or equal than deleting and inserting an element (or vice versa).
+- For methods `TRATE` and `FUTURE`, the unique *indel* value is $d = max_{1 \leq i,j \leq n} K(i,j)/2$, so that the cost of any change of state is always lower or equal than deleting and inserting an element (or vice versa). The reason behind is that higher *indel* costs, compared to the substitution costs, produce dissimilarities that are greatly affected by time shifts.
 - The Needleman-Wunsch algorithm with constant costs for mismatch is known as Levenshtein distance (@Levenshtein-1966), a string metric widely used in computer science.
-- In general, the resulting measure of the algorithm is a dissimilarity. However, if the cost matrix fulfills the triangle inequality, we obtain a distance measure.
+- In general, the resulting measure of the algorithm is a dissimilarity. However, if the cost matrix fulfills the triangle inequality, we obtain a distance measure (@Yujian-2007).
 
 
 ## Normalization
 
-In cases when the lengths of the sequences differ, it can be useful to account for this differences with a normalization factor. 
+By design, OM can deal with sequences of different lengths via insertions. However, in cases when the lengths of the sequences differ greatly, it can be useful to account for this differences with a normalization factor. 
 
 Given a set two sequences $X, Y \in \mathbf{S}$ of length $t_X$ and $t_Y$, respectively. Let $d(X,Y)$ be the dissimilarity between the sequences $X$ and $Y$, $t_{max}$ the length of the longest sequence in $\mathbf{S}$ and $d_{max}$ the maximum dissimilarity between any pair of sequences in $\mathbf{S}$.
 

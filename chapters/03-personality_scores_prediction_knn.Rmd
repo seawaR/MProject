@@ -2,21 +2,7 @@
 
 ## k-Nearest Neighbors 
 
-Given a training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$, a finite set of class labels for classification or a continuous range of values for regression. $k$-NN provides a way to predict the label or value for a new, data point $x_{n+1}$ (for which $y_{n+1}$ is unknown) by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression). That is, for a given distance function $d(\cdot, \cdot)$ we predict $y_{n+1}$ as:
-
-\begin{equation}
-  \hat{y}_{n+1} = \frac{1}{k} \sum_{j=1}^k y_{(j)}
-\end{equation}
-
-where $j = {(1), \dots, (k)}$ index the nearest $k$ neighbors of $x_{n+1}$:
-
-\begin{equation}
-  d(x_{(1)} , x_{n+1}) < \dots < d(x_{(k)} , x_{n+1}) <         
-  d(x_{(k+1)} , x_{n+1}) < \dots < d(x_{(n)} , x_{n+1})
-\end{equation}
-
-<!-- TODO: use C as symbol for cost matrix to avoid ambiguity/confusion. Here and in previous sections. -->
-There are different choices for the distance function $d(\cdot, \cdot)$. For instance, the Euclidean o Mahalanobis distances are common choices. In our case we already count with a dissimilarity matrix obtained with OM. Note that in this setup, $d(\cdot, \cdot)$ is one of the multiple normalized dissimilarities $d(\cdot, \cdot) = d^{'}(\cdot, \cdot  | K)$ and it is dependent or parametrized by the cost matrix $K$.
+Note that in this setup, $d(\cdot, \cdot)$ is one of the multiple normalized dissimilarities $d(\cdot, \cdot) = d^{'}(\cdot, \cdot  | K)$ and it is dependent or parametrized by the cost matrix $K$.
 
 $k$ is also a hyperparameter that can be tuned to optimize the performance of the $k$-NN algorithm. A larger $k$ reduces the effect of noise and outliers but can also lead to overfitting. A smaller $k$ is more sensitive to noise and outliers but can capture better the local structure.
 

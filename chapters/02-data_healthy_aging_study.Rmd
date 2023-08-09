@@ -2,10 +2,6 @@
 
 ## About the data
 
-As part of the Women 40+ Healthy Aging Study, a large study that was conducted by the Department of Clinical Psychology and Psychotherapy of the University of Zurich, a psychometric instrument was developed in order to obtain information about the history of romantic relationships of women. The study was conducted between June 2017 and February 2018 with women between 40 and 75 years who (self-)reported good, very good or excellent health condition and the absence of acute or chronic somatic disease or mental disorder. The participants who reported psychotherapy or psychopharmacological treatment in the previous 6 months, as well as habitual drinkers, were excluded. Other exclusion criteria were pregnancy in the last 6 months, premature menopause, surgical menopause, intake of hormonal treatment (including contraceptives), shift-work and recent long-distance flight. The participants were recruited from the general population using online advertisement and flyers.
-
-The questionnaire asked the participants to provide information about relationship phases starting from the age of 15 years until the current age at the time of the data collection. The phases were defined by the start and end age and for each phase and information about civil status, relationship status, living situation, children and quality of the relationship was collected. Before including the data corresponding to their own history, the participants were prompted to answer some of the questions based on an example. Some of the participants were excluded when the example entries were not correctly filled. After data cleaning and revisions for consistency the total number of individuals considered in this work is 239.
-
 In order to create a sequence for each participant the information about civil status, relationship status, living situation and the maternity is taken into account. A yearly sequence is created and the states considered are the following:
 
 - 1 = Single + no children
@@ -18,16 +14,6 @@ In order to create a sequence for each participant the information about civil s
 - 8 = Relationship + living together + children
 - 9 = Married + no children
 - 10 = Married + children
-
-Additionally, personality scores for the women included in the study are available. 
-<!-- Maybe this is worth to label as a sub-section; and if feasible expand on each with some reference. -->
-Personality refers to the enduring characteristics and behavior that comprise the unique adjustment to life of a person, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns. These scores are obtained via psychometric instruments and evaluate the main personality traits:
-
-- Agreeableness
-- Conscientiousness 
-- Extraversion
-- Neuroticism
-- Openness
 
 
 ## OM Application {#om-application}
@@ -50,7 +36,7 @@ As expected, the elements in the diagonal are equal to 0, meaning there is no co
 
 From this cost matrix it is possible to calculate pairwise dissimilarities between all the sequences using the optimal matching algorithm as described in the previous section. As stated before, a correction of the dissimilarities is done to account for the differences in length of the sequences, dividing the obtained dissimilarity by the length of the longest sequence. 
 
-Having obtained the dissimilarities matrix, we perform a hierarchical agglomerative clustering analysis using Ward's method to minimize the dispersion within the clusters (@Murtagh-2014). Our aim is to explore the data and the differences captured by the dissimilarities matrix. In particular, we set the number of clusters to four, given that this is the maximum number of clusters that produces groups with meaningful differences in the distribution of states. Figure \@ref(fig:seqdplot-cluster-a) shows the distribution of the states for each of the four identified clusters.
+Having obtained the dissimilarities matrix, we can obtain the clusters. Our aim is to explore the data and the differences captured by the dissimilarities matrix. In particular, we set the number of clusters to four, given that this is the maximum number of clusters that produces groups with meaningful differences in the distribution of states. Figure \@ref(fig:seqdplot-cluster-a) shows the distribution of the states for each of the four identified clusters.
 
 ```{r seqdplot-cluster-a, out.width = "400px", fig.align = "center", fig.cap = "Cross-sectional distribution of relationship states by cluster for the base scenario."}
 # Reduce the bottom and right margin of (sub)plots by ~50%.
