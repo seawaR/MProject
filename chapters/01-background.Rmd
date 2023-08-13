@@ -1,0 +1,68 @@
+# Distance-based methods for categorical sequences {#background}
+
+Distance-based methods are a class of statistical techniques based on the use of distance, similarity or dissimilarity measure between data points defined instead of using the raw variables. The main idea behind these methods is to obtain a distance or dissimilarity matrix in order to apply an unsupervised learning method such as clustering in different variations, dimensionality reduction, multidimensional scaling. As well as supervised learning methods, where we are interested in using the data to predict other variable for which we have observed or labeled values, for example: $k$-nearest neighbors ($k$-NN).
+
+Moreover, in case the pair-wise Euclidean distances are available, we can obtain centered inner products and this allows to have several other techniques at our disposition, such as $k$-means clustering, multinomial regression, principal component anlaysis (PCA) ,linear discriminant analysis and support vector machines (SVM), see @ESLII.
+
+Distance-based methods have the advantage of allowing applications with a variety of data types, in particular, categorical sequences, i.e. sequences that take values in a finite set of categories or states and are indexed by time.
+
+
+## Distance in categorical sequences
+
+Several ways to compute distances between categorical sequences have been proposed in the context of natural language processing and bioinformatics. Particularly, a class of measures, known as _edit distances_, provide a quantification of the dissimilarity of a pair of sequences by counting the minimum number of operations required to obtain a sequence from the other. For instance, @Hamming-1950 proposed a distance for sequences of the same length that counts the number of positions with different states. @Levenshtein-1966 generalized the Hamming distance to sequences of different lengths by considering the minimum number of single character edits required, namely insertion, deletion and substitution. The Damerau-Levenshtein distance allows for an additional operation known as transposition or swaping of characters (@Damerau-1964). The Jaro-Winkler similarity measure counts the number of matches and transpositions but does not fulfill the triangle inequality (@Winkler-1990). Additionally, there are several algorithms to find the longest common subsequence from a pair of subsequences (see @Bergroth-2000), this could be seen as a measure that allows for insertion and deletion but not substitution nor transposition.
+
+Also, note that from fundamental statistical methods for categorical data, considering the distribution of the states in a sequence, for a pair of sequences, the euclidean or $\chi^2$ distance can be obtained and used in this context.
+
+
+## Optimal matching and applications
+
+One generalization of the Levenshtein distance that allows for different substitution penalties for every pair of states is the Needleman-Wunsh algorithm, developed by @Needleman-Wunsch-1970 with the aim of comparing and finding similarities between biological sequences (for example, DNA or protein sequences). This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve. By choosing the optimal operation at each step, it is guaranteed that the overall solution is optimal as well. An adaptation of this algorithm that works with dissimilarities instead of similarities is known as _optimal matching_ (OM), introduced in social sciences by @Abbott-1986 and widely applied in sociology. OM has been employed in several studies tracking the professional development of specific groups of people, see @Chan-1995, @Torsten-2014 or @Gubler-2015, and to analyze life course data, for example, @Widmer-2009 or @Bastin-2015.
+
+Limitations of OM have been pointed out by some critics. A notable flaw raised by @Wu-2000 lies in the definition of the cost matrix — a core hyperparameter of the method — and the strong assumption about its symmetry as initially, the method considered substitution costs that were provided by an expert in the context. However, data-based aproaches for the calculation of the cost matrix have been proposed since then, see @Studer-2016.
+
+Once a distance matrix has been obtained via OM or any other technique that is applicable to categorical sequences, a distance-based method can be used depending on the specific interest of the research. Usually, clusters are obtained in order to identify common trajectories through visual inspection, @Abbott-1983 highlighted the possibility to use the distance matrix for multidimensional scaling, @Gabadinho-2013 proposed a way to identify typical patterns based on the coverage neighborhood of the sequences applied to childbirth histories, @Massoni-2009 combined OM and self-organizing maps in the study of career path and employability. In addition, @Studer-2011 propose a methodology to analyze how covariates can explain the discrepancy between sequences based on their dissimilarities and @Han-1999 used the groups obtained via clustering analysis of career trajactories to predict the age of retirement. However, to our knowledge, there has been no attempt at directly using categorical sequences for the prediction of other variables. 
+
+In this work we are interested in studying the effect of different hyperparameters when using OM to obtain pairwise distances of a group of sequences and subsequently employ them in distance-based methods. Particularly, we consider the effects on both clustering (unsupervised learning) and variable prediction with $k$-NN (supervised learning). For this purpose we analyze a new real-world dataset that includes categorical sequences, auxiliary information and other variables of interest: data from the "Women 40+ Healthy Aging Study".
+
+
+## Women 40+ Healthy Aging Study
+
+As part of the Women 40+ Healthy Aging Study, a large study that was conducted by the Department of Clinical Psychology and Psychotherapy of the University of Zurich, a psychometric instrument was developed in order to obtain information about the history of romantic relationships of women: the categorical sequence of interest.
+
+The study was conducted between June 2017 and February 2018 with women between 40 and 75 years who (self-)reported good, very good or excellent health condition and the absence of acute or chronic somatic disease or mental disorder. The participants who reported psychotherapy or psychopharmacological treatment in the previous 6 months, as well as habitual drinkers, were excluded. Other exclusion criteria were pregnancy in the last 6 months, premature menopause, surgical menopause, intake of hormonal treatment (including contraceptives), shift-work and recent long-distance flight. The participants were recruited from the general population using online advertisement and flyers.
+
+The questionnaire asked the participants to provide information about relationship phases starting from the age of 15 years until the current age at the time of the data collection. The phases were defined by the start and end age and for each phase and information about civil status, relationship status, living situation, children and quality of the relationship was collected. Before including the data corresponding to their own history, the participants were prompted to answer some of the questions based on an example. Some of the participants were excluded when the example entries were not correctly filled. After data cleaning and revisions for consistency the total number of individuals considered in this work is 239.
+
+Additionally, personality scores for the women included in the study are available. Personality refers to the enduring characteristics and behavior that comprise the unique adjustment to life of a person, including major traits, interests, drives, values, self-concept, abilities, and emotional patterns. These scores are obtained via psychometric instruments and evaluate the main personality traits:
+
+- Agreeableness
+- Conscientiousness 
+- Extraversion
+- Neuroticism
+- Openness
+
+One of our goals is to obtain groups of similar sequences that allow us to recognize typical relationship trajectories or behaviours of women over 40 years old. For this purpose, we apply a hierarchical agglomerative clustering analysis using Ward's method to minimize the dispersion within the clusters (@Murtagh-2014), using the method `"ward.D2"` of the `hclust` function in `R`. 
+
+On the other hand, we want to understand the influence of relationship history of women on the personality scores which is of special interest for experts in psychology as there is a suspected association between the ability to maintain romantic relationships or having children and the dominant personality traits.
+
+The distance-based method chosen for prediction is $k$-NN, as for implementation we use the function `k.nearest.neighbors` from the `R` package `FastKNN`. 
+
+
+## k-Nearest Neighbors 
+
+Let us remember that given a training set $\mathcal{D} = {(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)}$ of $n$ labeled data points, where $x_i \in \mathbb{R}^d$ and $y_i \in \mathcal{Y}$, a finite set of class labels for classification or a continuous range of values for regression. $k$-NN provides a way to predict the label or value for a new, data point $x_{n+1}$ (for which $y_{n+1}$ is unknown) by finding the $k$ training data points closest to $x_{n+1}$ and taking a majority vote of their labels (for classification) or averaging the values of $Y$ (for regression). That is, for a given distance function $d(\cdot, \cdot)$ we predict $y_{n+1}$ as:
+
+\begin{equation}
+  \hat{y}_{n+1} = \frac{1}{k} \sum_{j=1}^k y_{(j)}
+\end{equation}
+
+where $j = {(1), \dots, (k)}$ index the nearest $k$ neighbors of $x_{n+1}$:
+
+\begin{equation}
+  d(x_{(1)} , x_{n+1}) < \dots < d(x_{(k)} , x_{n+1}) <         
+  d(x_{(k+1)} , x_{n+1}) < \dots < d(x_{(n)} , x_{n+1})
+\end{equation}
+
+There are different choices for the distance function $d(\cdot, \cdot)$. For instance, the Euclidean or Mahalanobis distances are common choices. In the case, of categorical sequences, we apply the more general OM algorithm to obtain a disimiliraty matrix.
+
+In what follows we describe the OM algorithm in detail, including hyperparameters: the cost matrix and normalization functions.

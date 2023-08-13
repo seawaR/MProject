@@ -1,10 +1,10 @@
-# Personality Scores Prediction with k-Nearest Neighbors {#knn}
+# Personality Scores Prediction with k-NN {#knn}
 
-## k-Nearest Neighbors 
+Our interest in this section is to obtain predictions of the scores on the five personality traits using the information contained in the sequences of relationship and family history as a predictor. The reason behind this is the supposition that the type and duration of romantic relationships of a person and later on the maternity has an impact on their personality. For example, we hypothesize that parents may display more extraversion as they interact with other parents or single people can show more openness to new experiences.
 
-Note that in this setup, $d(\cdot, \cdot)$ is one of the multiple normalized dissimilarities $d(\cdot, \cdot) = d^{'}(\cdot, \cdot  | K)$ and it is dependent or parametrized by the cost matrix $K$.
+As for the method to obtain the predictions we have opted for $k$-NN as it is easily implemented from a distance or dissimilarity matrix and does not make any assumption about the (conditional) distribution of the response variables. Note that in this setup, $d(\cdot, \cdot)$ is one of the multiple normalized dissimilarities $d(\cdot, \cdot) = d^{'}(\cdot, \cdot  | K)$ and it is dependent or parametrized by the cost matrix $K$.
 
-$k$ is also a hyperparameter that can be tuned to optimize the performance of the $k$-NN algorithm. A larger $k$ reduces the effect of noise and outliers but can also lead to overfitting. A smaller $k$ is more sensitive to noise and outliers but can capture better the local structure.
+Furthermore, $k$ is also a hyperparameter that can be tuned to optimize the performance of the $k$-NN algorithm. A larger $k$ reduces the effect of noise and outliers but can also lead to overfitting. A smaller $k$ is more sensitive to noise and outliers but can capture better the local structure.
 
 To compare the performance of different values of $k$ and other hyperparameters, we use the mean squared error (MSE). For a testing set of $m$ labeled data points, the MSE is given by:
 
@@ -89,7 +89,7 @@ In order to find better prediction for the personality scores, we considered dif
 
 - Given that the previous consideration resulted in better prediction performance, and with the aim of obtaining more homogeneous sequences in length, we limit the start and end age of the sequences.
 
-The following table shows some of the scenarios considered.
+Table \@ref(tab:experiments) shows some of the scenarios considered.
 
 ```{r experiments}
 rownames(experiments) <- 1:nrow(experiments)

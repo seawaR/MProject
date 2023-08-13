@@ -1,8 +1,8 @@
-# Data from the 40+ Healthy Aging Study {#data}
+# Application of OM {#data}
 
-## About the data
+As mentioned in Section \@ref(background), the dataset of interest contains data about the romantic and family history of a group of women. In order to create a sequence for each participant we condense the information about civil status, relationship status, cohabitational status and the maternity, i.e. presence or absence of children. For this purpose, and with the help of an expert, we analized the frequencies of the observed states for each sequence and simplified them according to their relevance. For instance, instead of considering widowed and divorced as separate states of the civil status, we only consider married or single. Similarly, for relationship status we consider the states open relationship and same-sex relationship simply as being in a relationship given their low frequency. On the other hand, we simplified the number of children to a dichotomous variable that indicates if the woman has children or not.
 
-In order to create a sequence for each participant the information about civil status, relationship status, living situation and the maternity is taken into account. A yearly sequence is created and the states considered are the following:
+Finally, the the four sequences are combined and we obtain a single yearly sequence, where the following states are considered:
 
 - 1 = Single + no children
 - 2 = Single + children
@@ -15,6 +15,16 @@ In order to create a sequence for each participant the information about civil s
 - 9 = Married + no children
 - 10 = Married + children
 
+Figure \@ref(fig:plot-seqdplot-0) shows the overall distribution of states at each time point.
+
+```{r plot-seqdplot-0, out.width = "400px", fig.cap = "Cross-sectional distribution of relationship states.", fig.align = "center"}
+seqdplot(results$sd,
+  sortv = "from.start",
+  ltext = status_labels,
+  border = NA,
+  cex.legend = 0.55
+)
+```
 
 ## OM Application {#om-application}
 
@@ -130,7 +140,7 @@ TraMineRextras::seqplot.tentrop(
 
 \par
 
-As before, we  want to explore possible links between the information from the sequences and personality scores. Figure \@ref(fig:cluster-a-traits-dist) shows the distribution of the personality traits for the two clusters.
+As before, we  want to explore possible links between the information from the sequences and personality scores. Figure \@ref(fig:cluster-b-traits-dist) shows the distribution of the personality traits for the two clusters.
 
 
 ```{r cluster-b-traits-dist, fig.height = 4, out.width = "400px", fig.cap = "Histogram of the five personality scores for two clusters in the base scenario."}

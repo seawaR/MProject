@@ -3,9 +3,10 @@ chapter_name: "Section"
 delete_merged_file: true
 rmd_files: [
     "index.Rmd",
-    "chapters/01-optimal_matching.Rmd",
-    "chapters/02-data_healthy_aging_study.Rmd",
-    "chapters/03-personality_scores_prediction_knn.Rmd",
+    "chapters/01-background.Rmd",
+    "chapters/02-optimal_matching.Rmd",
+    "chapters/03-clusters.Rmd",
+    "chapters/04-prediction.Rmd",
     "chapters/05-conclusion.Rmd",
     "99-references.Rmd"
   ]
