@@ -1,4 +1,4 @@
-# The OM algorithm {#om}
+# Optimal Matching Algorithm {#om}
 
 As mentioned above, optimal matching is a technique widely applied in social sciences for the comparison of categorical sequences. OM uses the Needleman-Wunsch algorithm to identify similarities between biological sequences that are usually represented as strings of characters.
 
@@ -40,7 +40,7 @@ In fact, when $F$ is completely filled, the value in the last cell, i.e. $F(t_X+
 
 Suppose that $S$ is the alphabet and let $X = \{S,E,N,D\}$ and $Y = \{A,N,D\}$ be two sequences in $\mathbf{S}$. 
 
-Further let $d = 2$, and
+Further, let $d = 2$ and let $K(i,j)$ be the cost associated to change from state $s_i$ to state $s_j$, for $i, j \in S$. This cost is given by:
 
 $$
 K(i,j) = 
@@ -64,19 +64,16 @@ Then, to fill the second row of $F$ we proceed as follows:
 
 \begin{align*}
 F(2,2) &= \min\{F(1, 2)+d, F(2, 1)+d, F(1, 1)+k(y_{1}, x_{1})\} \\
-       &= \min\{2+2, 2+2, 0+3\} \\
-       &= 3 \\
+       &= \min\{2+2, 2+2, 0+3\} = 3 \\
 F(2,3) &= \min\{F(1, 3)+d, F(2, 2)+d, F(1, 2)+k(y_{1}, x_{2})\} \\
-       &= \min\{4+2, 3+2, 2+3\} \\
-       &= 5 \\
+       &= \min\{4+2, 3+2, 2+3\} = 5 \\
 F(2,4) &= \min\{F(1, 4)+d, F(2, 3)+d, F(1, 3)+k(y_{1}, x_{3})\} \\
-       &= \min\{6+2, 5+2, 4+3\} \\
-       &= 7 \\
+       &= \min\{6+2, 5+2, 4+3\} = 7 \\
 F(2,5) &= \min\{F(1, 5)+d, F(2, 4)+d, F(1, 4)+k(y_{1}, x_{4})\} \\
-       &= \min\{8+2, 7+2, 6+3\} \\
-       &= 9
+       &= \min\{8+2, 7+2, 6+3\} = 9 
 \end{align*}
 
+\par
 What yields:
 
 |   |   | S | E | N | D |
@@ -110,7 +107,7 @@ The cost of inserting a gap ($d$) is also known as *indel* (insert or delete) co
 The `R` packages `TraMineR` (@TraMineR) and `TraMineRextras` provide several functions to define, analyze and visualize sequential data. In particular, `TraMineR` implements the OM algorithm and offers several methods for computing the cost matrix $K$ and the normalization of the dissimilarity matrix.
 
 
-## Cost matrix
+## Methods for Calculation of the Cost Matrix
 
 The cost matrix $K$ is a symmetric matrix of size $n \times n$. The value in the $i$-th row and $j$-th column $K(s_i, s_j)$ indicates the cost of moving from state $s_i$ in time $t > 0$ to state $s_j$ in $t+1$.
 
@@ -119,14 +116,14 @@ The following are the methods available in `TraMineR` to obtain the cost matrix.
 
 ### Transition rates (`TRATE`):
 
-The substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq n$ is based on the observed frequencies of the transitions between the states and is calculated as:
+The substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq n$ is based on the observed relative frequencies of the transitions between the states and is calculated as:
 
 \begin{equation}
 \label{eq:transition}
 K(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i),
 \end{equation}
 
-where $P(s_i|s_j)$ is the probability of transition from state $s_j$ in time $t$ to $s_i$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
+where $P(s_i|s_j)$ is the estimated probability of transition from state $s_j$ in time $t$ to $s_i$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
 
 The implementation of this method uses a default value of $c=2$ which results in substitution costs that are close to 2. Additionally, as pointed out by @Studer-2016, the calculation of substitution costs can lead to violations of the triangle inequality, meaning that we obtain a dissimilarity instead of a distance measure.
 
@@ -141,7 +138,7 @@ K(s_i, s_j) &= d_{\chi^2}(\mathbf{P_i}, \mathbf{P_j}) \\
             &= \left[ \sum_{l = 1}^n \alpha_l^{-1} \left( P(s_l|s_i) - P(s_l|s_i) \right)^2 \right]^{1/2}
 \end{align}
 
-where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$, $\alpha_l = \sum_{h=1}^n P(s_l|s_n)$ and $i \neq j$.
+where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$, and $\alpha_l = \sum_{h=1}^n P(s_l|s_n)$ and $i \neq j$.
 
 It has been shown via simulation, that this distance is particularly sensitive to the time spent in each state but not so much to the order of the states in a sequence (see @Studer-2016).
 
@@ -165,10 +162,10 @@ and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$.
 #### Remarks: 
 - For methods `TRATE` and `FUTURE`, the unique *indel* value is $d = max_{1 \leq i,j \leq n} K(i,j)/2$, so that the cost of any change of state is always lower or equal than deleting and inserting an element (or vice versa). The reason behind is that higher *indel* costs, compared to the substitution costs, produce dissimilarities that are greatly affected by time shifts.
 - The Needleman-Wunsch algorithm with constant costs for mismatch is known as Levenshtein distance (@Levenshtein-1966), a string metric widely used in computer science.
-- In general, the resulting measure of the algorithm is a dissimilarity. However, if the cost matrix fulfills the triangle inequality, we obtain a distance measure (@Yujian-2007).
+- In general, the resulting measure of the algorithm is a dissimilarity. However, if the cost matrix fulfills the triangle inequality, we obtain a distance measure (see @Yujian-2007).
 
 
-## Normalization
+## Normalization Methods for Distances
 
 By design, OM can deal with sequences of different lengths via insertions. However, in cases when the lengths of the sequences differ greatly, it can be useful to account for this differences with a normalization factor. 
 
@@ -211,19 +208,23 @@ toy_sd <- TraMineR::seqdef(
 toy_trate <- TraMineR::seqtrate(toy_sd)
 
 toy_cm <- TraMineR::seqcost(toy_sd, "TRATE")
+toy_cm_cmod <- TraMineR::seqcost(toy_sd, "TRATE", cval = 1.2)
 
 dist0 <- TraMineR::seqdist(toy_sd, method = "OM", sm = "TRATE")
 dist1 <- TraMineR::seqdist(toy_sd, method = "OM", sm = "TRATE", norm = "maxlength")
 dist2 <- TraMineR::seqdist(toy_sd, method = "OM", sm = "TRATE", norm = "gmean")
 dist3 <- TraMineR::seqdist(toy_sd, method = "OM", sm = "TRATE", norm = "maxdist")
+dist4 <- TraMineR::seqdist(toy_sd, method = "OM", sm = toy_cm_cmod$sm)
 
 toy_dists <- tibble(
   Normalization = rep(c("None", 
+                        "None / c=1.2", 
                         "`maxlength`",
                         "`gmean`",
                         "`maxdist`"),
                       each = length(dist0[lower.tri(dist0)])),
   Values = c(dist0[lower.tri(dist0)], 
+             dist4[lower.tri(dist0)], 
              dist1[lower.tri(dist0)],
              dist2[lower.tri(dist0)],
              dist3[lower.tri(dist0)])
@@ -250,7 +251,8 @@ Let $S = \{A, B, D, E, N, R, S\}$ and consider the following sequences in $\math
 - $\{A,B,E,S\}$
 - $\{N,A,B,E\}$
 
-Table \@ref(tab:toy-trate) shows the transition frequencies or probabilities for the observed sequences.
+\par
+Table \@ref(tab:toy-trate) shows the transition frequencies or estimated transition probabilities for the observed sequences. For this example, we observe a great amount of cells with the value 0 as there was no observed transition between those states. Additionally, the diagonal was set to 0 as we assume there is no cost associated with a match between two sequences.
 
 ```{r toy-trate}
 knitr::kable(
@@ -263,7 +265,8 @@ knitr::kable(
   kableExtra::kable_styling(position = "center")
 ```
 
-Now, suppose we want to obtain the cost matrix with the method `TRATE` with $c=2$.
+\par
+Now, suppose we want to obtain the cost matrix with the method `TRATE` with $c=2$. We would procceed as follows:
 
 \begin{align*}
 K(A, B) &= c - P(A|B) - P(B|A) & \\
@@ -272,6 +275,7 @@ K(A, N) &= c - P(A|N) - P(N|A) & \\
         &= 2 - `r round(toy_trate[1, 5], 4)` - `r round(toy_trate[5, 1], 4)` = `r round(2-toy_trate[1, 5]-toy_trate[5, 1], 4)`
 \end{align*}
 
+\par
 Table \@ref(tab:toy-cm) shows the full cost matrix obtained from transition probabilities, which is a symmetric matrix. As we can observe, the positions values displayed in $K[1,2], K[1,2], K[1,5], K[5,1]$ are the same as those obtained above.
 
 ```{r toy-cm}
@@ -285,7 +289,24 @@ knitr::kable(
   kableExtra::kable_styling(position = "center")
 ```
 
-To obtain the distance matrix we can opt for none or one of the normalization methods mentioned in the previous subsection. Table \@ref(tab:toy-dists) shows some descriptive statistics of the obtained distances for different methods of normalization.
+\par
+Let us remember that in `TraMineR` the constant is set to 2 by default. \@ref(tab:toy-cmod) shows the cost matrix obtained when we set the constant to 1.2, a value just above the maximum sum between the observed frequencies between states.
+
+```{r toy-cmod}
+knitr::kable(
+  toy_cm_cmod$sm,
+  row.names = TRUE,
+  align = "c",
+  digits = 4,
+  caption = "Cost matrix obtained from transition probabilities with $c=1.2$."
+) %>%
+  kableExtra::kable_styling(position = "center")
+```
+
+
+\par
+
+In addition to changing the value of $c$, we can opt for none or one of the normalization methods mentioned in the previous subsectionin order to obtain the distance matrix. Table \@ref(tab:toy-dists) shows some descriptive statistics of the obtained distances for different methods of normalization.
 
 ```{r toy-dists}
 knitr::kable(
@@ -293,7 +314,7 @@ knitr::kable(
   row.names = FALSE,
   align = "c",
   digits = 4,
-  caption = "Comparison of normalization methods."
+  caption = "Comparison of descriptive statistics of the distances for  different approaches of the cost matrix."
 ) %>%
   kableExtra::kable_styling(position = "center")
 ```

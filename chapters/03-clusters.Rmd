@@ -1,6 +1,6 @@
-# Application of OM {#data}
+# Application of OM with Data from the 40+ Healthy Aging Study {#data}
 
-As mentioned in Section \@ref(background), the dataset of interest contains data about the romantic and family history of a group of women. In order to create a sequence for each participant we condense the information about civil status, relationship status, cohabitational status and the maternity, i.e. presence or absence of children. For this purpose, and with the help of an expert, we analized the frequencies of the observed states for each sequence and simplified them according to their relevance. For instance, instead of considering widowed and divorced as separate states of the civil status, we only consider married or single. Similarly, for relationship status we consider the states open relationship and same-sex relationship simply as being in a relationship given their low frequency. On the other hand, we simplified the number of children to a dichotomous variable that indicates if the woman has children or not.
+As mentioned in Section \@ref(background), the dataset of interest contains data about the romantic and family history of a group of women. In order to create a sequence for each participant we condense the information about civil status, relationship status, cohabitational status and the maternity, i.e. presence or absence of children. For this purpose, and with the help of an expert, we analized the frequencies of the observed states for each sequence and simplified them according to their relevance. For instance, instead of considering widowed and divorced as separate states of the civil status, we only consider married or single (not married). Similarly, for relationship status we consider the states open relationship and same-sex relationship simply as being in a relationship given their low frequency. On the other hand, we simplified the number of children to a dichotomous variable that indicates if the woman has children or not.
 
 Finally, the the four sequences are combined and we obtain a single yearly sequence, where the following states are considered:
 
@@ -15,7 +15,8 @@ Finally, the the four sequences are combined and we obtain a single yearly seque
 - 9 = Married + no children
 - 10 = Married + children
 
-Figure \@ref(fig:plot-seqdplot-0) shows the overall distribution of states at each time point.
+\par
+Figure \@ref(fig:plot-seqdplot-0) shows the overall distribution of states at each time point. We can observe that between ages 30 to 55 most of the women reported to be married and most of them also had children during those years. We can also observe that there is less variability after 60 years due to several missing values from this age as a consequence of the difference in lengths of the sequences.
 
 ```{r plot-seqdplot-0, out.width = "400px", fig.cap = "Cross-sectional distribution of relationship states.", fig.align = "center"}
 seqdplot(results$sd,
@@ -26,7 +27,16 @@ seqdplot(results$sd,
 )
 ```
 
-## OM Application {#om-application}
+\par
+Moreover, we want to explore potential relations between the personality and the categorical sequences. For instance, we subjectivelly define low or high levels of neuroticism as values on the lower or higher 20\% of the distribution, respectively. Figure \@ref(fig:entropy-exploratory) shows that there is a higher variability in the observed states for women with high levels of neuroticism, while in the group of women with lower values of neuroticism, there is less variability of the observed states. This difference is particularly noticeable between the ages of 30 to 60 years. 
+
+```{r entropy-exploratory, out.width = "310px", results = "hide", fig.cap = "Transversal entropy for individuals with low or high levels of neuroticism."}
+seqplot.tentrop(res, group = temp$Neuroticism_level, ylim = c(0, 1))
+```
+
+\vspace{30pt}
+
+## Application of Optimal Matching {#om-application}
 
 Using the `R` package `TraMineR` the cost matrix is calculated with transition rates between states. We consider a base setup with method `TRATE` for the calculation of the cost matrix and `maxlenght` normalization for the dissimilarities matrix, we name this the *base scenario*. The cost matrix obtained this way is shown in table \@ref(tab:cost-matrix).
 
@@ -42,11 +52,14 @@ knitr::kable(
 # kableExtra::kable_styling(font_size = 8)
 ```
 
+\par
 As expected, the elements in the diagonal are equal to 0, meaning there is no cost associated to staying in the same state. By default, the constant $c$ in \ref{eq:transition} is set to 2. This, and the fact that the duration of the states is often longer than the time unit (one year), makes that all of the values outside the diagonal are close to 2 and even equal in cases where no transition between the states were observed in the data (e.g. from single without children to single with children and vice versa). Finally, note that we consider missing value (`NA`) as a separate state and, by default, the cost of changing from or to a missing value is 2, which might be too high in cases where the individuals made a mistake in the beginning or end age of a phase leaving a gap in the sequence, or when the length of the sequences differ by a large number.
 
+\par
 From this cost matrix it is possible to calculate pairwise dissimilarities between all the sequences using the optimal matching algorithm as described in the previous section. As stated before, a correction of the dissimilarities is done to account for the differences in length of the sequences, dividing the obtained dissimilarity by the length of the longest sequence. 
 
-Having obtained the dissimilarities matrix, we can obtain the clusters. Our aim is to explore the data and the differences captured by the dissimilarities matrix. In particular, we set the number of clusters to four, given that this is the maximum number of clusters that produces groups with meaningful differences in the distribution of states. Figure \@ref(fig:seqdplot-cluster-a) shows the distribution of the states for each of the four identified clusters.
+\par
+Having obtained the dissimilarities matrix, we can derive the clusters with a hierarchical algorithm. Our aim is to explore the data and the differences captured by the dissimilarities matrix. In particular, we set the number of clusters to four, given that this is the maximum number of clusters that produces groups with meaningful differences in the distribution of states. Figure \@ref(fig:seqdplot-cluster-a) shows the distribution of the states for each of the four identified clusters.
 
 ```{r seqdplot-cluster-a, out.width = "400px", fig.align = "center", fig.cap = "Cross-sectional distribution of relationship states by cluster for the base scenario."}
 # Reduce the bottom and right margin of (sub)plots by ~50%.
@@ -64,10 +77,12 @@ In figure \@ref(fig:seqplot-cluster-a-entropy) we show the transverse entropy by
 
 \begin{equation}
 \label{eq:entropy}
-h(f_1, \dots, f_n) = - \sum_{i = 1}^n f_i \log(f_i).
+h(f_1, \dots, f_n) = - \sum_{i = 1}^n f_i \log(f_i),
 \end{equation}
 
-```{r seqplot-cluster-a-entropy, out.width = "350px", results = "hide", fig.cap = "Transversal entropy by cluster for the base scenario."}
+where $f_i$ is the relative frequency of state $s_i$.
+
+```{r seqplot-cluster-a-entropy, out.width = "310px", results = "hide", fig.cap = "Transversal entropy by cluster for the base scenario."}
 par(mar = par()$mar * c(0.5, 1, 0.5, 1)) # Reduce bottom and top margin by 50%.
 
 TraMineRextras::seqplot.tentrop(results$sd,
@@ -77,7 +92,8 @@ TraMineRextras::seqplot.tentrop(results$sd,
 )
 ```
 
-These visualizations allow us to identify common and contrasting features of the clusters that can be useful to describe them concisely. In table \@ref(tab:cluster-a-summary) we present a summary of the clusters with our descriptive interpretation of the clusters. 
+\par
+These visualizations allow us to identify common and contrasting features of the clusters that can be useful to describe them concisely. In table \@ref(tab:cluster-a-summary) we present a summary of the clusters with our descriptive interpretation of the clusters.  It is important to remember that this descriptions are subjective and not exhaustive.
 
 ```{r cluster-a-summary, echo = FALSE, message = FALSE, cache = TRUE}
 clusters4_counts %>%
@@ -94,10 +110,10 @@ clusters4_counts %>%
   knitr::kable(caption = "Summary of the four clusters obtained in the base scenario.")
 ```
 
-It is important to remember that this descriptions are subjective and not exhaustive.
-
+\par
 On the other hand, in figure \@ref(fig:seqdplot-cluster-a) we can also appreciate that the conformation of some clusters seems to be highly affected by the length of the sequence and it is reasonable to assume that the normalization method is not achieving the ideal result.
 
+\par
 Now, we are interested in exploring how the relationships history of the women relate to personality traits. As a first exploratory step, figure \@ref(fig:cluster-a-traits-dist) shows the distribution of the score for each trait by cluster.
 
 ```{r cluster-a-traits-dist, out.width = "400px", fig.cap = "Histogram of the five personality scores by cluster in the base scenario."}
@@ -113,8 +129,10 @@ data_all_long %>%
   labs(x = "Trait Value", y = "Density")
 ```
 
+\par
 No difference is obvious at first glance. Also, the number of clusters and the fact that the personality scores are not continuous makes it difficult to identify differences. For that reason, we also explore with a lower number of clusters. 
 
+\par
 By setting the number of groups to only two, we obtain better defined clusters that are less affected by the length of the sequences as we can observe in the distribution plots of the sequences states (figure \@ref(fig:seqdplot-cluster-b)): the majority of women in cluster 1 have children, while we mostly find women without children in cluster 2.
 
 ```{r seqdplot-cluster-b, out.width = "400px", fig.cap = "Cross-sectional distribution of states for two clusters in the base scenario."}
@@ -127,9 +145,10 @@ TraMineR::seqdplot(results$sd,
 )
 ```
 
+\par
 In addition, the transversal entropy of the sequences for the two clusters is displayed in figure \@ref(fig:seqplot-cluster-b-entropy), where it is shown that the entropy decreases significantly around mid age for the cluster of women with children as compared to women without children, which means that the variability of the states for the first group is much lower as compared to the second group. This can be interpreted as a sign of stability in the relationship status for women during the time they have children at home.
 
-```{r seqplot-cluster-b-entropy, out.width = "300px", results = "hide", fig.cap = "Transversal entropy for two clusters in the base scenario."}
+```{r seqplot-cluster-b-entropy, out.width = "310px", results = "hide", fig.cap = "Transversal entropy for two clusters in the base scenario."}
 par(mar = par()$mar * c(0.5, 1, 0.5, 1)) # Reduce bottom and top margin by 50%.
 
 TraMineRextras::seqplot.tentrop(
@@ -139,9 +158,31 @@ TraMineRextras::seqplot.tentrop(
 ```
 
 \par
+On the other hand, Figure \@ref(fig:seqdplot-cluster-s3) shows the distribution of the sequences states at each time point when we calculate the cost matrix with method `TRATE` but change the value of the constant $c$ to the maximum value of the sum of the transition frequencies between pairs of states. Also, Figure \@ref(fig:seqdplot-cluster-s4) shows the distribution of the sequences states at each time point when we calculate the cost matrix with method `FUTURE` and use the method `gmean` for the normalization of the distances between the categorical sequences. In both cases, by visual inspection, we obtain clusters that show cross-sectional distributions of the states that are very similar to the base scenario.
 
-As before, we  want to explore possible links between the information from the sequences and personality scores. Figure \@ref(fig:cluster-b-traits-dist) shows the distribution of the personality traits for the two clusters.
+```{r seqdplot-cluster-s3, out.width = "400px", fig.cap = "Cross-sectional distribution of states for two clusters changing the value of $c$."}
+TraMineR::seqdplot(s3$sd,
+  group = clusters_s3_labels,
+  border = NA,
+  ltext = status_labels,
+  cex.legend = 0.75,
+  bty = "o"
+)
+```
 
+
+```{r seqdplot-cluster-s4, out.width = "400px", fig.cap = "Cross-sectional distribution of states for two clusters with method `FUTURE` forcost matrix calculation and method `gmean` for distances normalization."}
+TraMineR::seqdplot(s4$sd,
+  group = clusters_s4_labels,
+  border = NA,
+  ltext = status_labels,
+  cex.legend = 0.75,
+  bty = "o"
+)
+```
+
+\par
+As mentioned before, we  want to explore possible links between the information from the sequences and personality scores. For this reason, we display in Figure \@ref(fig:cluster-b-traits-dist) the distribution of the personality traits for the two clusters. There seems to be differences in the distributions of some personality scores: the scores of agreeableness are concentrated in larger values for women with children; women without children have greater frequency in lower values of conscientiousness than women with children; and women with children exhibit lower scores of neuroticism. 
 
 ```{r cluster-b-traits-dist, fig.height = 4, out.width = "400px", fig.cap = "Histogram of the five personality scores for two clusters in the base scenario."}
 data_all_long %>%
@@ -157,7 +198,4 @@ data_all_long %>%
 ```
 
 \par
-
-There seems to be differences in the distributions of some personality scores: the scores of agreeableness are concentrated in larger values for women with children; women without children have greater frequency in lower values of conscientiousness than women with children; and women with children exhibit lower scores of neuroticism. 
-
 Even though, the distribution of personality scores by cluster does not reveal significant differences, having a dissimilarity matrix provides a numerical expression of the categorical sequences that is useful for other purposes. In particular, in the next section, we explore the predictive capability of this dataset using a non-parametric prediction method.

@@ -1,24 +1,24 @@
-# Distance-based methods for categorical sequences {#background}
+# Distance-based Methods for Categorical Sequences {#background}
 
-Distance-based methods are a class of statistical techniques based on the use of distance, similarity or dissimilarity measure between data points defined instead of using the raw variables. The main idea behind these methods is to obtain a distance or dissimilarity matrix in order to apply an unsupervised learning method such as clustering in different variations, dimensionality reduction, multidimensional scaling. As well as supervised learning methods, where we are interested in using the data to predict other variable for which we have observed or labeled values, for example: $k$-nearest neighbors ($k$-NN).
+Distance-based methods are a class of statistical techniques based on the use of distance, similarity or dissimilarity measure between data points instead of using the raw variables. The main idea behind these methods is to obtain a distance or dissimilarity matrix in order to apply an unsupervised or supervised learning method such as clustering in different variations, dimensionality reduction, multidimensional scaling or $k$-nearest neighbors ($k$-NN) when we are interested in using the data to predict other variable for which we have observed or labeled values.
 
-Moreover, in case the pair-wise Euclidean distances are available, we can obtain centered inner products and this allows to have several other techniques at our disposition, such as $k$-means clustering, multinomial regression, principal component anlaysis (PCA) ,linear discriminant analysis and support vector machines (SVM), see @ESLII.
+Moreover, in case the available pair-wise distances are Euclidean, we can obtain centered inner products and this allows us to have several other techniques at our disposition, such as $k$-means clustering, multinomial regression, principal component anlaysis (PCA) ,linear discriminant analysis and support vector machines (SVM), see @ESLII.
 
 Distance-based methods have the advantage of allowing applications with a variety of data types, in particular, categorical sequences, i.e. sequences that take values in a finite set of categories or states and are indexed by time.
 
 
-## Distance in categorical sequences
+## Distance Measures for Categorical Sequences
 
 Several ways to compute distances between categorical sequences have been proposed in the context of natural language processing and bioinformatics. Particularly, a class of measures, known as _edit distances_, provide a quantification of the dissimilarity of a pair of sequences by counting the minimum number of operations required to obtain a sequence from the other. For instance, @Hamming-1950 proposed a distance for sequences of the same length that counts the number of positions with different states. @Levenshtein-1966 generalized the Hamming distance to sequences of different lengths by considering the minimum number of single character edits required, namely insertion, deletion and substitution. The Damerau-Levenshtein distance allows for an additional operation known as transposition or swaping of characters (@Damerau-1964). The Jaro-Winkler similarity measure counts the number of matches and transpositions but does not fulfill the triangle inequality (@Winkler-1990). Additionally, there are several algorithms to find the longest common subsequence from a pair of subsequences (see @Bergroth-2000), this could be seen as a measure that allows for insertion and deletion but not substitution nor transposition.
 
 Also, note that from fundamental statistical methods for categorical data, considering the distribution of the states in a sequence, for a pair of sequences, the euclidean or $\chi^2$ distance can be obtained and used in this context.
 
 
-## Optimal matching and applications
+## Optimal Matching and Applications
 
 One generalization of the Levenshtein distance that allows for different substitution penalties for every pair of states is the Needleman-Wunsh algorithm, developed by @Needleman-Wunsch-1970 with the aim of comparing and finding similarities between biological sequences (for example, DNA or protein sequences). This algorithm is an application of dynamic programming, an iterative method that simplifies an optimization problem by breaking it into a recursion of smaller problems that are simpler to solve. By choosing the optimal operation at each step, it is guaranteed that the overall solution is optimal as well. An adaptation of this algorithm that works with dissimilarities instead of similarities is known as _optimal matching_ (OM), introduced in social sciences by @Abbott-1986 and widely applied in sociology. OM has been employed in several studies tracking the professional development of specific groups of people, see @Chan-1995, @Torsten-2014 or @Gubler-2015, and to analyze life course data, for example, @Widmer-2009 or @Bastin-2015.
 
-Limitations of OM have been pointed out by some critics. A notable flaw raised by @Wu-2000 lies in the definition of the cost matrix — a core hyperparameter of the method — and the strong assumption about its symmetry as initially, the method considered substitution costs that were provided by an expert in the context. However, data-based aproaches for the calculation of the cost matrix have been proposed since then, see @Studer-2016.
+Limitations of OM have been pointed out by some critics. A notable flaw raised by @Wu-2000 lies in the definition of the cost matrix — a core hyperparameter of the method — and the strong assumption about its symmetry. Initially, the method considered substitution costs that were provided by an expert in the context. However, data-based aproaches for the calculation of the cost matrix have been proposed since then, see @Studer-2016.
 
 Once a distance matrix has been obtained via OM or any other technique that is applicable to categorical sequences, a distance-based method can be used depending on the specific interest of the research. Usually, clusters are obtained in order to identify common trajectories through visual inspection, @Abbott-1983 highlighted the possibility to use the distance matrix for multidimensional scaling, @Gabadinho-2013 proposed a way to identify typical patterns based on the coverage neighborhood of the sequences applied to childbirth histories, @Massoni-2009 combined OM and self-organizing maps in the study of career path and employability. In addition, @Studer-2011 propose a methodology to analyze how covariates can explain the discrepancy between sequences based on their dissimilarities and @Han-1999 used the groups obtained via clustering analysis of career trajactories to predict the age of retirement. However, to our knowledge, there has been no attempt at directly using categorical sequences for the prediction of other variables. 
 
@@ -41,11 +41,10 @@ Additionally, personality scores for the women included in the study are availab
 - Neuroticism
 - Openness
 
+\par
 One of our goals is to obtain groups of similar sequences that allow us to recognize typical relationship trajectories or behaviours of women over 40 years old. For this purpose, we apply a hierarchical agglomerative clustering analysis using Ward's method to minimize the dispersion within the clusters (@Murtagh-2014), using the method `"ward.D2"` of the `hclust` function in `R`. 
 
-On the other hand, we want to understand the influence of relationship history of women on the personality scores which is of special interest for experts in psychology as there is a suspected association between the ability to maintain romantic relationships or having children and the dominant personality traits.
-
-The distance-based method chosen for prediction is $k$-NN, as for implementation we use the function `k.nearest.neighbors` from the `R` package `FastKNN`. 
+On the other hand, we want to understand the influence of relationship history of women on the personality scores which is of special interest for experts in psychology as there is a suspected association between the ability to maintain romantic relationships or having children and the dominant personality traits. The distance-based method chosen for prediction is $k$-NN, as for implementation we use the function `k.nearest.neighbors` from the `R` package `FastKNN`. 
 
 
 ## k-Nearest Neighbors 

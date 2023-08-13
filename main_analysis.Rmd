@@ -240,3 +240,38 @@ clusters_fin_labels <- factor(clusters_fin,
   labels = paste("Cluster", 1:2)
 )
 ```
+
+```{r clustering-s3, cache = TRUE}
+s3 <- distance_matrix(
+  data = rh_data,
+  cm_method = "TRATE",
+  dm_norm = "maxlength",
+  constant = c_mod,
+  extras_out = TRUE
+)
+
+cluster_s3 <- hclust(d = as.dist(s3$dm), method = "ward.D2")
+
+clusters_s3 <- cutree(cluster_s3, k = 2)
+
+clusters_s3_labels <- factor(clusters_s3,
+  labels = paste("Cluster", 1:2)
+)
+```
+
+```{r clustering-s4, cache = TRUE}
+s4 <- distance_matrix(
+  data = rh_data,
+  cm_method = "FUTURE",
+  dm_norm = "gmean",
+  extras_out = TRUE
+)
+
+cluster_s4 <- hclust(d = as.dist(s4$dm), method = "ward.D2")
+
+clusters_s4 <- cutree(cluster_s4, k = 2)
+
+clusters_s4_labels <- factor(clusters_s4,
+  labels = paste("Cluster", 1:2)
+)
+```
