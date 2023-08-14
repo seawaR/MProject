@@ -172,7 +172,7 @@ eval_experiments %>%
 ```
 
 \par
-We can observe that the best prediction is achieved at $k=6$. However, the MSE at this point is much lower than the rest of the curve. It might be the case that this is a random occurrence. However, in \@ref(fig:exp-results) we observe the minimum MSE is found with a similar number of neighbors for other scenarios, for instance, in scenario 3 (see Figure \@ref(fig:neuro3)). 
+We can observe that the best prediction is achieved at $k=6$, where the MSE is much lower than the rest of the curve. It might be the case that this is a random occurrence. However, in \@ref(fig:exp-results) we observe the minimum MSE is found with a similar number of neighbors for other scenarios, for instance, in scenario 3 (see Figure \@ref(fig:neuro3)). 
 
 ```{r neuro3, out.width = "280px", fig.cap = "MSE of neuroticism prediction with trivial prediction MSE as reference (red line) in scenario 3."}
 eval_experiments %>%
@@ -194,7 +194,7 @@ eval_experiments %>%
 ```
 
 \par
-For openness, the best predictions are obtained with scenarios 12 and 13. In both scenarios the cost matrix is calculated with $\chi^2$ distance of the states frequencies (method `FUTURE`), normalization with the method `gmean` and the sequences are restricted between 20 and 55 years of age. This scenarios differ in the cost assigned to changes involving missing values. Hence, we might infer that the prediction of openness is highly affected by the way missing values are handled. Figure \@ref(fig:open) shows the MSE for openness in scenario 13.
+For openness, the best predictions are obtained with scenarios 12 and 13. In both scenarios the cost matrix is calculated with $\chi^2$ distance of the states frequencies (method `FUTURE`), normalization with the method `gmean` and the sequences are restricted between 20 and 55 years of age. This scenarios differ in the cost assigned to changes involving missing values. Hence, we might infer that the prediction of openness is highly affected by the way missing values are handled. Figure \@ref(fig:open) shows the MSE for openness in scenario 13. Here, we notice that the curve is lower around the values near to where the minimum is obtained at $k=13$, and then for $k>25$, the MSE increases to values where the performance is worst than the trivial prediction.
 
 ```{r open, out.width = "280px", fig.cap = "MSE of openness prediction with trivial prediction MSE as reference (red line) in scenario 13."}
 eval_experiments %>%
@@ -216,10 +216,7 @@ eval_experiments %>%
 ```
 
 \par
-In the case of openness, we observe that the curve is lower around the values near to where the minimum is obtained at $k=13$ and it increases to values where the performance is worst than the trivial prediction from $k>25$.
-
-\par
-The scenario that produces the best prediction for extraversion is number 9 and, similarly to neuroticism, is not favoured by configurations that aim to reduce the effects of missing values. In Figure \@ref(fig:extra), the MSE for scenario 9 is shown. This scenario was obtained with method `FUTURE` and a missing value transition cost of 1 for obtaining the cost matrix, and the distances were normalized with method `gmean`.
+The scenario that produces the best prediction for extraversion is number 9 and, similarly to neuroticism, is not favoured by configurations that aim to reduce the effects of missing values. In Figure \@ref(fig:extra), the MSE for scenario 9 is shown. In this scenario we use the method `FUTURE` and a missing value transition cost of 1 for obtaining the cost matrix, and the distances were normalized with method `gmean`.
 
 ```{r extra, out.width = "280px", fig.cap = "MSE of extraversion prediction with trivial prediction MSE as reference (red line) in scenario 9."}
 eval_experiments %>%

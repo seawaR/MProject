@@ -1,6 +1,6 @@
 # Optimal Matching Algorithm {#om}
 
-As mentioned above, optimal matching is a technique widely applied in social sciences for the comparison of categorical sequences. OM uses the Needleman-Wunsch algorithm to identify similarities between biological sequences that are usually represented as strings of characters.
+As mentioned above, OM is a technique widely applied in social sciences for the comparison of categorical sequences. OM uses the Needleman-Wunsch algorithm to identify similarities between biological sequences that are usually represented as strings of characters.
 
 The goal of OM is to find the best possible alignment between two sequences by considering the differences and equivalences between their elements and minimizing the total cost associated. The cost of changing between states of the sequences we are interested in aligning, can be defined in several ways including data-based methods or values supplied by experts in the particular field.
 
@@ -125,7 +125,7 @@ K(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i),
 
 where $P(s_i|s_j)$ is the estimated probability of transition from state $s_j$ in time $t$ to $s_i$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
 
-The implementation of this method uses a default value of $c=2$ which results in substitution costs that are close to 2. Additionally, as pointed out by @Studer-2016, the calculation of substitution costs can lead to violations of the triangle inequality, meaning that we obtain a dissimilarity instead of a distance measure.
+The implementation of this method uses a default value of $c=2$ which results in substitution costs that are close to 2 in sequences where is common to last more than one unit of time in the same state. Additionally, as pointed out by @Studer-2016, the calculation of substitution costs can lead to violations of the triangle inequality, meaning that we obtain a dissimilarity instead of a distance measure.
 
 
 ### Chi-squared distance (`FUTURE`):
@@ -290,7 +290,7 @@ knitr::kable(
 ```
 
 \par
-Let us remember that in `TraMineR` the constant is set to 2 by default. \@ref(tab:toy-cmod) shows the cost matrix obtained when we set the constant to 1.2, a value just above the maximum sum between the observed frequencies between states.
+Let us remember that in `TraMineR` the constant is set to 2 by default. Table \@ref(tab:toy-cmod) shows the cost matrix obtained when we set the constant to 1.2, a value just above the maximum sum between the observed frequencies between states.
 
 ```{r toy-cmod}
 knitr::kable(

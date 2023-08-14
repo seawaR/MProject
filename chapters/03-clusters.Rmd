@@ -56,7 +56,7 @@ knitr::kable(
 As expected, the elements in the diagonal are equal to 0, meaning there is no cost associated to staying in the same state. By default, the constant $c$ in \ref{eq:transition} is set to 2. This, and the fact that the duration of the states is often longer than the time unit (one year), makes that all of the values outside the diagonal are close to 2 and even equal in cases where no transition between the states were observed in the data (e.g. from single without children to single with children and vice versa). Finally, note that we consider missing value (`NA`) as a separate state and, by default, the cost of changing from or to a missing value is 2, which might be too high in cases where the individuals made a mistake in the beginning or end age of a phase leaving a gap in the sequence, or when the length of the sequences differ by a large number.
 
 \par
-From this cost matrix it is possible to calculate pairwise dissimilarities between all the sequences using the optimal matching algorithm as described in the previous section. As stated before, a correction of the dissimilarities is done to account for the differences in length of the sequences, dividing the obtained dissimilarity by the length of the longest sequence. 
+From this cost matrix it is possible to calculate pairwise dissimilarities between all the sequences using the OM algorithm as described in the previous section. As stated before, a correction of the dissimilarities is done to account for the differences in length of the sequences, dividing the obtained dissimilarity by the length of the longest sequence. 
 
 \par
 Having obtained the dissimilarities matrix, we can derive the clusters with a hierarchical algorithm. Our aim is to explore the data and the differences captured by the dissimilarities matrix. In particular, we set the number of clusters to four, given that this is the maximum number of clusters that produces groups with meaningful differences in the distribution of states. Figure \@ref(fig:seqdplot-cluster-a) shows the distribution of the states for each of the four identified clusters.
@@ -111,7 +111,7 @@ clusters4_counts %>%
 ```
 
 \par
-On the other hand, in figure \@ref(fig:seqdplot-cluster-a) we can also appreciate that the conformation of some clusters seems to be highly affected by the length of the sequence and it is reasonable to assume that the normalization method is not achieving the ideal result.
+On the other hand, in figure \@ref(fig:seqdplot-cluster-a) we can also appreciate that the conformation of some clusters seems to be highly affected by the length of the sequence and it is reasonable to assume that the normalization method is not fullfilling the expectations.
 
 \par
 Now, we are interested in exploring how the relationships history of the women relate to personality traits. As a first exploratory step, figure \@ref(fig:cluster-a-traits-dist) shows the distribution of the score for each trait by cluster.
@@ -158,7 +158,7 @@ TraMineRextras::seqplot.tentrop(
 ```
 
 \par
-On the other hand, Figure \@ref(fig:seqdplot-cluster-s3) shows the distribution of the sequences states at each time point when we calculate the cost matrix with method `TRATE` but change the value of the constant $c$ to the maximum value of the sum of the transition frequencies between pairs of states. Also, Figure \@ref(fig:seqdplot-cluster-s4) shows the distribution of the sequences states at each time point when we calculate the cost matrix with method `FUTURE` and use the method `gmean` for the normalization of the distances between the categorical sequences. In both cases, by visual inspection, we obtain clusters that show cross-sectional distributions of the states that are very similar to the base scenario.
+As we have an apparent differentiating factor between two clusters, we want to explore how changes in the calculation of the cost matrix or normalization of the distances impact the formation of groups. Figure \@ref(fig:seqdplot-cluster-s3) shows the distribution of the sequences states at each time point when we calculate the cost matrix with method `TRATE` but change the value of the constant $c$ to the maximum value of the sum of the transition frequencies between pairs of states. Also, Figure \@ref(fig:seqdplot-cluster-s4) shows the distribution of the sequences states at each time point when we calculate the cost matrix with method `FUTURE` and use the method `gmean` for the normalization of the distances between the categorical sequences. In both cases, by visual inspection, we obtain clusters that show cross-sectional distributions of the states that are very similar to the base scenario and have the same main differentiating factor, i.e. maternity situation.
 
 ```{r seqdplot-cluster-s3, out.width = "400px", fig.cap = "Cross-sectional distribution of states for two clusters changing the value of $c$."}
 TraMineR::seqdplot(s3$sd,
@@ -182,7 +182,7 @@ TraMineR::seqdplot(s4$sd,
 ```
 
 \par
-As mentioned before, we  want to explore possible links between the information from the sequences and personality scores. For this reason, we display in Figure \@ref(fig:cluster-b-traits-dist) the distribution of the personality traits for the two clusters. There seems to be differences in the distributions of some personality scores: the scores of agreeableness are concentrated in larger values for women with children; women without children have greater frequency in lower values of conscientiousness than women with children; and women with children exhibit lower scores of neuroticism. 
+As mentioned before, we also want to explore possible links between the information from the sequences and personality scores. For this reason, we display in Figure \@ref(fig:cluster-b-traits-dist) the distribution of the personality traits for the two clusters. There seems to be differences in the distributions of some personality scores: the scores of agreeableness are concentrated in larger values for women with children; women without children have greater frequency in lower values of conscientiousness than women with children; and women with children exhibit lower scores of neuroticism. 
 
 ```{r cluster-b-traits-dist, fig.height = 4, out.width = "400px", fig.cap = "Histogram of the five personality scores for two clusters in the base scenario."}
 data_all_long %>%
