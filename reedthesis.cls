@@ -104,7 +104,7 @@
 % This gives us rules below the headers
 \AtBeginDocument{%
   \fancyhf{}
-  \fancyhead[L,R]{\thepage}
+  \cfoot{\thepage}
 %  \fancyhead[RE]{\slshape \leftmark}
 %  \fancyhead[LO]{\slshape \rightmark}
 %	The above makes your headers in all caps. If you would like different headers, choose one of the following options (be sure to remove the % symbol from both the right and left headers):
@@ -137,7 +137,7 @@
 \let\RToldchapter\chapter
 \renewcommand{\chapter}{\if@openright\RTcleardoublepage
 		    \else\clearpage\fi
-		    \thispagestyle{empty}%
+		    \thispagestyle{fancy}%
 		    \global\@topnum\z@
 		    \@afterindentfalse
 		    \secdef\@chapter\@schapter}
@@ -168,7 +168,7 @@
 
 \newcommand{\RTcleardoublepage}{
 	\clearpage\if@twoside \ifodd\c@page\else
-	\thispagestyle{empty}\hbox{}\newpage
+	\thispagestyle{fancy}\hbox{}\newpage
 	\if@twocolumn\hbox{}\newpage\fi\fi\fi}
 
 \let\RToldcleardoublepage\cleardoublepage
