@@ -2,7 +2,7 @@
 
 Our interest in this section is to obtain predictions of the scores on the five personality traits using the information contained in the sequences of relationship and family history as a predictor. The reason behind this is the supposition that the type and duration of romantic relationships of a person and later on the maternity has an impact on their personality. For example, we hypothesize that parents may display more extraversion as they interact with other parents or single people can show more openness to new experiences.
 
-As for the method to obtain the predictions we have opted for $k$-NN as it is easily implemented from a distance or dissimilarity matrix and does not make any assumption about the (conditional) distribution of the response variables. Note that in this setup, $d(\cdot, \cdot)$ is one of the multiple normalized dissimilarities $d(\cdot, \cdot) = d^{'}(\cdot, \cdot  | K)$ and it is dependent or parametrized by the cost matrix $K$.
+As for the method to obtain the predictions we have opted for $k$-NN as it is easily implemented from a distance or dissimilarity matrix and does not make any assumption about the (conditional) distribution of the response variables. Note that in this setup, $d(\cdot, \cdot)$ is one of the multiple normalized dissimilarities presented before.
 
 Furthermore, $k$ is also a hyperparameter that can be tuned to optimize the performance of the $k$-NN algorithm. A larger $k$ reduces the effect of noise and outliers but can also lead to overfitting. A smaller $k$ is more sensitive to noise and outliers but can capture better the local structure.
 
@@ -12,13 +12,13 @@ To compare the performance of different values of $k$ and other hyperparameters,
 \text{MSE} = \frac{1}{m} \sum_{i=1}^n (Y_i - \hat{Y}_i)^2
 \end{equation}
 
-where $y_i$ is the observed value and $\hat{Y}_i$ is the predicted value via $k$NN.
+where $Y_i$ is the observed value and $\hat{Y}_i$ is the predicted value via $k$NN.
 
 ## Personality Scores Prediction in the Base Scenario
 
 In this part of the analysis we only consider the individuals who have available personality scores, that results in a sample size of 200 individuals. Additionally, we randomly split the data into two subsets: train (70%) and test (30%) and we evaluate the MSE of the predictions for the individuals in the test set only using the data from the nearest neighbors available in the train set.
 
-For each trait we predict the personality score values $Y$ and compare them with the observed values using the MSE. Table \@ref(tab:knn-base-summary) summarizes the results of the optimal prediction and Figure \@ref(fig:knn-base) shows the MSE for the different values of $k$, i.e. for $k = 1, \dots, 80$. As a reference, a red line for every personality trait is added to indicate the MSE of the trivial prediction, i.e. the mean of all the sample points in the train set. Recall that we are using the cost matrix $K$ shown in Table \@ref(tab:cost-matrix) and normalized dissimilarity defined by the `maxlength` method as described in Subsection \@ref(om-application). 
+For each trait we predict the personality score values $Y$ and compare them with the observed values using the MSE. Table \@ref(tab:knn-base-summary) summarizes the results of the optimal prediction and Figure \@ref(fig:knn-base) shows the MSE for the different values of $k$, i.e. for $k = 1, \dots, 80$. As a reference, a red line for every personality trait is added to indicate the MSE of the trivial prediction, i.e. the mean of all the sample points in the train set. Recall that we are using the cost matrix $C$ shown in Table \@ref(tab:cost-matrix) and normalized dissimilarity defined by the `maxlength` method as described in Subsection \@ref(om-application). 
 
 ```{r base_knn_optimal}
 base_knn_optimal <- base_MSE %>%
@@ -67,7 +67,7 @@ base_MSE %>%
 
 \par
 
-Overall, it seems that using the sequential data for prediction results in little improvement compared to the trivial prediction. For neuroticism, the MSE decrases rapidly, reaching the lowest value at $k = `r k_0["Neuroticisim"]`$ and then increases again.
+Overall, it seems that using the sequential data for prediction results in little improvement compared to the trivial prediction. For neuroticism, the MSE decrases rapidly, reaching the lowest value at $k = `r k_0["Neuroticism"]`$ and then increases again.
 
 Furthermore, for conscientiousness and openness, the MSE does not seem to increase again as $k$ increases, which is expected when using $k$NN, due to overfitting. Moreover, for openness, the prediction with $k$NN is always worse than the trivial prediction. For conscientiousness, the MSE takes a minimum value for $k = `r k_0["Conscientiousness"]`$ and after $k = 30$ the MSE curve stays flat.
 
@@ -79,7 +79,7 @@ Given that the performance of the predictions is just slightly better than avera
 
 In order to assess the imparc of the hyperparameters and find better predictions for the personality scores, we considered different configurations for obtaining the cost and dissimilarity matrices. For instance:
 
-- Take the constant $c$ in \ref{eq:transition} as $2 * max_{1 \leq i,j \leq n} P(i,j)$ so that $0 \leq K(s_i, s_j) \leq 2 * max_{1 \leq i,j \leq n} P(i,j) \leq 2$).
+- Take the constant $a$ in \ref{eq:transition} as $2 * max_{1 \leq i,j \leq n} P(i,j)$ so that $0 \leq K(s_i, s_j) \leq 2 * max_{1 \leq i,j \leq n} P(i,j) \leq 2$).
 
 - Consider the methods `FUTURE`, `INDELS` and `INDELSLOG` for the calculation of the cost matrix.
 
@@ -96,7 +96,7 @@ rownames(experiments) <- 1:nrow(experiments)
 colnames(experiments) <- c(
   "Cost matrix",
   "Normalization",
-  "Transition constant",
+  "Transition constant $a$",
   "NA cost",
   "Min age",
   "Max age"
@@ -150,7 +150,7 @@ my_exp %>%
 We can observe high variability in the prediction improvement when the scenario changes, which shows a high dependency of the predictions and hence of the distances on the hyperparameters. Although there is not a single scenario that produces the best prediction improvement for every trait, the method `FUTURE` seems to produce better results for all of the traits except neuroticism. On the other hand, method `INDELS` consistently yields poor quality predictions.
 
 \par
-Figure \@ref(fig:neuro2) shows the MSE for neuroticism in scenario 2 in which the cost matrix is calculated with transition rates, the normalization method for the distances is `maxlength` and the constant $c$ was modified. Also, we observe that for this particular trait, the configurations that aim to reduce the effects of missing values produce low improvements in prediction.
+Figure \@ref(fig:neuro2) shows the MSE for neuroticism in scenario 2 in which the cost matrix is calculated with transition rates, the normalization method for the distances is `maxlength` and the constant $a$ was modified. Also, we observe that for this particular trait, the configurations that aim to reduce the effects of missing values produce low improvements in prediction.
 
 ```{r neuro2, out.width = "300px", fig.cap = "MSE of neuroticism prediction with trivial prediction MSE as reference (red line) in scenario 2."}
 eval_experiments %>%
@@ -194,7 +194,7 @@ eval_experiments %>%
 ```
 
 \par
-For openness, the best predictions are obtained with scenarios 12 and 13. In both scenarios the cost matrix is calculated with $\chi^2$ distance of the states frequencies (method `FUTURE`), normalization with the method `gmean` and the sequences are restricted between 20 and 55 years of age. This scenarios differ in the cost assigned to changes involving missing values. Hence, we might infer that the prediction of openness is highly affected by the way missing values are handled. Figure \@ref(fig:open) shows the MSE for openness in scenario 13. Here, we notice that the curve is lower around the values near to where the minimum is obtained at $k=13$, and then for $k>25$, the MSE increases to values where the performance is worst than the trivial prediction.
+For openness, the best predictions are obtained with scenarios 12 and 13. In both scenarios the cost matrix is calculated with $\chi^2$ distance of the states frequencies (method `FUTURE`), normalization with the method `gmean` and the sequences are restricted between 20 and 55 years of age. The difference between these scenarios is the cost assigned to changes involving missing values. Hence, we might infer that the prediction of openness is highly affected by the way missing values are handled. Figure \@ref(fig:open) shows the MSE for openness in scenario 13. Here, we notice that the curve is lower around the values near to where the minimum is obtained at $k=13$, and then for $k>25$, the MSE increases to values where the performance is worst than the trivial prediction.
 
 ```{r open, out.width = "280px", fig.cap = "MSE of openness prediction with trivial prediction MSE as reference (red line) in scenario 13."}
 eval_experiments %>%
@@ -309,4 +309,4 @@ seqdplot(final$sd,
 ```
 
 \par
-Even tough the cost matrix presented large variations compared to the base scenario and the predictions improved, we obtain clusters that exhibit similar main characteristics: In cluster 1, we find women with different relationship situations but without children. Similarly, in cluster 2 we find women with different relationship trajectories, but mostly married, that eventually had children. The clusters seem to be better defined in this case but that can be also due to the age restriction imposed, which implies that some sequences without enough data in the specified age range were excluded.
+Even though the cost matrix presented large variations compared to the base scenario and the predictions improved, we obtain clusters that exhibit similar main characteristics: In cluster 1, we find women with different relationship situations but without children. Similarly, in cluster 2 we find women with different relationship trajectories, but mostly married, that eventually had children. The clusters seem to be better defined in this case but that can be also due to the age restriction imposed, which implies that some sequences without enough data in the specified age range were excluded.

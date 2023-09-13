@@ -53,7 +53,7 @@ knitr::kable(
 ```
 
 \par
-As expected, the elements in the diagonal are equal to 0, meaning there is no cost associated to staying in the same state. By default, the constant $c$ in \ref{eq:transition} is set to 2. This, and the fact that the duration of the states is often longer than the time unit (one year), makes that all of the values outside the diagonal are close to 2 and even equal in cases where no transition between the states were observed in the data (e.g. from single without children to single with children and vice versa). Finally, note that we consider missing value (`NA`) as a separate state and, by default, the cost of changing from or to a missing value is 2, which might be too high in cases where the individuals made a mistake in the beginning or end age of a phase leaving a gap in the sequence, or when the length of the sequences differ by a large number.
+As mentioned before, the constant $a$ in \ref{eq:transition} is set to 2. This, and the fact that the duration of the states is often longer than the time unit (one year), makes that all of the values outside the diagonal are close to 2 and even equal in cases where no transition between the states were observed in the data (e.g. from single without children to single with children and vice versa). Finally, note that we consider missing value (`NA`) as a separate state and, by default, the cost of changing from or to a missing value is 2, which might be too high in cases where the individuals made a mistake in the beginning or end age of a phase leaving a gap in the sequence, or when the length of the sequences differ by a large number.
 
 \par
 From this cost matrix it is possible to calculate pairwise dissimilarities between all the sequences using the OM algorithm as described in the previous section. As stated before, a correction of the dissimilarities is done to account for the differences in length of the sequences, dividing the obtained dissimilarity by the length of the longest sequence. 
@@ -126,11 +126,12 @@ data_all_long %>%
     cols = vars(Trait),
     scales = "free_x"
   ) +
-  labs(x = "Trait Value", y = "Density")
+  labs(x = "Trait Value", y = "Density") +
+  scale_y_continuous(sec.axis = sec_axis(~ . , name = "Cluster", breaks = NULL, labels = NULL)) 
 ```
 
 \par
-No difference is obvious at first glance. Also, the number of clusters and the fact that the personality scores are not continuous makes it difficult to identify differences. For that reason, we also explore with a lower number of clusters. 
+The distribution of conscientiousness seem to different for clusters 1-2 and 3-4. However, the number of clusters and the fact that the personality scores are not continuous makes it difficult to identify differences. For that reason, we also explore with a lower number of clusters. 
 
 \par
 By setting the number of groups to only two, we obtain better defined clusters that are less affected by the length of the sequences as we can observe in the distribution plots of the sequences states (figure \@ref(fig:seqdplot-cluster-b)): the majority of women in cluster 1 have children, while we mostly find women without children in cluster 2.
@@ -158,9 +159,9 @@ TraMineRextras::seqplot.tentrop(
 ```
 
 \par
-As we have an apparent differentiating factor between two clusters, we want to explore how changes in the calculation of the cost matrix or normalization of the distances impact the formation of groups. Figure \@ref(fig:seqdplot-cluster-s3) shows the distribution of the sequences states at each time point when we calculate the cost matrix with method `TRATE` but change the value of the constant $c$ to the maximum value of the sum of the transition frequencies between pairs of states. Also, Figure \@ref(fig:seqdplot-cluster-s4) shows the distribution of the sequences states at each time point when we calculate the cost matrix with method `FUTURE` and use the method `gmean` for the normalization of the distances between the categorical sequences. In both cases, by visual inspection, we obtain clusters that show cross-sectional distributions of the states that are very similar to the base scenario and have the same main differentiating factor, i.e. maternity situation.
+As we have an apparent differentiating factor between two clusters, we want to explore how changes in the calculation of the cost matrix or normalization of the distances impact the formation of groups. Figure \@ref(fig:seqdplot-cluster-s3) shows the distribution of the sequences states at each time point when we calculate the cost matrix with method `TRATE` but change the value of the constant $a$ to the maximum value of the sum of the transition frequencies between pairs of states. Also, Figure \@ref(fig:seqdplot-cluster-s4) shows the distribution of the sequences states at each time point when we calculate the cost matrix with method `FUTURE` and use the method `gmean` for the normalization of the distances between the categorical sequences. In both cases, by visual inspection, we obtain clusters that show cross-sectional distributions of the states that are very similar to the base scenario and have the same main differentiating factor, i.e. maternity situation.
 
-```{r seqdplot-cluster-s3, out.width = "400px", fig.cap = "Cross-sectional distribution of states for two clusters changing the value of $c$."}
+```{r seqdplot-cluster-s3, out.width = "400px", fig.cap = "Cross-sectional distribution of states for two clusters changing $a = 1.2$."}
 TraMineR::seqdplot(s3$sd,
   group = clusters_s3_labels,
   border = NA,
@@ -194,8 +195,9 @@ data_all_long %>%
     cols = vars(Trait),
     scales = "free_x"
   ) +
-  labs(x = "Trait Value", y = "Density")
+  labs(x = "Trait Value", y = "Density") +
+  scale_y_continuous(sec.axis = sec_axis(~ . , name = "Cluster", breaks = NULL, labels = NULL)) 
 ```
 
 \par
-Even though, the distribution of personality scores by cluster does not reveal significant differences, having a dissimilarity matrix provides a numerical expression of the categorical sequences that is useful for other purposes. In particular, in the next section, we explore the predictive capability of this dataset using a non-parametric prediction method.
+Even though, the distribution of personality scores by cluster does not reveal considerable differences, having a dissimilarity matrix provides a numerical expression of the categorical sequences that is useful for other purposes. In particular, in the next section, we explore the predictive capability of this dataset using a non-parametric prediction method.

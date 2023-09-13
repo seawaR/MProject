@@ -4,9 +4,9 @@ As mentioned above, OM is a technique widely applied in social sciences for the 
 
 The goal of OM is to find the best possible alignment between two sequences by considering the differences and equivalences between their elements and minimizing the total cost associated. The cost of changing between states of the sequences we are interested in aligning, can be defined in several ways including data-based methods or values supplied by experts in the particular field.
 
-Consider a set of $n$ categorical states $S = \{s_1, \dots, s_n\}$, we define $X = (x_1, \dots, x_t)$, a sequence of length $t < \infty$, where $x_i \in S$ for $i = 1, \dots, t$. Further, let $\mathbf{S}$ be the set of all possible sequences with states belonging to $S$.
+Consider a set of $n$ categorical states $S = \{s_1, \dots, s_n\}$, we define $X = (x_1, \dots, x_t)$, a sequence of length $t_X < \infty$, where $x_i \in S$ for $i = 1, \dots, t_X$. Further, let $\mathbf{S}$ be the set of all possible sequences with states belonging to $S$.
 
-Now, let $X, Y \in \mathbf{S}$ be two sequences of size $t_X$ and $t_Y$, respectively. In order to numerically assess the disimilarity between the sequences $X$ and $Y$, we define an empty array $F$ of size $(t_X+1) \times (t_Y+1)$. Algorithm \@ref(OMalg) below shows the initialization and recursion to fill the array $F$.
+Now, let $Y \in \mathbf{S}$ be a sequence of size $t_Y$. In order to numerically assess the disimilarity between the sequences $X$ and $Y$, an array $F$ of size $(t_X+1) \times (t_Y+1)$ is used to align the sequences $X$ and $Y$. Algorithm \@ref(OMalg) below shows the initialization and recursion to fill the array $F$.
 
 \vspace{12pt}
 
@@ -23,13 +23,13 @@ Now, let $X, Y \in \mathbf{S}$ be two sequences of size $t_X$ and $t_Y$, respect
 \EndFor
 \For{$i \gets 2,t_X+1$}
   \For{$j \gets 2,t_Y+1$}
-    \State $F(i,j) \gets \min\{F(i-1, j)+d, F(i, j-1)+d, F(i-1, j-1)+K(y_{i-1}, x_{j-1})\}$
+    \State $F(i,j) \gets \min\{F(i-1, j)+d, F(i, j-1)+d, F(i-1, j-1)+C(y_{i-1}, x_{j-1})\}$
     \EndFor
 \EndFor
 \end{algorithmic}
 \end{algorithm}
 
-The value $d$ is the cost of inserting a gap in one of the sequences, also known as *indel* cost, and $K(y_{i-1}, x_{j-1})$ is the cost associated to change from the state $y_{i-1}$ to $x_{j-1}$, which is defined in a matrix $K$ of size $n \times n$, commonly known as the cost matrix.
+The value $d$ is the cost of inserting a gap in one of the sequences, also known as *indel* cost, and $c(y_{i-1}, x_{j-1})$ is the cost associated to change from the state $y_{i-1}$ to $x_{j-1}$, which is defined in a matrix $C$ of size $n \times n$, commonly known as the cost matrix.
 
 Lines 1-7 of the OM algorithm correspond to initialization. Starting with a cost of 0 in $F(1, 1)$, the first row and column of $F$ represent cumulative costs of successively adding gaps. The remaining lines of the algorithm correspond to the row-wise recursion to fill the array $F$ according to the content of the sequences to be compared: at any step of the recursion, the algorithm is looking at a specific pair of indexes (location) and calculating if substitution or insertion/deletion is the cheapest operation. Successively adding the costs of the cheapest operations results in the overall optimal cost for aligning the sequences $X$ and $Y$.
 
@@ -38,12 +38,12 @@ In fact, when $F$ is completely filled, the value in the last cell, i.e. $F(t_X+
 
 ## Example 
 
-Suppose that $S$ is the alphabet and let $X = \{S,E,N,D\}$ and $Y = \{A,N,D\}$ be two sequences in $\mathbf{S}$. 
+Suppose that $S$ is the alphabet and let $X = (S,E,N,D)$ and $Y = (A,N,D)$ be two sequences in $\mathbf{S}$. 
 
-Further, let $d = 2$ and let $K(i,j)$ be the cost associated to change from state $s_i$ to state $s_j$, for $i, j \in S$. This cost is given by:
+Further, let $d = 2$ and let $c(s_i, s_j)$ be the cost associated to change from state $s_i$ to state $s_j$, for $i, j \in S$. This cost is given by:
 
 $$
-K(i,j) = 
+c(s_i, s_j) = 
 \begin{cases}
 0 & \text{if } i=j,\\
 3 & \text{otherwise}
@@ -104,12 +104,12 @@ In both cases we have two matches (cost 0), one mismatch (cost 3) and one gap (c
 
 The cost of inserting a gap ($d$) is also known as *indel* (insert or delete) cost. In this example we can observe that, in order to obtain sequence $X$ from $Y$ we have to **insert** a term (i.e. insert a gap and then change its value to a specific state). Equivalently, to obtain sequence $Y$ starting from $X$ we have to **delete** one term.
 
-The `R` packages `TraMineR` (@TraMineR) and `TraMineRextras` provide several functions to define, analyze and visualize sequential data. In particular, `TraMineR` implements the OM algorithm and offers several methods for computing the cost matrix $K$ and the normalization of the dissimilarity matrix.
+The `R` packages `TraMineR` (@TraMineR) and `TraMineRextras` provide several functions to define, analyze and visualize sequential data. In particular, `TraMineR` implements the OM algorithm and offers several methods for computing the cost matrix $C$ and the normalization of the dissimilarity matrix.
 
 
 ## Methods for Calculation of the Cost Matrix
 
-The cost matrix $K$ is a symmetric matrix of size $n \times n$. The value in the $i$-th row and $j$-th column $K(s_i, s_j)$ indicates the cost of moving from state $s_i$ in time $t > 0$ to state $s_j$ in $t+1$.
+The cost matrix $C$ is a symmetric matrix of size $n \times n$. The value in the $i$-th row and $j$-th column $C[i, j] = c(s_i, s_j)$ indicates the cost of moving from state $s_i$ in time $t > 0$ to state $s_j$ in $t+1$.
 
 The following are the methods available in `TraMineR` to obtain the cost matrix.
 
@@ -120,12 +120,12 @@ The substitution cost between states $s_i$ and $s_j$, $1 \leq i, j \leq n$ is ba
 
 \begin{equation}
 \label{eq:transition}
-K(s_i, s_j) = c - P(s_i|s_j) - P(s_j|s_i),
+c(s_i, s_j) = a - P(s_i|s_j) - P(s_j|s_i),
 \end{equation}
 
-where $P(s_i|s_j)$ is the estimated probability of transition from state $s_j$ in time $t$ to $s_i$ in time $t+1$ and $c$ is a constant, set to a value such that $0 \leq K(s_i, s_j) \leq 2$).
+where $P(s_i|s_j)$ is the estimated probability of transition from state $s_j$ in time $t$ to $s_i$ in time $t+1$ and $a$ is a constant, set to a value such that $0 \leq c(s_i, s_j) \leq 2$).
 
-The implementation of this method uses a default value of $c=2$ which results in substitution costs that are close to 2 in sequences where is common to last more than one unit of time in the same state. Additionally, as pointed out by @Studer-2016, the calculation of substitution costs can lead to violations of the triangle inequality, meaning that we obtain a dissimilarity instead of a distance measure.
+The implementation of this method uses a default value of $a=2$ which results in substitution costs that are close to 2 in sequences where is common to last more than one unit of time in the same state. Additionally, as pointed out by @Studer-2016, the calculation of substitution costs can lead to violations of the triangle inequality, meaning that we obtain a dissimilarity instead of a distance measure.
 
 
 ### Chi-squared distance (`FUTURE`):
@@ -134,8 +134,8 @@ The $\chi^2$-distance is a weighted sum of the squared differences of distributi
 
 \begin{align}
 \label{eq:chisq}
-K(s_i, s_j) &= d_{\chi^2}(\mathbf{P_i}, \mathbf{P_j}) \\
-            &= \left[ \sum_{l = 1}^n \alpha_l^{-1} \left( P(s_l|s_i) - P(s_l|s_i) \right)^2 \right]^{1/2}
+c(s_i, s_j) &= d_{\chi^2}(\mathbf{P_i}, \mathbf{P_j}) \\
+            &= \left[ \sum_{l = 1}^n \alpha_l^{-1} \left( P(s_l|s_i) - P(s_l|s_j) \right)^2 \right]^{1/2}
 \end{align}
 
 where $\mathbf{P_.} = (P(s_1|s_.), \dots, P(s_n|s_.))'$, and $\alpha_l = \sum_{h=1}^n P(s_l|s_n)$ and $i \neq j$.
@@ -147,14 +147,14 @@ It has been shown via simulation, that this distance is particularly sensitive t
 
 \begin{equation}
 \label{eq:indels_cost}
-K(s_i, s_j) = d_i + d_j,
+c(s_i, s_j) = d_i + d_j,
 \end{equation}
 
 where the *indel* cost $d_i$ depends on the state and takes values: 
 
 \begin{align}
-g_i &= \frac{1}{f_i}, &\text{for method `INDEL`}, \\
-g_i &= \log\left({\frac{2}{1+f_i}}\right), &\text{for method `INDELSLOG`}
+d_i &= \frac{1}{f_i}, &\text{for method `INDEL`}, \\
+d_i &= \log\left({\frac{2}{1+f_i}}\right), &\text{for method `INDELSLOG`}
 \end{align}
 
 and $f_i$ is the relative frequency of the state $s_i$ for $i = 1, \dots, n$. 
@@ -240,16 +240,16 @@ toy_dists <- tibble(
 
 Let $S = \{A, B, D, E, N, R, S\}$ and consider the following sequences in $\mathbf{S}$:
 
-- $\{S,E,N,D\}$ 
-- $\{A,N,D\}$
-- $\{B,R,A,N,D\}$
-- $\{B,R,E,A,D\}$
-- $\{E,N,D\}$
-- $\{R,E,D\}$
-- $\{S,A,N,D\}$
-- $\{D,E,A,N\}$
-- $\{A,B,E,S\}$
-- $\{N,A,B,E\}$
+- $(S,E,N,D)$ 
+- $(A,N,D)$
+- $(B,R,A,N,D)$
+- $(B,R,E,A,D)$
+- $(E,N,D)$
+- $(R,E,D)$
+- $(S,A,N,D)$
+- $(D,E,A,N)$
+- $(A,B,E,S)$
+- $(N,A,B,E)$
 
 \par
 Table \@ref(tab:toy-trate) shows the transition frequencies or estimated transition probabilities for the observed sequences. For this example, we observe a great amount of cells with the value 0 as there was no observed transition between those states. Additionally, the diagonal was set to 0 as we assume there is no cost associated with a match between two sequences.
@@ -266,17 +266,17 @@ knitr::kable(
 ```
 
 \par
-Now, suppose we want to obtain the cost matrix with the method `TRATE` with $c=2$. We would procceed as follows:
+Now, suppose we want to obtain the cost matrix with the method `TRATE` with $a=2$. We would procceed as follows:
 
 \begin{align*}
-K(A, B) &= c - P(A|B) - P(B|A) & \\
+c(A, B) &= c - P(A|B) - P(B|A) & \\
         &= 2 - `r round(toy_trate[1, 2], 4)` - `r round(toy_trate[2, 1], 4)` = `r round(2-toy_trate[1, 2]-toy_trate[2, 1], 4)` \\
-K(A, N) &= c - P(A|N) - P(N|A) & \\
+c(A, N) &= c - P(A|N) - P(N|A) & \\
         &= 2 - `r round(toy_trate[1, 5], 4)` - `r round(toy_trate[5, 1], 4)` = `r round(2-toy_trate[1, 5]-toy_trate[5, 1], 4)`
 \end{align*}
 
 \par
-Table \@ref(tab:toy-cm) shows the full cost matrix obtained from transition probabilities, which is a symmetric matrix. As we can observe, the positions values displayed in $K[1,2], K[1,2], K[1,5], K[5,1]$ are the same as those obtained above.
+Table \@ref(tab:toy-cm) shows the full cost matrix obtained from transition probabilities, which is a symmetric matrix. As we can observe, the positions values displayed in $C[1,2], C[1,2], C[1,5], C[5,1]$ are the same as those obtained above.
 
 ```{r toy-cm}
 knitr::kable(
@@ -298,7 +298,7 @@ knitr::kable(
   row.names = TRUE,
   align = "c",
   digits = 4,
-  caption = "Cost matrix obtained from transition probabilities with $c=1.2$."
+  caption = "Cost matrix obtained from transition probabilities with $a=1.2$."
 ) %>%
   kableExtra::kable_styling(position = "center")
 ```
@@ -306,7 +306,7 @@ knitr::kable(
 
 \par
 
-In addition to changing the value of $c$, we can opt for none or one of the normalization methods mentioned in the previous subsectionin order to obtain the distance matrix. Table \@ref(tab:toy-dists) shows some descriptive statistics of the obtained distances for different methods of normalization.
+In addition to changing the value of $a$, we can opt for none or one of the normalization methods mentioned in the previous subsectio in order to obtain the distance matrix. Table \@ref(tab:toy-dists) shows some descriptive statistics of the obtained distances for different methods of normalization.
 
 ```{r toy-dists}
 knitr::kable(
